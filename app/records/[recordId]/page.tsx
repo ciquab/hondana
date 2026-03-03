@@ -1,10 +1,11 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { updateRecordStatus, type ActionResult } from '@/app/actions/record';
+import { createComment, type CommentActionResult } from '@/app/actions/comment';
 import { READING_STATUSES, STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 
 type RecordDetail = {
@@ -20,14 +21,50 @@ type RecordDetail = {
   children: { id: string; display_name: string };
 };
 
+type Comment = {
+  id: string;
+  author_user_id: string;
+  body: string;
+  created_at: string;
+};
+
 export default function RecordDetailPage() {
   const { recordId } = useParams<{ recordId: string }>();
   const [record, setRecord] = useState<RecordDetail | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(updateRecordStatus, {});
+  const [commentState, commentFormAction, commentPending] = useActionState<CommentActionResult, FormData>(
+    async (prev, formData) => {
+      const result = await createComment(prev, formData);
+      if (!result.error) {
+        fetchComments();
+      }
+      return result;
+    },
+    {}
+  );
+
+  const fetchComments = useCallback(() => {
+    const supabase = createClient();
+    supabase
+      .from('record_comments')
+      .select('id, author_user_id, body, created_at')
+      .eq('record_id', recordId)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        setComments((data as Comment[]) ?? []);
+      });
+  }, [recordId]);
 
   useEffect(() => {
     const supabase = createClient();
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id ?? null);
+    });
+
     supabase
       .from('reading_records')
       .select(
@@ -39,7 +76,9 @@ export default function RecordDetailPage() {
         setRecord(data as RecordDetail | null);
         setLoading(false);
       });
-  }, [recordId]);
+
+    fetchComments();
+  }, [recordId, fetchComments]);
 
   if (loading) {
     return (
@@ -157,6 +196,53 @@ export default function RecordDetailPage() {
           {pending ? '更新中…' : '更新する'}
         </button>
       </form>
+
+      {/* コメントセクション */}
+      <section className="mt-6 rounded-xl bg-white p-4 shadow">
+        <h2 className="font-semibold">コメント（{comments.length}件）</h2>
+
+        {comments.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">まだコメントはありません。</p>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {comments.map((c) => (
+              <li key={c.id} className="rounded-lg bg-slate-50 p-3">
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  {c.author_user_id === currentUserId && (
+                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700">自分</span>
+                  )}
+                  <time>{new Date(c.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{c.body}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form action={commentFormAction} className="mt-4">
+          <input type="hidden" name="recordId" value={record.id} />
+          <textarea
+            name="body"
+            className="w-full rounded border p-2 text-sm"
+            rows={2}
+            placeholder="コメントを入力…"
+            maxLength={500}
+            required
+          />
+          {commentState.error && (
+            <p className="mt-1 text-sm text-red-600" role="alert">
+              {commentState.error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={commentPending}
+            className="mt-2 rounded bg-emerald-600 px-4 py-1.5 text-sm text-white disabled:opacity-50"
+          >
+            {commentPending ? '送信中…' : '送信'}
+          </button>
+        </form>
+      </section>
     </main>
   );
 }
