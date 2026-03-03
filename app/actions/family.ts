@@ -4,9 +4,16 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
-export async function createFamily(formData: FormData) {
+export type ActionResult = {
+  error?: string;
+};
+
+export async function createFamily(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
   const name = String(formData.get('name') ?? '').trim();
-  if (!name) return;
+  if (!name) return { error: '家族名を入力してください。' };
 
   const supabase = await createClient();
   const {
@@ -15,34 +22,33 @@ export async function createFamily(formData: FormData) {
 
   if (!user) redirect('/login');
 
-  const { data: family, error: familyError } = await supabase
-    .from('families')
-    .insert({ name })
-    .select('id')
-    .single();
-
-  if (familyError || !family) return;
-
-  const { error: memberError } = await supabase.from('family_members').insert({
-    family_id: family.id,
-    user_id: user.id,
-    role: 'owner'
+  const { error } = await supabase.rpc('create_family_with_owner', {
+    family_name: name
   });
 
-  // NOTE: We intentionally keep this minimal for Day1.
-  // If this insert fails after family creation, an orphan family row can remain.
-  // Transactional handling / RPC-based atomic create will be addressed in a future PR.
-  if (memberError) return;
+  if (error) {
+    return { error: '家族の作成に失敗しました。もう一度お試しください。' };
+  }
 
   revalidatePath('/dashboard');
   redirect('/settings/children');
 }
 
-export async function createChild(formData: FormData) {
+export async function createChild(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
   const displayName = String(formData.get('displayName') ?? '').trim();
   const birthYearRaw = String(formData.get('birthYear') ?? '').trim();
 
-  if (!displayName) return;
+  if (!displayName) return { error: '表示名を入力してください。' };
+
+  if (birthYearRaw) {
+    const year = Number(birthYearRaw);
+    if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()) {
+      return { error: '生年が正しくありません。' };
+    }
+  }
 
   const supabase = await createClient();
   const {
@@ -63,11 +69,15 @@ export async function createChild(formData: FormData) {
     redirect('/settings/family');
   }
 
-  await supabase.from('children').insert({
+  const { error } = await supabase.from('children').insert({
     family_id: member.family_id,
     display_name: displayName,
     birth_year: birthYearRaw ? Number(birthYearRaw) : null
   });
+
+  if (error) {
+    return { error: '子どもの追加に失敗しました。もう一度お試しください。' };
+  }
 
   revalidatePath('/dashboard');
   redirect('/dashboard');
