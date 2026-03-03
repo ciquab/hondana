@@ -23,11 +23,16 @@ export async function createFamily(formData: FormData) {
 
   if (familyError || !family) return;
 
-  await supabase.from('family_members').insert({
+  const { error: memberError } = await supabase.from('family_members').insert({
     family_id: family.id,
     user_id: user.id,
     role: 'owner'
   });
+
+  // NOTE: We intentionally keep this minimal for Day1.
+  // If this insert fails after family creation, an orphan family row can remain.
+  // Transactional handling / RPC-based atomic create will be addressed in a future PR.
+  if (memberError) return;
 
   revalidatePath('/dashboard');
   redirect('/settings/children');
