@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { signOut } from '@/app/actions/auth';
 import { getChildrenForCurrentUser, getFamiliesForCurrentUser } from '@/lib/db/family';
+import { getRecordCountsForChildren } from '@/lib/db/records';
 
 export default async function DashboardPage() {
   const families = await getFamiliesForCurrentUser();
@@ -11,6 +12,7 @@ export default async function DashboardPage() {
   }
 
   const children = await getChildrenForCurrentUser();
+  const recordCounts = await getRecordCountsForChildren(children.map((c) => c.id));
 
   return (
     <main className="mx-auto max-w-3xl p-4">
@@ -37,9 +39,23 @@ export default async function DashboardPage() {
         ) : (
           <ul className="space-y-2">
             {children.map((child) => (
-              <li key={child.id} className="rounded border p-3">
-                <p className="font-medium">{child.display_name}</p>
-                <p className="text-sm text-slate-600">生年: {child.birth_year ?? '未設定'}</p>
+              <li key={child.id}>
+                <Link
+                  href={`/children/${child.id}`}
+                  className="block rounded border p-3 transition hover:bg-slate-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{child.display_name}</p>
+                      <p className="text-sm text-slate-600">
+                        生年: {child.birth_year ?? '未設定'}
+                      </p>
+                    </div>
+                    <span className="text-sm text-slate-500">
+                      {recordCounts[child.id] ?? 0} 冊
+                    </span>
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>
