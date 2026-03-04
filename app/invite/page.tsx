@@ -1,11 +1,13 @@
-'use client';
-
-import { useActionState } from 'react';
 import Link from 'next/link';
-import { acceptInvite, type ActionResult } from '@/app/actions/family';
+import { InviteAcceptForm } from '@/components/invite-accept-form';
 
-export default function InvitePage() {
-  const [state, formAction, pending] = useActionState<ActionResult, FormData>(acceptInvite, {});
+export default async function InvitePage({
+  searchParams
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const params = await searchParams;
+  const defaultCode = (params.code ?? '').toUpperCase();
 
   return (
     <main className="mx-auto max-w-xl p-4">
@@ -15,36 +17,10 @@ export default function InvitePage() {
       </Link>
 
       <p className="mb-4 text-sm text-slate-600">
-        パートナーから受け取った招待コードを入力して、家族に参加できます。
+        パートナーから受け取った招待コードを入力して、家族に参加できます。QRリンクから開いた場合は自動入力されます。
       </p>
 
-      <form action={formAction} className="rounded-xl bg-white p-4 shadow">
-        <label htmlFor="inviteCode" className="mb-2 block text-sm font-medium">
-          招待コード
-        </label>
-        <input
-          id="inviteCode"
-          name="code"
-          className="mb-3 w-full rounded border p-2 text-center font-mono text-lg uppercase tracking-widest"
-          placeholder="ABCD1234"
-          maxLength={8}
-          required
-        />
-
-        {state.error && (
-          <p className="mb-3 text-sm text-red-600" role="alert">
-            {state.error}
-          </p>
-        )}
-
-        <button
-          className="w-full rounded bg-purple-600 px-4 py-2 text-white disabled:opacity-50"
-          type="submit"
-          disabled={pending}
-        >
-          {pending ? '参加中…' : '家族に参加する'}
-        </button>
-      </form>
+      <InviteAcceptForm defaultCode={defaultCode} />
     </main>
   );
 }
