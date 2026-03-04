@@ -33,8 +33,22 @@ export default function ChildrenSettingsPage() {
           id="birthYear"
           name="birthYear"
           type="number"
-          className="mb-4 w-full rounded border p-2"
+          className="mb-3 w-full rounded border p-2"
           placeholder="2018"
+        />
+
+        <label htmlFor="pin" className="mb-2 block text-sm font-medium">
+          4桁PIN（子どもログイン用）
+        </label>
+        <input
+          id="pin"
+          name="pin"
+          type="password"
+          inputMode="numeric"
+          maxLength={4}
+          className="mb-4 w-full rounded border p-2"
+          placeholder="例: 1234"
+          required
         />
 
         {state.error && (
