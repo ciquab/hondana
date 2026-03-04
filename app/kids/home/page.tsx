@@ -4,6 +4,7 @@ import { kidSignOut } from '@/app/actions/kid-auth';
 import { createClient } from '@/lib/supabase/server';
 import { getKidSessionChildId } from '@/lib/kids/session';
 import { getChildBadges } from '@/lib/kids/badges';
+import { getKidMessages } from '@/lib/kids/messages';
 
 export default async function KidsHomePage() {
   const childId = await getKidSessionChildId();
@@ -24,14 +25,15 @@ export default async function KidsHomePage() {
 
   if (!child) redirect('/kids/login');
 
-  const [{ data: recent }, badges] = await Promise.all([
+  const [{ data: recent }, badges, { unreadCount }] = await Promise.all([
     supabase
     .from('reading_records')
     .select('id, created_at, books(title)')
     .eq('child_id', childId)
     .order('created_at', { ascending: false })
     .limit(5),
-    getChildBadges(childId)
+    getChildBadges(childId),
+    getKidMessages(childId)
   ]);
 
   return (
@@ -49,6 +51,9 @@ export default async function KidsHomePage() {
         </Link>
         <Link href="/kids/calendar" className="inline-block rounded bg-violet-600 px-4 py-2 text-white">
           カレンダーを見る
+        </Link>
+        <Link href="/kids/messages" className="inline-block rounded bg-rose-600 px-4 py-2 text-white">
+          メッセージ {unreadCount > 0 ? `(${unreadCount})` : ''}
         </Link>
       </div>
 
