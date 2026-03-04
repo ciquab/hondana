@@ -33,6 +33,9 @@ export default async function DashboardPage() {
         <Link className="rounded bg-purple-600 px-3 py-2 text-white" href="/invite">
           招待コードで参加
         </Link>
+        <Link className="rounded bg-amber-600 px-3 py-2 text-white" href="/kids/login">
+          こどもモード
+        </Link>
       </div>
 
       <section className="rounded-xl bg-white p-4 shadow">
