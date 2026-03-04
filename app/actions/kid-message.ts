@@ -25,6 +25,23 @@ export async function markKidMessageRead(formData: FormData): Promise<void> {
 
   if (!allowed) return;
 
+  const { data: comment } = await supabase
+    .from('record_comments')
+    .select('record_id')
+    .eq('id', commentId)
+    .maybeSingle();
+
+  if (!comment?.record_id) return;
+
+  const { data: targetRecord } = await supabase
+    .from('reading_records')
+    .select('id')
+    .eq('id', comment.record_id)
+    .eq('child_id', childId)
+    .maybeSingle();
+
+  if (!targetRecord) return;
+
   await supabase.from('child_message_views').upsert(
     {
       child_id: childId,
