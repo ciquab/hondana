@@ -27,11 +27,11 @@ export default async function KidsHomePage() {
 
   const [{ data: recent }, badges, { unreadCount }] = await Promise.all([
     supabase
-    .from('reading_records')
-    .select('id, created_at, books(title)')
-    .eq('child_id', childId)
-    .order('created_at', { ascending: false })
-    .limit(5),
+      .from('reading_records')
+      .select('id, created_at, books(title, cover_url)')
+      .eq('child_id', childId)
+      .order('created_at', { ascending: false })
+      .limit(6),
     getChildBadges(childId),
     getKidMessages(childId)
   ]);
@@ -49,6 +49,9 @@ export default async function KidsHomePage() {
         <Link href="/kids/records/new" className="inline-block rounded bg-emerald-600 px-4 py-2 text-white">
           きょうの記録をつける
         </Link>
+        <Link href="/kids/records" className="inline-block rounded bg-indigo-600 px-4 py-2 text-white">
+          本だなを見る
+        </Link>
         <Link href="/kids/calendar" className="inline-block rounded bg-violet-600 px-4 py-2 text-white">
           カレンダーを見る
         </Link>
@@ -56,7 +59,6 @@ export default async function KidsHomePage() {
           メッセージ {unreadCount > 0 ? `(${unreadCount})` : ''}
         </Link>
       </div>
-
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
         <h2 className="mb-2 text-lg font-semibold">バッジ</h2>
@@ -81,12 +83,37 @@ export default async function KidsHomePage() {
       </section>
 
       <section className="rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-2 text-lg font-semibold">さいきん読んだ本</h2>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">さいきん読んだ本</h2>
+          <Link href="/kids/records" className="text-sm text-blue-600 underline">
+            過去の記録をひらく
+          </Link>
+        </div>
         {recent && recent.length > 0 ? (
-          <ul className="space-y-1 text-sm text-slate-700">
-            {recent.map((row) => (
-              <li key={row.id}>・{(row.books as { title?: string } | null)?.title ?? '不明な本'}</li>
-            ))}
+          <ul className="grid grid-cols-3 gap-2">
+            {recent.map((row) => {
+              const book = row.books as
+                | { title?: string; cover_url?: string | null }
+                | { title?: string; cover_url?: string | null }[]
+                | null;
+              const info = Array.isArray(book) ? book[0] : book;
+              const title = info?.title ?? '不明な本';
+              return (
+                <li key={row.id}>
+                  <Link href={`/records/${row.id}`} className="block rounded border p-1">
+                    {info?.cover_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={info.cover_url} alt={title} className="h-24 w-full rounded object-cover" />
+                    ) : (
+                      <div className="flex h-24 w-full items-center justify-center rounded bg-slate-100 text-xs text-slate-400">
+                        No cover
+                      </div>
+                    )}
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-700">{title}</p>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-sm text-slate-600">まだ記録がありません。</p>
