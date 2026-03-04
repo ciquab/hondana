@@ -27,13 +27,13 @@ export async function GET(request: NextRequest) {
   }
 
   if (q && q.trim().length > 0) {
-    // Try Google Books first, fall back to NDL if empty/error (rate limit)
-    const results = await searchByTitle(q.trim());
-    if (results.length > 0) {
-      return NextResponse.json({ results });
-    }
+    // Try NDL first (free, no key, good for Japanese books), fall back to Google Books
     const ndlResults = await ndlSearchByTitle(q.trim());
-    return NextResponse.json({ results: ndlResults });
+    if (ndlResults.length > 0) {
+      return NextResponse.json({ results: ndlResults });
+    }
+    const results = await searchByTitle(q.trim());
+    return NextResponse.json({ results });
   }
 
   return NextResponse.json({ error: 'isbn or q parameter required' }, { status: 400 });
