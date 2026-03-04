@@ -23,12 +23,15 @@ export default async function DashboardPage() {
         </form>
       </header>
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Link className="rounded bg-blue-600 px-3 py-2 text-white" href="/settings/family">
           家族設定
         </Link>
         <Link className="rounded bg-emerald-600 px-3 py-2 text-white" href="/settings/children">
           子ども追加
+        </Link>
+        <Link className="rounded bg-purple-600 px-3 py-2 text-white" href="/invite">
+          招待コードで参加
         </Link>
       </div>
 
