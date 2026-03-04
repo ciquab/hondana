@@ -30,6 +30,35 @@ export async function GET(request: NextRequest) {
   if (q && q.trim().length > 0) {
     const variants = buildTitleQueryVariants(q);
 
+    const normalizeText = (value: string | null | undefined) =>
+      (value ?? '').replace(/\s+/g, '').toLowerCase();
+
+    const mergePreferIsbn = (
+      primary: Awaited<ReturnType<typeof searchByTitle>>,
+      secondary: Awaited<ReturnType<typeof searchByTitle>>
+    ) => {
+      const secondaryByText = new Map<string, (typeof secondary)[number]>();
+      for (const item of secondary) {
+        const key = `${normalizeText(item.title)}:${normalizeText(item.author)}`;
+        if (!secondaryByText.has(key)) {
+          secondaryByText.set(key, item);
+        }
+      }
+
+      return primary.map((item) => {
+        if (item.isbn13) return item;
+        const key = `${normalizeText(item.title)}:${normalizeText(item.author)}`;
+        const candidate = secondaryByText.get(key);
+        if (!candidate?.isbn13) return item;
+
+        return {
+          ...item,
+          isbn13: candidate.isbn13,
+          coverUrl: item.coverUrl ?? candidate.coverUrl,
+        };
+      });
+    };
+
     const dedupeResults = (items: Awaited<ReturnType<typeof searchByTitle>>) => {
       const merged: Awaited<ReturnType<typeof searchByTitle>> = [];
       const seen = new Set<string>();
@@ -51,18 +80,20 @@ export async function GET(request: NextRequest) {
       googleMerged.push(...googleResults);
     }
     const googleUnique = dedupeResults(googleMerged).slice(0, 10);
-    if (googleUnique.length > 0) {
-      return NextResponse.json({ results: googleUnique });
-    }
 
-    // Fallback to NDL when Google Books returns nothing.
     const ndlMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
       const ndlResults = await ndlSearchByTitle(queryVariant);
       ndlMerged.push(...ndlResults);
     }
+    const ndlUnique = dedupeResults(ndlMerged).slice(0, 10);
 
-    return NextResponse.json({ results: dedupeResults(ndlMerged).slice(0, 10) });
+    if (googleUnique.length > 0) {
+      return NextResponse.json({ results: mergePreferIsbn(googleUnique, ndlUnique) });
+    }
+
+    // Fallback to NDL when Google Books returns nothing.
+    return NextResponse.json({ results: ndlUnique });
   }
 
   return NextResponse.json({ error: 'isbn or q parameter required' }, { status: 400 });
