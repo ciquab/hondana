@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     // Try NDL first (free, no key, good for Japanese books), then Google Books.
     for (const queryVariant of variants) {
       const ndlResults = await ndlSearchByTitle(queryVariant);
+      console.log(`[book-search] q="${queryVariant}" NDL=${ndlResults.length} results`);
       pushUnique(ndlResults);
       if (merged.length >= 10) {
         return NextResponse.json({ results: merged.slice(0, 10) });
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest) {
 
     for (const queryVariant of variants) {
       const googleResults = await searchByTitle(queryVariant);
+      console.log(`[book-search] q="${queryVariant}" GoogleBooks=${googleResults.length} results`);
       pushUnique(googleResults);
       if (merged.length >= 10) {
         break;
