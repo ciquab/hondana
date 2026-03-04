@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export type ActionResult = {
   error?: string;
+  inviteCode?: string;
 };
 
 export async function createFamily(
@@ -77,6 +78,60 @@ export async function createChild(
 
   if (error) {
     return { error: '子どもの追加に失敗しました。もう一度お試しください。' };
+  }
+
+  revalidatePath('/dashboard');
+  redirect('/dashboard');
+}
+
+export async function createInvite(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const familyId = String(formData.get('familyId') ?? '').trim();
+  if (!familyId) return { error: '家族が選択されていません。' };
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data, error } = await supabase.rpc('create_family_invite', {
+    target_family_id: familyId
+  });
+
+  if (error) {
+    return { error: '招待コードの発行に失敗しました。もう一度お試しください。' };
+  }
+
+  return { inviteCode: data };
+}
+
+export async function acceptInvite(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const code = String(formData.get('code') ?? '').trim();
+  if (!code) return { error: '招待コードを入力してください。' };
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { error } = await supabase.rpc('accept_family_invite', {
+    code
+  });
+
+  if (error) {
+    if (error.message.includes('Already a member')) {
+      return { error: 'すでにこの家族のメンバーです。' };
+    }
+    return { error: '招待コードが無効か、有効期限が切れています。' };
   }
 
   revalidatePath('/dashboard');
