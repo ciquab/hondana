@@ -9,7 +9,7 @@ export async function getRecordsForChild(childId: string) {
 
   const { data } = await supabase
     .from('reading_records')
-    .select('id, status, memo, finished_on, created_at, updated_at, books(id, title, author, isbn13)')
+    .select('id, status, memo, finished_on, created_at, updated_at, books(id, title, author, isbn13, cover_url)')
     .eq('child_id', childId)
     .order('created_at', { ascending: false });
 
