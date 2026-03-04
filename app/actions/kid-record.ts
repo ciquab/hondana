@@ -2,15 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-<<<<<<< Updated upstream
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
-=======
-import { createServiceClient } from '@/lib/supabase/service';
-import { getKidContext } from '@/lib/kids/context';
->>>>>>> Stashed changes
 import { evaluateChildBadges } from '@/lib/kids/badges';
+import { getKidContext } from '@/lib/kids/context';
 import { CHILD_FEELINGS, CHILD_STAMPS } from '@/lib/kids/feelings';
+import { createServiceClient } from '@/lib/supabase/service';
 
 export type KidRecordActionResult = {
   error?: string;
@@ -37,27 +32,18 @@ export async function createKidRecord(
   if (isbn && !/^\d{13}$/.test(isbn)) return { error: 'ISBNは13桁の数字で入力してください。' };
   if (!CHILD_STAMPS.includes(stamp as (typeof CHILD_STAMPS)[number])) return { error: 'スタンプを選択してください。' };
 
-<<<<<<< Updated upstream
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
+  const { childId, familyId } = await getKidContext();
+  const supabase = createServiceClient();
 
-  const supabase = createAdminClient();
   const { data: child } = await supabase
     .from('children')
-    .select('family_id, families(created_by)')
+    .select('families(created_by)')
     .eq('id', childId)
     .maybeSingle();
 
-  if (!child?.family_id) return { error: '子ども情報の取得に失敗しました。' };
-
-  const family = Array.isArray(child.families) ? child.families[0] : child.families;
+  const family = Array.isArray(child?.families) ? child?.families[0] : child?.families;
   const creatorId = family?.created_by;
   if (!creatorId) return { error: '記録作成に必要な保護者情報が見つかりません。' };
-=======
-  const { childId, familyId } = await getKidContext();
-
-  const supabase = createServiceClient();
->>>>>>> Stashed changes
 
   let bookId: string;
   if (isbn) {
@@ -90,11 +76,7 @@ export async function createKidRecord(
       child_id: childId,
       book_id: bookId,
       status,
-<<<<<<< Updated upstream
       created_by: creatorId
-=======
-      created_by: childId // 子ども自身が作成者（auth.users FK なし）
->>>>>>> Stashed changes
     })
     .select('id')
     .single();

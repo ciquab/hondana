@@ -1,25 +1,13 @@
 import Link from 'next/link';
 import { kidSignOut } from '@/app/actions/kid-auth';
-<<<<<<< Updated upstream
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
-=======
-import { createServiceClient } from '@/lib/supabase/service';
-import { getKidContext } from '@/lib/kids/context';
->>>>>>> Stashed changes
 import { getChildBadges } from '@/lib/kids/badges';
+import { getKidContext } from '@/lib/kids/context';
 import { getKidMessages } from '@/lib/kids/messages';
+import { createServiceClient } from '@/lib/supabase/service';
 
 export default async function KidsHomePage() {
   const { childId, displayName } = await getKidContext();
-
-<<<<<<< Updated upstream
-  const supabase = createAdminClient();
-  const { data: child } = await supabase.from('children').select('id, display_name').eq('id', childId).maybeSingle();
-  if (!child) redirect('/kids/login');
-=======
   const supabase = createServiceClient();
->>>>>>> Stashed changes
 
   const [{ data: recent }, badges, { unreadCount }] = await Promise.all([
     supabase

@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-import { createAdminClient } from '@/lib/supabase/admin';
-=======
 import { createServiceClient } from '@/lib/supabase/service';
->>>>>>> Stashed changes
 
 const BADGE_IDS = {
   FIRST_BOOK: 'first_book',
@@ -41,11 +37,7 @@ function longestStreak(dates: string[]): number {
 }
 
 export async function evaluateChildBadges(childId: string, sourceRecordId: string) {
-<<<<<<< Updated upstream
-  const supabase = createAdminClient();
-=======
   const supabase = createServiceClient();
->>>>>>> Stashed changes
 
   const [{ count: totalRecords }, { data: allRecords }, { data: allTags }] = await Promise.all([
     supabase
@@ -84,11 +76,7 @@ export async function evaluateChildBadges(childId: string, sourceRecordId: strin
 }
 
 export async function getChildBadges(childId: string) {
-<<<<<<< Updated upstream
-  const supabase = createAdminClient();
-=======
   const supabase = createServiceClient();
->>>>>>> Stashed changes
 
   const { data } = await supabase
     .from('child_badges')

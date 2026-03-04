@@ -17,3 +17,7 @@ pnpm-debug.log*
 
 # misc
 .DS_Store
+
+# local build/generated
+supabase/.temp/
+*.tsbuildinfo

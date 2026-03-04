@@ -1,11 +1,6 @@
 import Link from 'next/link';
 import { markKidMessageRead } from '@/app/actions/kid-message';
-<<<<<<< Updated upstream
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
-=======
 import { getKidContext } from '@/lib/kids/context';
->>>>>>> Stashed changes
 import { getKidMessages } from '@/lib/kids/messages';
 
 const EMOJI_MAP: Record<string, string> = {
@@ -17,29 +12,14 @@ const EMOJI_MAP: Record<string, string> = {
 
 export default async function KidsMessagesPage() {
   const { childId, displayName } = await getKidContext();
-
-<<<<<<< Updated upstream
-  const supabase = createAdminClient();
-  const [{ data: child }, { messages, unreadCount }] = await Promise.all([
-    supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
-    getKidMessages(childId)
-  ]);
-=======
   const { messages, unreadCount } = await getKidMessages(childId);
->>>>>>> Stashed changes
-
-  if (!child) redirect('/kids/login');
 
   return (
     <main className="mx-auto max-w-2xl p-4">
       <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
         こどもホームへ戻る
       </Link>
-<<<<<<< Updated upstream
-      <h1 className="text-2xl font-bold">{child.display_name} へのメッセージ</h1>
-=======
       <h1 className="text-2xl font-bold">{displayName} へのメッセージ</h1>
->>>>>>> Stashed changes
       <p className="mb-4 text-sm text-slate-600">未読 {unreadCount} 件</p>
 
       {messages.length === 0 ? (
