@@ -74,25 +74,45 @@ export default function RecordDetailPage() {
       });
   }, [recordId]);
 
-  const fetchReactions = useCallback(() => {
+  const fetchReactions = useCallback(async () => {
     const supabase = createClient();
-    supabase
+    const { data } = await supabase
       .from('record_reactions')
       .select('id, user_id, emoji')
-      .eq('record_id', recordId)
-      .then(({ data }) => {
-        setReactions((data as Reaction[]) ?? []);
-      });
+      .eq('record_id', recordId);
+    setReactions((data as Reaction[]) ?? []);
   }, [recordId]);
 
   const handleReaction = useCallback(
     async (emoji: string) => {
+      if (!currentUserId) return;
       setReactingEmoji(emoji);
-      await toggleReaction(recordId, emoji);
-      fetchReactions();
+
+      // Optimistic update: toggle locally first
+      setReactions((prev) => {
+        const existing = prev.find((r) => r.user_id === currentUserId && r.emoji === emoji);
+        if (existing) {
+          // Remove
+          return prev.filter((r) => r.id !== existing.id);
+        } else {
+          // Add
+          return [...prev, { id: `optimistic-${Date.now()}`, user_id: currentUserId, emoji }];
+        }
+      });
+
       setReactingEmoji(null);
+
+      // Sync with server in background
+      try {
+        await toggleReaction(recordId, emoji);
+        // Re-fetch actual data to ensure consistency
+        fetchReactions();
+      } catch {
+        // Revert on error by re-fetching
+        fetchReactions();
+      }
     },
-    [recordId, fetchReactions]
+    [recordId, currentUserId, fetchReactions]
   );
 
   useEffect(() => {

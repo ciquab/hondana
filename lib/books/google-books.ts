@@ -61,10 +61,13 @@ function mapVolume(vol: VolumeInfo): GoogleBookResult {
 /** Search by ISBN (13-digit) */
 export async function searchByIsbn(isbn: string): Promise<GoogleBookResult | null> {
   const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1`, {
-    next: { revalidate: 86400 }, // cache 1 day
+    cache: 'no-store',
   });
 
-  if (!res.ok) return null;
+  if (!res.ok) {
+    console.error('Google Books API error (ISBN):', res.status, await res.text().catch(() => ''));
+    return null;
+  }
 
   const data: GoogleBooksResponse = await res.json();
   if (!data.items || data.items.length === 0) return null;
@@ -77,10 +80,13 @@ export async function searchByTitle(query: string, maxResults = 10): Promise<Goo
   const encoded = encodeURIComponent(query);
   const res = await fetch(
     `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books`,
-    { next: { revalidate: 3600 } } // cache 1 hour
+    { cache: 'no-store' }
   );
 
-  if (!res.ok) return [];
+  if (!res.ok) {
+    console.error('Google Books API error (title):', res.status, await res.text().catch(() => ''));
+    return [];
+  }
 
   const data: GoogleBooksResponse = await res.json();
   if (!data.items) return [];
