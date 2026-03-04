@@ -1,0 +1,109 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { getKidSessionChildId } from '@/lib/kids/session';
+
+const ALLOWED_STAMPS = ['great', 'fun', 'ok', 'hard'] as const;
+const ALLOWED_FEELINGS = ['ドキドキ', '笑った', 'びっくり', 'かなしかった', 'ためになった'];
+
+export type KidRecordActionResult = {
+  error?: string;
+};
+
+export async function createKidRecord(
+  _prev: KidRecordActionResult,
+  formData: FormData
+): Promise<KidRecordActionResult> {
+  const title = String(formData.get('title') ?? '').trim();
+  const author = String(formData.get('author') ?? '').trim();
+  const status = String(formData.get('status') ?? 'finished').trim();
+  const stamp = String(formData.get('stamp') ?? '').trim();
+  const selectedTags = formData
+    .getAll('feelingTags')
+    .map((v) => String(v))
+    .filter((v) => ALLOWED_FEELINGS.includes(v));
+
+  if (!title) return { error: '本のタイトルを入力してください。' };
+  if (!ALLOWED_STAMPS.includes(stamp as (typeof ALLOWED_STAMPS)[number])) {
+    return { error: 'スタンプを選択してください。' };
+  }
+
+  const childId = await getKidSessionChildId();
+  if (!childId) {
+    redirect('/kids/login');
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
+    target_child_id: childId
+  });
+  if (!allowed) {
+    return { error: 'この子どもの記録を作成できません。' };
+  }
+
+  const { data: child } = await supabase.from('children').select('family_id').eq('id', childId).single();
+  if (!child) {
+    return { error: '子ども情報の取得に失敗しました。' };
+  }
+
+  const { data: newBook, error: bookErr } = await supabase
+    .from('books')
+    .insert({ title, author: author || null })
+    .select('id')
+    .single();
+
+  if (bookErr || !newBook) {
+    return { error: '本の登録に失敗しました。' };
+  }
+
+  const { data: newRecord, error: recordErr } = await supabase
+    .from('reading_records')
+    .insert({
+      family_id: child.family_id,
+      child_id: childId,
+      book_id: newBook.id,
+      status,
+      created_by: user.id
+    })
+    .select('id')
+    .single();
+
+  if (recordErr || !newRecord) {
+    return { error: '読書記録の作成に失敗しました。' };
+  }
+
+  const { error: stampErr } = await supabase.from('record_reactions_child').insert({
+    record_id: newRecord.id,
+    child_id: childId,
+    stamp
+  });
+
+  if (stampErr) {
+    return { error: 'スタンプ保存に失敗しました。' };
+  }
+
+  if (selectedTags.length > 0) {
+    const { error: tagsErr } = await supabase.from('record_feeling_tags').insert(
+      selectedTags.map((tag) => ({
+        record_id: newRecord.id,
+        child_id: childId,
+        tag
+      }))
+    );
+
+    if (tagsErr) {
+      return { error: '気持ちタグ保存に失敗しました。' };
+    }
+  }
+
+  revalidatePath('/kids/home');
+  redirect('/kids/home');
+}

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { hashPin } from '@/lib/kids/pin';
 
 export type ActionResult = {
   error?: string;
@@ -41,8 +42,10 @@ export async function createChild(
 ): Promise<ActionResult> {
   const displayName = String(formData.get('displayName') ?? '').trim();
   const birthYearRaw = String(formData.get('birthYear') ?? '').trim();
+  const pin = String(formData.get('pin') ?? '').trim();
 
   if (!displayName) return { error: '表示名を入力してください。' };
+  if (!/^\d{4}$/.test(pin)) return { error: 'PINは4桁の数字で入力してください。' };
 
   if (birthYearRaw) {
     const year = Number(birthYearRaw);
@@ -70,14 +73,28 @@ export async function createChild(
     redirect('/settings/family');
   }
 
-  const { error } = await supabase.from('children').insert({
-    family_id: member.family_id,
-    display_name: displayName,
-    birth_year: birthYearRaw ? Number(birthYearRaw) : null
+  const { data: newChild, error } = await supabase
+    .from('children')
+    .insert({
+      family_id: member.family_id,
+      display_name: displayName,
+      birth_year: birthYearRaw ? Number(birthYearRaw) : null
+    })
+    .select('id')
+    .single();
+
+  if (error || !newChild) {
+    return { error: '子どもの追加に失敗しました。もう一度お試しください。' };
+  }
+
+  const { error: pinError } = await supabase.from('child_auth_methods').insert({
+    child_id: newChild.id,
+    pin_hash: hashPin(pin)
   });
 
-  if (error) {
-    return { error: '子どもの追加に失敗しました。もう一度お試しください。' };
+  if (pinError) {
+    await supabase.from('children').delete().eq('id', newChild.id);
+    return { error: 'PINの設定に失敗しました。もう一度お試しください。' };
   }
 
   revalidatePath('/dashboard');
