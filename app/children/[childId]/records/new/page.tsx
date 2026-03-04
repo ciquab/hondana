@@ -20,6 +20,7 @@ export default function NewRecordPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GoogleBookResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   // Form field state for auto-fill
@@ -58,6 +59,7 @@ export default function NewRecordPage() {
   const handleTitleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
     setSearching(true);
+    setHasSearched(true);
     try {
       const res = await fetch(`/api/books/search?q=${encodeURIComponent(searchQuery.trim())}`);
       const data = await res.json();
@@ -111,7 +113,7 @@ export default function NewRecordPage() {
         </div>
 
         {/* Search results */}
-        {searchResults.length > 0 && (
+        {searchResults.length > 0 ? (
           <ul className="max-h-60 space-y-1 overflow-y-auto rounded-lg border bg-white p-2">
             {searchResults.map((book, i) => (
               <li key={i}>
@@ -139,6 +141,10 @@ export default function NewRecordPage() {
               </li>
             ))}
           </ul>
+        ) : (
+          hasSearched && !searching && (
+            <p className="text-sm text-slate-500">見つかりませんでした。下のフォームから手入力できます。</p>
+          )
         )}
       </div>
 
