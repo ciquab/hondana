@@ -35,6 +35,7 @@ export default function NewRecordPage() {
     setCoverUrl(book.coverUrl);
     setSearchResults([]);
     setSearchQuery('');
+    setHasSearched(false);
   }, []);
 
   const handleBarcodeDetected = useCallback(
