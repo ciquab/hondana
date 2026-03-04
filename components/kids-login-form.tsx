@@ -8,7 +8,7 @@ type Child = {
   display_name: string;
 };
 
-export function KidsLoginForm({ childOptions }: { childOptions: Child[] }) {
+export function KidsLoginForm({ childOptions, disabled = false }: { childOptions: Child[]; disabled?: boolean }) {
   const [state, formAction, pending] = useActionState<KidAuthResult, FormData>(verifyKidPin, {});
 
   return (
@@ -18,7 +18,7 @@ export function KidsLoginForm({ childOptions }: { childOptions: Child[] }) {
           <label htmlFor="childId" className="mb-1 block text-sm font-medium">
             子ども
           </label>
-          <select id="childId" name="childId" className="w-full rounded border p-2" required>
+          <select id="childId" name="childId" className="w-full rounded border p-2" required disabled={disabled}>
             <option value="">選択してください</option>
             {childOptions.map((child) => (
               <option key={child.id} value={child.id}>
@@ -39,6 +39,7 @@ export function KidsLoginForm({ childOptions }: { childOptions: Child[] }) {
             className="w-full rounded border p-2"
             placeholder="子どもIDを入力"
             required
+            disabled={disabled}
           />
         </div>
       )}
@@ -56,6 +57,7 @@ export function KidsLoginForm({ childOptions }: { childOptions: Child[] }) {
           className="w-full rounded border p-2"
           placeholder="0000"
           required
+          disabled={disabled}
         />
       </div>
 
@@ -63,10 +65,10 @@ export function KidsLoginForm({ childOptions }: { childOptions: Child[] }) {
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || disabled}
         className="w-full rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
       >
-        {pending ? '確認中…' : 'ログイン'}
+        {disabled ? '設定待ち' : pending ? '確認中…' : 'ログイン'}
       </button>
     </form>
   );

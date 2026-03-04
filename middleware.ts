@@ -3,7 +3,24 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 const protectedRoutes = ['/dashboard', '/settings', '/children', '/records', '/kids'];
 
+function redirectKidRecordPathIfNeeded(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const kidSession = request.cookies.get('kid_session')?.value;
+
+  if (!kidSession) return null;
+
+  const match = pathname.match(/^\/records\/([^/]+)$/);
+  if (!match) return null;
+
+  const url = request.nextUrl.clone();
+  url.pathname = `/kids/records/${match[1]}`;
+  return NextResponse.redirect(url);
+}
+
 export async function middleware(request: NextRequest) {
+  const kidRedirect = redirectKidRecordPathIfNeeded(request);
+  if (kidRedirect) return kidRedirect;
+
   const response = NextResponse.next({
     request: {
       headers: request.headers
@@ -31,9 +48,7 @@ export async function middleware(request: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  const isProtected = protectedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
-  );
+  const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
