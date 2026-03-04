@@ -1,18 +1,25 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { kidSignOut } from '@/app/actions/kid-auth';
+<<<<<<< Updated upstream
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
+=======
+import { createServiceClient } from '@/lib/supabase/service';
+import { getKidContext } from '@/lib/kids/context';
+>>>>>>> Stashed changes
 import { getChildBadges } from '@/lib/kids/badges';
 import { getKidMessages } from '@/lib/kids/messages';
 
 export default async function KidsHomePage() {
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
+  const { childId, displayName } = await getKidContext();
 
+<<<<<<< Updated upstream
   const supabase = createAdminClient();
   const { data: child } = await supabase.from('children').select('id, display_name').eq('id', childId).maybeSingle();
   if (!child) redirect('/kids/login');
+=======
+  const supabase = createServiceClient();
+>>>>>>> Stashed changes
 
   const [{ data: recent }, badges, { unreadCount }] = await Promise.all([
     supabase
@@ -28,7 +35,7 @@ export default async function KidsHomePage() {
   return (
     <main className="mx-auto max-w-xl p-4">
       <header className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{child.display_name} のホーム</h1>
+        <h1 className="text-2xl font-bold">{displayName} のホーム</h1>
         <form action={kidSignOut}>
           <button className="rounded border px-3 py-1 text-sm">ログアウト</button>
         </form>

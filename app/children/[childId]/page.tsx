@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getRecordsForChild } from '@/lib/db/records';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
+import SetChildPinForm from '@/components/set-child-pin-form';
 
 type Props = {
   params: Promise<{ childId: string }>;
@@ -40,6 +41,12 @@ export default async function ChildRecordsPage({ params }: Props) {
   if (!child) notFound();
 
   const records = await getRecordsForChild(childId);
+
+  const { data: authMethod } = await supabase
+    .from('child_auth_methods')
+    .select('pin_hash')
+    .eq('child_id', childId)
+    .maybeSingle();
 
   const grouped = {
     reading: records.filter((r) => r.status === 'reading'),
@@ -171,6 +178,16 @@ export default async function ChildRecordsPage({ params }: Props) {
           })}
         </div>
       )}
+      {/* PIN management */}
+      <section className="mt-8 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-3 text-lg font-semibold">こどもログイン PIN</h2>
+        {authMethod?.pin_hash ? (
+          <p className="mb-3 text-sm text-slate-600">PIN設定済み。変更する場合は新しいPINを入力してください。</p>
+        ) : (
+          <p className="mb-3 text-sm text-amber-700">PINが設定されていません。こどもモードでログインするには設定が必要です。</p>
+        )}
+        <SetChildPinForm childId={childId} hasPinAlready={!!authMethod?.pin_hash} />
+      </section>
     </main>
   );
 }

@@ -12,6 +12,28 @@ type ActiveInvite = {
   created_at: string;
 };
 
+function KidLoginCard({ familyId }: { familyId: string }) {
+  const kidLoginUrl = useMemo(() => {
+    if (typeof window === 'undefined') return `/kids/login?familyId=${familyId}`;
+    return `${window.location.origin}/kids/login?familyId=${familyId}`;
+  }, [familyId]);
+
+  const qrUrl = useMemo(
+    () =>
+      `https://quickchart.io/qr?text=${encodeURIComponent(kidLoginUrl)}&size=220&margin=2&ecLevel=M`,
+    [kidLoginUrl]
+  );
+
+  return (
+    <div className="rounded border bg-white p-3">
+      <div className="mt-2 flex justify-center">
+        <img src={qrUrl} alt="こどもログインQRコード" className="h-40 w-40 rounded border bg-white p-2" />
+      </div>
+      <p className="mt-2 break-all rounded bg-slate-50 p-2 text-xs text-slate-600">{kidLoginUrl}</p>
+    </div>
+  );
+}
+
 function InviteCard({ code }: { code: string }) {
   const inviteUrl = useMemo(() => {
     if (typeof window === 'undefined') return `/invite?code=${encodeURIComponent(code)}`;
@@ -138,6 +160,16 @@ export default function FamilySettingsPage() {
           {familyPending ? '作成中…' : '家族を作成'}
         </button>
       </form>
+
+      {familyId && (
+        <section className="mb-6 rounded-xl bg-emerald-50 p-4 shadow">
+          <h2 className="mb-2 text-lg font-semibold">こどもログインURL</h2>
+          <p className="mb-3 text-sm text-slate-600">
+            子どもの端末でこのURLを開くか、QRコードを読み取ると、親のログインなしでこどもモードにアクセスできます。
+          </p>
+          <KidLoginCard familyId={familyId} />
+        </section>
+      )}
 
       {familyId && (
         <section className="space-y-4 rounded-xl bg-white p-4 shadow">

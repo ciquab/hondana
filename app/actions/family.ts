@@ -155,6 +155,47 @@ export async function revokeInvite(
   return { ok: '招待コードを無効化しました。' };
 }
 
+export async function setChildPin(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const childId = String(formData.get('childId') ?? '').trim();
+  const pin = String(formData.get('pin') ?? '').trim();
+  const pinConfirm = String(formData.get('pinConfirm') ?? '').trim();
+
+  if (!childId) return { error: '子どもIDが不正です。' };
+  if (!/^\d{4}$/.test(pin)) return { error: 'PINは4桁の数字で入力してください。' };
+  if (pin !== pinConfirm) return { error: 'PINが一致しません。' };
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
+    target_child_id: childId
+  });
+
+  if (!allowed) return { error: 'この子どものPINを変更する権限がありません。' };
+
+  const { error } = await supabase.from('child_auth_methods').upsert(
+    {
+      child_id: childId,
+      pin_hash: hashPin(pin),
+      pin_failed_count: 0,
+      pin_locked_until: null
+    },
+    { onConflict: 'child_id' }
+  );
+
+  if (error) return { error: 'PINの設定に失敗しました。もう一度お試しください。' };
+
+  revalidatePath(`/children/${childId}`);
+  return { ok: 'PINを設定しました。' };
+}
+
 export async function acceptInvite(
   _prev: ActionResult,
   formData: FormData

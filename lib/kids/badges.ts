@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 import { createAdminClient } from '@/lib/supabase/admin';
+=======
+import { createServiceClient } from '@/lib/supabase/service';
+>>>>>>> Stashed changes
 
 const BADGE_IDS = {
   FIRST_BOOK: 'first_book',
@@ -6,6 +10,12 @@ const BADGE_IDS = {
   SEVEN_DAY_STREAK: 'seven_day_streak',
   MANY_FEELINGS: 'many_feelings'
 } as const;
+
+// UTC タイムスタンプを JST (UTC+9) の YYYY-MM-DD に変換する
+function toJSTDateString(utcTimestamp: string): string {
+  const ms = new Date(utcTimestamp).getTime() + 9 * 60 * 60 * 1000;
+  return new Date(ms).toISOString().slice(0, 10);
+}
 
 function longestStreak(dates: string[]): number {
   if (dates.length === 0) return 0;
@@ -17,7 +27,7 @@ function longestStreak(dates: string[]): number {
   for (let i = 1; i < uniqueSorted.length; i += 1) {
     const prev = new Date(uniqueSorted[i - 1]);
     const cur = new Date(uniqueSorted[i]);
-    const diffDays = Math.round((cur.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((cur.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) {
       current += 1;
@@ -31,7 +41,11 @@ function longestStreak(dates: string[]): number {
 }
 
 export async function evaluateChildBadges(childId: string, sourceRecordId: string) {
+<<<<<<< Updated upstream
   const supabase = createAdminClient();
+=======
+  const supabase = createServiceClient();
+>>>>>>> Stashed changes
 
   const [{ count: totalRecords }, { data: allRecords }, { data: allTags }] = await Promise.all([
     supabase
@@ -49,7 +63,7 @@ export async function evaluateChildBadges(childId: string, sourceRecordId: strin
 
   const streak = longestStreak(
     (allRecords ?? [])
-      .map((row) => row.created_at?.slice(0, 10))
+      .map((row) => (row.created_at ? toJSTDateString(row.created_at) : null))
       .filter((v): v is string => Boolean(v))
   );
   if (streak >= 7) awarded.push(BADGE_IDS.SEVEN_DAY_STREAK);
@@ -70,7 +84,11 @@ export async function evaluateChildBadges(childId: string, sourceRecordId: strin
 }
 
 export async function getChildBadges(childId: string) {
+<<<<<<< Updated upstream
   const supabase = createAdminClient();
+=======
+  const supabase = createServiceClient();
+>>>>>>> Stashed changes
 
   const { data } = await supabase
     .from('child_badges')

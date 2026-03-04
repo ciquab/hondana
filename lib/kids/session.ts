@@ -54,7 +54,11 @@ export async function setKidSession(childId: string) {
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
+<<<<<<< Updated upstream
     maxAge: KID_SESSION_MAX_AGE_SECONDS
+=======
+    maxAge: 30 * 60 // 30分
+>>>>>>> Stashed changes
   });
 }
 

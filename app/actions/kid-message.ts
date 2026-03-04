@@ -1,19 +1,28 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+<<<<<<< Updated upstream
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
+=======
+import { createServiceClient } from '@/lib/supabase/service';
+import { getKidContext } from '@/lib/kids/context';
+>>>>>>> Stashed changes
 
 export async function markKidMessageRead(formData: FormData): Promise<void> {
   const commentId = String(formData.get('commentId') ?? '').trim();
   if (!commentId) return;
 
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
+  const { childId } = await getKidContext();
 
+<<<<<<< Updated upstream
   const supabase = createAdminClient();
+=======
+  const supabase = createServiceClient();
+>>>>>>> Stashed changes
 
+  // コメントが自分の記録に属するものか確認
   const { data: comment } = await supabase
     .from('record_comments')
     .select('record_id')

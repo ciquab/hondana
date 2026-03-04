@@ -8,11 +8,16 @@ type Child = {
   display_name: string;
 };
 
+<<<<<<< Updated upstream
 export function KidsLoginForm({ childOptions, disabled = false }: { childOptions: Child[]; disabled?: boolean }) {
+=======
+export function KidsLoginForm({ familyId, childOptions }: { familyId: string; childOptions: Child[] }) {
+>>>>>>> Stashed changes
   const [state, formAction, pending] = useActionState<KidAuthResult, FormData>(verifyKidPin, {});
 
   return (
     <form action={formAction} className="space-y-4 rounded-xl bg-white p-4 shadow">
+<<<<<<< Updated upstream
       {childOptions.length > 0 ? (
         <div>
           <label htmlFor="childId" className="mb-1 block text-sm font-medium">
@@ -43,6 +48,22 @@ export function KidsLoginForm({ childOptions, disabled = false }: { childOptions
           />
         </div>
       )}
+=======
+      <input type="hidden" name="familyId" value={familyId} />
+      <div>
+        <label htmlFor="childId" className="mb-1 block text-sm font-medium">
+          子ども
+        </label>
+        <select id="childId" name="childId" className="w-full rounded border p-2" required>
+          <option value="">選択してください</option>
+          {childOptions.map((child) => (
+            <option key={child.id} value={child.id}>
+              {child.display_name}
+            </option>
+          ))}
+        </select>
+      </div>
+>>>>>>> Stashed changes
 
       <div>
         <label htmlFor="pin" className="mb-1 block text-sm font-medium">

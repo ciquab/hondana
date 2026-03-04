@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 import { createAdminClient } from '@/lib/supabase/admin';
+=======
+import { createServiceClient } from '@/lib/supabase/service';
+>>>>>>> Stashed changes
 
 type CommentRow = {
   id: string;
@@ -8,7 +12,11 @@ type CommentRow = {
 };
 
 export async function getKidMessages(childId: string) {
+<<<<<<< Updated upstream
   const supabase = createAdminClient();
+=======
+  const supabase = createServiceClient();
+>>>>>>> Stashed changes
 
   const { data: records } = await supabase
     .from('reading_records')

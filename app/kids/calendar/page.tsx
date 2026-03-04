@@ -1,7 +1,12 @@
 import Link from 'next/link';
+<<<<<<< Updated upstream
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
+=======
+import { createServiceClient } from '@/lib/supabase/service';
+import { getKidContext } from '@/lib/kids/context';
+>>>>>>> Stashed changes
 import { getChildBadges } from '@/lib/kids/badges';
 
 function getMonthBounds(monthParam: string | undefined) {
@@ -22,21 +27,29 @@ export default async function KidsCalendarPage({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
+  const { childId, displayName } = await getKidContext();
 
   const { month } = await searchParams;
   const bounds = getMonthBounds(month);
 
+<<<<<<< Updated upstream
   const supabase = createAdminClient();
   const [{ data: records }, { data: child }, badges] = await Promise.all([
+=======
+  const supabase = createServiceClient();
+
+  const [{ data: records }, badges] = await Promise.all([
+>>>>>>> Stashed changes
     supabase
       .from('reading_records')
       .select('id, created_at, record_reactions_child(stamp)')
       .eq('child_id', childId)
       .gte('created_at', bounds.from)
       .lt('created_at', bounds.to),
+<<<<<<< Updated upstream
     supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
+=======
+>>>>>>> Stashed changes
     getChildBadges(childId)
   ]);
 
@@ -59,7 +72,11 @@ export default async function KidsCalendarPage({
       <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
         こどもホームへ戻る
       </Link>
+<<<<<<< Updated upstream
       <h1 className="mb-1 text-2xl font-bold">{child.display_name} のどくしょカレンダー</h1>
+=======
+      <h1 className="mb-1 text-2xl font-bold">{displayName} のどくしょカレンダー</h1>
+>>>>>>> Stashed changes
       <p className="mb-4 text-sm text-slate-600">{bounds.monthLabel}</p>
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">

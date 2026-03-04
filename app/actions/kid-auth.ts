@@ -2,6 +2,10 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+<<<<<<< Updated upstream
+=======
+import { createServiceClient } from '@/lib/supabase/service';
+>>>>>>> Stashed changes
 import { clearKidSession, setKidSession } from '@/lib/kids/session';
 import { verifyPin } from '@/lib/kids/pin';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
@@ -15,8 +19,10 @@ export async function verifyKidPin(
   formData: FormData
 ): Promise<KidAuthResult> {
   const childId = String(formData.get('childId') ?? '').trim();
+  const familyId = String(formData.get('familyId') ?? '').trim();
   const pin = String(formData.get('pin') ?? '').trim();
 
+<<<<<<< Updated upstream
   if (!childId || !/^\d{4}$/.test(pin)) {
     return { error: '子どもIDと4桁PINを入力してください。' };
   }
@@ -30,6 +36,24 @@ export async function verifyKidPin(
   const { data: child } = await supabase.from('children').select('id').eq('id', childId).maybeSingle();
   if (!child?.id) {
     return { error: '子どもIDまたはPINが正しくありません。' };
+=======
+  if (!childId || !familyId || !/^\d{4}$/.test(pin)) {
+    return { error: '子どもと4桁PINを入力してください。' };
+  }
+
+  const supabase = createServiceClient();
+
+  // familyId と childId の整合性確認
+  const { data: child } = await supabase
+    .from('children')
+    .select('id')
+    .eq('id', childId)
+    .eq('family_id', familyId)
+    .single();
+
+  if (!child) {
+    return { error: 'この子どもにはアクセスできません。' };
+>>>>>>> Stashed changes
   }
 
   const { data: method } = await supabase
@@ -48,25 +72,22 @@ export async function verifyKidPin(
 
   if (!verifyPin(pin, method.pin_hash)) {
     const nextFailCount = (method.pin_failed_count ?? 0) + 1;
-    const lockedUntil = nextFailCount >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null;
+    const lockedUntil = nextFailCount >= 5
+      ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      : null;
 
     await supabase
       .from('child_auth_methods')
-      .update({
-        pin_failed_count: nextFailCount,
-        pin_locked_until: lockedUntil
-      })
+      .update({ pin_failed_count: nextFailCount, pin_locked_until: lockedUntil })
       .eq('child_id', childId);
 
     return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
+  // ログイン成功：失敗カウントをリセット
   await supabase
     .from('child_auth_methods')
-    .update({
-      pin_failed_count: 0,
-      pin_locked_until: null
-    })
+    .update({ pin_failed_count: 0, pin_locked_until: null })
     .eq('child_id', childId);
 
   await setKidSession(childId);
