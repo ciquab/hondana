@@ -13,6 +13,8 @@ export async function createRecord(
   _prev: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
+  const coverUrl = (formData.get('coverUrl') as string) || null;
+
   const raw = {
     childId: formData.get('childId') ?? '',
     title: formData.get('title') ?? '',
@@ -72,7 +74,7 @@ export async function createRecord(
     } else {
       const { data: newBook, error: bookErr } = await supabase
         .from('books')
-        .insert({ isbn13: isbn, title, author: author || null })
+        .insert({ isbn13: isbn, title, author: author || null, cover_url: coverUrl })
         .select('id')
         .single();
 
@@ -84,7 +86,7 @@ export async function createRecord(
   } else {
     const { data: newBook, error: bookErr } = await supabase
       .from('books')
-      .insert({ title, author: author || null })
+      .insert({ title, author: author || null, cover_url: coverUrl })
       .select('id')
       .single();
 

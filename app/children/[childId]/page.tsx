@@ -8,6 +8,12 @@ type Props = {
   params: Promise<{ childId: string }>;
 };
 
+type BookInfo = {
+  title: string;
+  author?: string;
+  cover_url?: string | null;
+};
+
 export default async function ChildRecordsPage({ params }: Props) {
   const { childId } = await params;
 
@@ -38,6 +44,11 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   const sectionOrder: ReadingStatus[] = ['reading', 'want_to_read', 'finished'];
 
+  // Collect books with covers for bookshelf visual
+  const finishedBooks = grouped.finished
+    .map((r) => r.books as unknown as BookInfo | null)
+    .filter((b): b is BookInfo => b !== null);
+
   return (
     <main className="mx-auto max-w-3xl p-4">
       <div className="mb-4 flex items-center justify-between">
@@ -54,6 +65,40 @@ export default async function ChildRecordsPage({ params }: Props) {
           記録を追加
         </Link>
       </div>
+
+      {/* Bookshelf visual */}
+      {finishedBooks.length > 0 && (
+        <section className="mb-6 rounded-xl bg-amber-50 p-4 shadow">
+          <h2 className="mb-3 text-sm font-semibold text-amber-800">
+            {child.display_name} の本棚（読了 {finishedBooks.length}冊）
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {finishedBooks.map((book, i) =>
+              book.cover_url ? (
+                <img
+                  key={i}
+                  src={book.cover_url}
+                  alt={book.title}
+                  title={book.title}
+                  className="h-24 rounded shadow transition hover:scale-105"
+                />
+              ) : (
+                <div
+                  key={i}
+                  title={book.title}
+                  className="flex h-24 w-16 items-center justify-center rounded bg-slate-200 p-1 text-center shadow"
+                >
+                  <span className="text-[10px] leading-tight text-slate-600">
+                    {book.title.length > 12 ? book.title.slice(0, 12) + '…' : book.title}
+                  </span>
+                </div>
+              )
+            )}
+          </div>
+          {/* Shelf line */}
+          <div className="mt-2 h-1.5 rounded bg-amber-700/30" />
+        </section>
+      )}
 
       {records.length === 0 ? (
         <div className="rounded-xl bg-white p-6 text-center shadow">
@@ -76,22 +121,36 @@ export default async function ChildRecordsPage({ params }: Props) {
                   {STATUS_LABELS[status]}（{items.length}）
                 </h2>
                 <ul className="space-y-2">
-                  {items.map((record) => (
-                    <li key={record.id}>
-                      <Link
-                        href={`/records/${record.id}`}
-                        className="block rounded-lg bg-white p-4 shadow transition hover:bg-slate-50"
-                      >
-                        <p className="font-medium">
-                          {(record.books as unknown as { title: string } | null)?.title ?? '不明な本'}
-                        </p>
-                        <p className="text-sm text-slate-500">
-                          {(record.books as unknown as { author?: string } | null)?.author ?? '著者不明'}
-                          {record.finished_on && ` ・ 読了: ${record.finished_on}`}
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
+                  {items.map((record) => {
+                    const book = record.books as unknown as BookInfo | null;
+                    return (
+                      <li key={record.id}>
+                        <Link
+                          href={`/records/${record.id}`}
+                          className="flex items-center gap-3 rounded-lg bg-white p-4 shadow transition hover:bg-slate-50"
+                        >
+                          {book?.cover_url ? (
+                            <img
+                              src={book.cover_url}
+                              alt=""
+                              className="h-14 w-10 flex-shrink-0 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">
+                              No img
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-medium">{book?.title ?? '不明な本'}</p>
+                            <p className="text-sm text-slate-500">
+                              {book?.author ?? '著者不明'}
+                              {record.finished_on && ` ・ 読了: ${record.finished_on}`}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             );

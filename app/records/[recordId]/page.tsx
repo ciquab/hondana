@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { updateRecordStatus, type ActionResult } from '@/app/actions/record';
 import { createComment, type CommentActionResult } from '@/app/actions/comment';
+import { toggleReaction } from '@/app/actions/reaction';
 import { READING_STATUSES, STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 
 type RecordDetail = {
@@ -17,7 +18,7 @@ type RecordDetail = {
   finished_on: string | null;
   created_at: string;
   updated_at: string;
-  books: { id: string; title: string; author: string | null; isbn13: string | null };
+  books: { id: string; title: string; author: string | null; isbn13: string | null; cover_url: string | null };
   children: { id: string; display_name: string };
 };
 
@@ -28,12 +29,27 @@ type Comment = {
   created_at: string;
 };
 
+type Reaction = {
+  id: string;
+  user_id: string;
+  emoji: string;
+};
+
+const EMOJI_MAP: Record<string, string> = {
+  heart: '❤️',
+  thumbsup: '👍',
+  star: '🌟',
+  clap: '👏',
+};
+
 export default function RecordDetailPage() {
   const { recordId } = useParams<{ recordId: string }>();
   const [record, setRecord] = useState<RecordDetail | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reactingEmoji, setReactingEmoji] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(updateRecordStatus, {});
   const [commentState, commentFormAction, commentPending] = useActionState<CommentActionResult, FormData>(
     async (prev, formData) => {
@@ -58,6 +74,27 @@ export default function RecordDetailPage() {
       });
   }, [recordId]);
 
+  const fetchReactions = useCallback(() => {
+    const supabase = createClient();
+    supabase
+      .from('record_reactions')
+      .select('id, user_id, emoji')
+      .eq('record_id', recordId)
+      .then(({ data }) => {
+        setReactions((data as Reaction[]) ?? []);
+      });
+  }, [recordId]);
+
+  const handleReaction = useCallback(
+    async (emoji: string) => {
+      setReactingEmoji(emoji);
+      await toggleReaction(recordId, emoji);
+      fetchReactions();
+      setReactingEmoji(null);
+    },
+    [recordId, fetchReactions]
+  );
+
   useEffect(() => {
     const supabase = createClient();
 
@@ -68,7 +105,7 @@ export default function RecordDetailPage() {
     supabase
       .from('reading_records')
       .select(
-        'id, family_id, child_id, status, memo, finished_on, created_at, updated_at, books(id, title, author, isbn13), children(id, display_name)'
+        'id, family_id, child_id, status, memo, finished_on, created_at, updated_at, books(id, title, author, isbn13, cover_url), children(id, display_name)'
       )
       .eq('id', recordId)
       .single()
@@ -78,7 +115,8 @@ export default function RecordDetailPage() {
       });
 
     fetchComments();
-  }, [recordId, fetchComments]);
+    fetchReactions();
+  }, [recordId, fetchComments, fetchReactions]);
 
   if (loading) {
     return (
@@ -99,6 +137,18 @@ export default function RecordDetailPage() {
     );
   }
 
+  // Group reactions by emoji
+  const reactionCounts: Record<string, { count: number; mine: boolean }> = {};
+  for (const r of reactions) {
+    if (!reactionCounts[r.emoji]) {
+      reactionCounts[r.emoji] = { count: 0, mine: false };
+    }
+    reactionCounts[r.emoji].count++;
+    if (r.user_id === currentUserId) {
+      reactionCounts[r.emoji].mine = true;
+    }
+  }
+
   return (
     <main className="mx-auto max-w-xl p-4">
       <Link href={`/children/${record.child_id}`} className="text-sm text-blue-600 underline">
@@ -106,14 +156,25 @@ export default function RecordDetailPage() {
       </Link>
 
       <div className="mt-3 rounded-xl bg-white p-5 shadow">
-        <h1 className="text-xl font-bold">{record.books?.title}</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {record.books?.author ?? '著者不明'}
-          {record.books?.isbn13 && ` ・ ISBN: ${record.books.isbn13}`}
-        </p>
+        <div className="flex gap-4">
+          {record.books?.cover_url && (
+            <img
+              src={record.books.cover_url}
+              alt={`${record.books.title} の表紙`}
+              className="h-28 flex-shrink-0 rounded shadow"
+            />
+          )}
+          <div>
+            <h1 className="text-xl font-bold">{record.books?.title}</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {record.books?.author ?? '著者不明'}
+              {record.books?.isbn13 && ` ・ ISBN: ${record.books.isbn13}`}
+            </p>
 
-        <div className="mt-3 inline-block rounded bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700">
-          {STATUS_LABELS[record.status as ReadingStatus] ?? record.status}
+            <div className="mt-3 inline-block rounded bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700">
+              {STATUS_LABELS[record.status as ReadingStatus] ?? record.status}
+            </div>
+          </div>
         </div>
 
         {record.memo && (
@@ -132,6 +193,29 @@ export default function RecordDetailPage() {
           {record.updated_at !== record.created_at &&
             ` ・ 更新: ${new Date(record.updated_at).toLocaleDateString('ja-JP')}`}
         </p>
+
+        {/* Reactions */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {Object.entries(EMOJI_MAP).map(([key, emoji]) => {
+            const info = reactionCounts[key];
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleReaction(key)}
+                disabled={reactingEmoji !== null}
+                className={`flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition ${
+                  info?.mine
+                    ? 'border-blue-300 bg-blue-50 text-blue-700'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                } disabled:opacity-50`}
+              >
+                <span>{emoji}</span>
+                {info && <span className="text-xs font-medium">{info.count}</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <form action={formAction} className="mt-6 space-y-4 rounded-xl bg-white p-4 shadow">
