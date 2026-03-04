@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { searchByIsbn, searchByTitle } from '@/lib/books/google-books';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   // Auth check
   const supabase = await createClient();
