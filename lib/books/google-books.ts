@@ -89,7 +89,10 @@ export async function searchByTitle(query: string, maxResults = 10): Promise<Goo
   );
 
   if (!res.ok) {
-    console.error('Google Books API error (title):', res.status, await res.text().catch(() => ''));
+    // Silently return empty on rate-limit (429) – NDL is the primary source
+    if (res.status !== 429) {
+      console.error('Google Books API error (title):', res.status, await res.text().catch(() => ''));
+    }
     return [];
   }
 
