@@ -51,7 +51,6 @@ export default async function KidsRecordsPage() {
 
       <section className="rounded-2xl bg-gradient-to-b from-amber-50 to-orange-100 p-4 shadow">
         <h1 className="text-2xl font-bold text-amber-900">{child?.display_name ?? 'こども'} の本だな</h1>
-        <p className="mt-1 text-sm text-amber-800">ほんものの本だなみたいに、よんだ本をならべたよ！</p>
 
         {!records || records.length === 0 ? (
           <div className="mt-4 rounded-xl bg-white/80 p-5 text-sm text-slate-700">
@@ -64,7 +63,7 @@ export default async function KidsRecordsPage() {
             <div className="mt-4 space-y-4">
               {shelfRows.map((row, rowIndex) => (
                 <div key={rowIndex} className="relative rounded-lg bg-amber-100/70 px-3 pb-4 pt-3">
-                  <div className="flex min-h-44 items-end gap-3">
+                  <div className="flex min-h-48 items-end gap-3">
                     {row.map((record) => {
                       const detail = Array.isArray(record.books) ? record.books[0] : record.books;
                       const title = detail?.title ?? 'ふめいな本';
@@ -75,7 +74,7 @@ export default async function KidsRecordsPage() {
                           key={record.id}
                           href={`/records/${record.id}`}
                           title={title}
-                          className="w-20 flex-shrink-0 rounded-md p-1 transition hover:-translate-y-1"
+                          className="relative w-20 flex-shrink-0 rounded-md p-1 transition hover:-translate-y-1"
                         >
                           {cover ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -85,7 +84,10 @@ export default async function KidsRecordsPage() {
                               {title.length > 22 ? `${title.slice(0, 22)}…` : title}
                             </div>
                           )}
-                          <p className="mt-1 line-clamp-2 text-[11px] text-slate-700">{title}</p>
+
+                          <div className="pointer-events-none absolute -bottom-3 left-1 right-1 rounded-md bg-white/95 px-1 py-1 shadow">
+                            <p className="line-clamp-2 h-8 text-center text-[10px] leading-4 text-slate-700">{title}</p>
+                          </div>
                         </Link>
                       );
                     })}
