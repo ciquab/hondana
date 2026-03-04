@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { createKidRecord, type KidRecordActionResult } from '@/app/actions/kid-record';
+import { CHILD_FEELINGS } from '@/lib/kids/feelings';
 
 const STAMPS = [
   { value: 'great', label: '🌟 すごくよかった' },
@@ -9,8 +10,6 @@ const STAMPS = [
   { value: 'ok', label: '😐 ふつう' },
   { value: 'hard', label: '😓 むずかしかった' }
 ] as const;
-
-const FEELINGS = ['ドキドキ', '笑った', 'びっくり', 'かなしかった', 'ためになった'];
 
 export function KidRecordForm() {
   const [state, formAction, pending] = useActionState<KidRecordActionResult, FormData>(
@@ -54,7 +53,7 @@ export function KidRecordForm() {
       <fieldset>
         <legend className="mb-2 text-sm font-medium">きもちタグ（複数選択）</legend>
         <div className="flex flex-wrap gap-2">
-          {FEELINGS.map((tag) => (
+          {CHILD_FEELINGS.map((tag) => (
             <label key={tag} className="rounded border px-2 py-1 text-sm">
               <input type="checkbox" name="feelingTags" value={tag} className="mr-1" />
               {tag}

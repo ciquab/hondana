@@ -4,9 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getKidSessionChildId } from '@/lib/kids/session';
-
-const ALLOWED_STAMPS = ['great', 'fun', 'ok', 'hard'] as const;
-const ALLOWED_FEELINGS = ['ドキドキ', '笑った', 'びっくり', 'かなしかった', 'ためになった'];
+import { evaluateChildBadges } from '@/lib/kids/badges';
+import { CHILD_FEELINGS, CHILD_STAMPS } from '@/lib/kids/feelings';
 
 export type KidRecordActionResult = {
   error?: string;
@@ -23,10 +22,12 @@ export async function createKidRecord(
   const selectedTags = formData
     .getAll('feelingTags')
     .map((v) => String(v))
-    .filter((v) => ALLOWED_FEELINGS.includes(v));
+    .filter((v): v is (typeof CHILD_FEELINGS)[number] =>
+      CHILD_FEELINGS.includes(v as (typeof CHILD_FEELINGS)[number])
+    );
 
   if (!title) return { error: '本のタイトルを入力してください。' };
-  if (!ALLOWED_STAMPS.includes(stamp as (typeof ALLOWED_STAMPS)[number])) {
+  if (!CHILD_STAMPS.includes(stamp as (typeof CHILD_STAMPS)[number])) {
     return { error: 'スタンプを選択してください。' };
   }
 
@@ -104,6 +105,9 @@ export async function createKidRecord(
     }
   }
 
+  await evaluateChildBadges(childId, newRecord.id);
+
   revalidatePath('/kids/home');
+  revalidatePath('/kids/calendar');
   redirect('/kids/home');
 }
