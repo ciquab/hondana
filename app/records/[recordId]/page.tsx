@@ -92,24 +92,20 @@ export default function RecordDetailPage() {
       setReactions((prev) => {
         const existing = prev.find((r) => r.user_id === currentUserId && r.emoji === emoji);
         if (existing) {
-          // Remove
           return prev.filter((r) => r.id !== existing.id);
         } else {
-          // Add
           return [...prev, { id: `optimistic-${Date.now()}`, user_id: currentUserId, emoji }];
         }
       });
 
-      setReactingEmoji(null);
-
-      // Sync with server in background
+      // Sync with server, then reconcile with actual DB state
       try {
         await toggleReaction(recordId, emoji);
-        // Re-fetch actual data to ensure consistency
-        fetchReactions();
+        await fetchReactions();
       } catch {
-        // Revert on error by re-fetching
-        fetchReactions();
+        await fetchReactions();
+      } finally {
+        setReactingEmoji(null);
       }
     },
     [recordId, currentUserId, fetchReactions]
