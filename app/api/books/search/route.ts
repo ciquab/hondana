@@ -92,6 +92,49 @@ export async function GET(request: NextRequest) {
   if (q && q.trim().length > 0) {
     const variants = buildTitleQueryVariants(q);
 
+    const normalizeText = (value: string | null | undefined) =>
+      (value ?? '').replace(/\s+/g, '').toLowerCase();
+
+    const mergePreferIsbn = (
+      primary: Awaited<ReturnType<typeof searchByTitle>>,
+      secondary: Awaited<ReturnType<typeof searchByTitle>>
+    ) => {
+      const secondaryByText = new Map<string, (typeof secondary)[number]>();
+      for (const item of secondary) {
+        const key = `${normalizeText(item.title)}:${normalizeText(item.author)}`;
+        if (!secondaryByText.has(key)) {
+          secondaryByText.set(key, item);
+        }
+      }
+
+      return primary.map((item) => {
+        if (item.isbn13) return item;
+        const key = `${normalizeText(item.title)}:${normalizeText(item.author)}`;
+        const candidate = secondaryByText.get(key);
+        if (!candidate?.isbn13) return item;
+
+        return {
+          ...item,
+          isbn13: candidate.isbn13,
+          coverUrl: item.coverUrl ?? candidate.coverUrl,
+        };
+      });
+    };
+
+    const dedupeResults = (items: Awaited<ReturnType<typeof searchByTitle>>) => {
+      const merged: Awaited<ReturnType<typeof searchByTitle>> = [];
+      const seen = new Set<string>();
+
+      for (const item of items) {
+        const key = `${item.isbn13 ?? ''}:${item.title}`.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        merged.push(item);
+      }
+
+      return merged;
+    };
+
     // Google Books first (rich metadata, cover images). Cached, so 429 risk is low.
     const googleMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
