@@ -5,23 +5,27 @@
  */
 
 import type { GoogleBookResult } from './google-books';
+import { withCache } from './cache';
+
+const TITLE_TTL = 5 * 60 * 1000;
 
 /** Search NDL by title keyword */
 export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<GoogleBookResult[]> {
-  try {
-    const encoded = encodeURIComponent(query);
-    const res = await fetch(
-      `https://ndlsearch.ndl.go.jp/api/opensearch?title=${encoded}&cnt=${maxResults}&mediatype=1`,
-      { cache: 'no-store' }
-    );
+  return withCache(`ndl:title:${query}:${maxResults}`, TITLE_TTL, async () => {
+    try {
+      const encoded = encodeURIComponent(query);
+      const res = await fetch(
+        `https://ndlsearch.ndl.go.jp/api/opensearch?title=${encoded}&cnt=${maxResults}&mediatype=1`
+      );
 
-    if (!res.ok) return [];
+      if (!res.ok) return [];
 
-    const xml = await res.text();
-    return parseNdlXml(xml);
-  } catch {
-    return [];
-  }
+      const xml = await res.text();
+      return parseNdlXml(xml);
+    } catch {
+      return [];
+    }
+  });
 }
 
 function parseNdlXml(xml: string): GoogleBookResult[] {

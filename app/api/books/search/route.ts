@@ -44,25 +44,25 @@ export async function GET(request: NextRequest) {
       return merged;
     };
 
-    // Keep NDL-first behavior: if NDL finds results, return them without calling Google.
-    const ndlMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
-    for (const queryVariant of variants) {
-      const ndlResults = await ndlSearchByTitle(queryVariant);
-      ndlMerged.push(...ndlResults);
-    }
-    const ndlUnique = dedupeResults(ndlMerged).slice(0, 10);
-    if (ndlUnique.length > 0) {
-      return NextResponse.json({ results: ndlUnique });
-    }
-
-    // Fallback to Google Books only when NDL returns nothing.
+    // Google Books first (rich metadata, cover images). Cached, so 429 risk is low.
     const googleMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
       const googleResults = await searchByTitle(queryVariant);
       googleMerged.push(...googleResults);
     }
+    const googleUnique = dedupeResults(googleMerged).slice(0, 10);
+    if (googleUnique.length > 0) {
+      return NextResponse.json({ results: googleUnique });
+    }
 
-    return NextResponse.json({ results: dedupeResults(googleMerged).slice(0, 10) });
+    // Fallback to NDL when Google Books returns nothing.
+    const ndlMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
+    for (const queryVariant of variants) {
+      const ndlResults = await ndlSearchByTitle(queryVariant);
+      ndlMerged.push(...ndlResults);
+    }
+
+    return NextResponse.json({ results: dedupeResults(ndlMerged).slice(0, 10) });
   }
 
   return NextResponse.json({ error: 'isbn or q parameter required' }, { status: 400 });

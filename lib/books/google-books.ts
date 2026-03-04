@@ -3,7 +3,14 @@
  * https://developers.google.com/books/docs/v1/using
  */
 
+import { withCache } from './cache';
+
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes';
+
+// ISBN results are stable; cache for 30 minutes.
+const ISBN_TTL = 30 * 60 * 1000;
+// Title search results may vary slightly; cache for 5 minutes.
+const TITLE_TTL = 5 * 60 * 1000;
 
 function apiKeyParam(): string {
   const key = process.env.GOOGLE_BOOKS_API_KEY;
@@ -65,39 +72,39 @@ function mapVolume(vol: VolumeInfo): GoogleBookResult {
 
 /** Search by ISBN (13-digit) */
 export async function searchByIsbn(isbn: string): Promise<GoogleBookResult | null> {
-  const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam()}`, {
-    cache: 'no-store',
+  return withCache(`gbooks:isbn:${isbn}`, ISBN_TTL, async () => {
+    const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam()}`);
+
+    if (!res.ok) {
+      console.error('Google Books API error (ISBN):', res.status, await res.text().catch(() => ''));
+      return null;
+    }
+
+    const data: GoogleBooksResponse = await res.json();
+    if (!data.items || data.items.length === 0) return null;
+
+    return mapVolume(data.items[0].volumeInfo);
   });
-
-  if (!res.ok) {
-    console.error('Google Books API error (ISBN):', res.status, await res.text().catch(() => ''));
-    return null;
-  }
-
-  const data: GoogleBooksResponse = await res.json();
-  if (!data.items || data.items.length === 0) return null;
-
-  return mapVolume(data.items[0].volumeInfo);
 }
 
 /** Search by title keyword */
 export async function searchByTitle(query: string, maxResults = 10): Promise<GoogleBookResult[]> {
-  const encoded = encodeURIComponent(query);
-  const res = await fetch(
-    `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`,
-    { cache: 'no-store' }
-  );
+  return withCache(`gbooks:title:${query}:${maxResults}`, TITLE_TTL, async () => {
+    const encoded = encodeURIComponent(query);
+    const res = await fetch(
+      `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`
+    );
 
-  if (!res.ok) {
-    // Silently return empty on rate-limit (429) – NDL is the primary source
-    if (res.status !== 429) {
-      console.error('Google Books API error (title):', res.status, await res.text().catch(() => ''));
+    if (!res.ok) {
+      if (res.status !== 429) {
+        console.error('Google Books API error (title):', res.status, await res.text().catch(() => ''));
+      }
+      return [];
     }
-    return [];
-  }
 
-  const data: GoogleBooksResponse = await res.json();
-  if (!data.items) return [];
+    const data: GoogleBooksResponse = await res.json();
+    if (!data.items) return [];
 
-  return data.items.map((item) => mapVolume(item.volumeInfo));
+    return data.items.map((item) => mapVolume(item.volumeInfo));
+  });
 }
