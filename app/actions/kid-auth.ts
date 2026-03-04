@@ -2,9 +2,9 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
 import { clearKidSession, setKidSession } from '@/lib/kids/session';
 import { verifyPin } from '@/lib/kids/pin';
+import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 
 export type KidAuthResult = {
   error?: string;
@@ -18,22 +18,18 @@ export async function verifyKidPin(
   const pin = String(formData.get('pin') ?? '').trim();
 
   if (!childId || !/^\d{4}$/.test(pin)) {
-    return { error: '子どもと4桁PINを入力してください。' };
+    return { error: '子どもIDと4桁PINを入力してください。' };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  if (!canCreateAdminClient()) {
+    return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
+  }
 
-  if (!user) redirect('/login');
+  const supabase = createAdminClient();
 
-  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
-    target_child_id: childId
-  });
-
-  if (!allowed) {
-    return { error: 'この子どもにはアクセスできません。' };
+  const { data: child } = await supabase.from('children').select('id').eq('id', childId).maybeSingle();
+  if (!child?.id) {
+    return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
   const { data: method } = await supabase
@@ -62,7 +58,7 @@ export async function verifyKidPin(
       })
       .eq('child_id', childId);
 
-    return { error: 'PINが正しくありません。' };
+    return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
   await supabase

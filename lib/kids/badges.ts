@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const BADGE_IDS = {
   FIRST_BOOK: 'first_book',
@@ -31,7 +31,7 @@ function longestStreak(dates: string[]): number {
 }
 
 export async function evaluateChildBadges(childId: string, sourceRecordId: string) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const [{ count: totalRecords }, { data: allRecords }, { data: allTags }] = await Promise.all([
     supabase
@@ -70,7 +70,7 @@ export async function evaluateChildBadges(childId: string, sourceRecordId: strin
 }
 
 export async function getChildBadges(childId: string) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data } = await supabase
     .from('child_badges')

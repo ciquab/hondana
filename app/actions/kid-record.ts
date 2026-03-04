@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
 import { evaluateChildBadges } from '@/lib/kids/badges';
 import { CHILD_FEELINGS, CHILD_STAMPS } from '@/lib/kids/feelings';
@@ -29,39 +29,26 @@ export async function createKidRecord(
     );
 
   if (!title) return { error: '本のタイトルを入力してください。' };
-  if (isbn && !/^\d{13}$/.test(isbn)) {
-    return { error: 'ISBNは13桁の数字で入力してください。' };
-  }
-  if (!CHILD_STAMPS.includes(stamp as (typeof CHILD_STAMPS)[number])) {
-    return { error: 'スタンプを選択してください。' };
-  }
+  if (isbn && !/^\d{13}$/.test(isbn)) return { error: 'ISBNは13桁の数字で入力してください。' };
+  if (!CHILD_STAMPS.includes(stamp as (typeof CHILD_STAMPS)[number])) return { error: 'スタンプを選択してください。' };
 
   const childId = await getKidSessionChildId();
-  if (!childId) {
-    redirect('/kids/login');
-  }
+  if (!childId) redirect('/kids/login');
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const supabase = createAdminClient();
+  const { data: child } = await supabase
+    .from('children')
+    .select('family_id, families(created_by)')
+    .eq('id', childId)
+    .maybeSingle();
 
-  if (!user) redirect('/login');
+  if (!child?.family_id) return { error: '子ども情報の取得に失敗しました。' };
 
-  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
-    target_child_id: childId
-  });
-  if (!allowed) {
-    return { error: 'この子どもの記録を作成できません。' };
-  }
-
-  const { data: child } = await supabase.from('children').select('family_id').eq('id', childId).single();
-  if (!child) {
-    return { error: '子ども情報の取得に失敗しました。' };
-  }
+  const family = Array.isArray(child.families) ? child.families[0] : child.families;
+  const creatorId = family?.created_by;
+  if (!creatorId) return { error: '記録作成に必要な保護者情報が見つかりません。' };
 
   let bookId: string;
-
   if (isbn) {
     const { data: existing } = await supabase.from('books').select('id').eq('isbn13', isbn).maybeSingle();
     if (existing) {
@@ -69,34 +56,19 @@ export async function createKidRecord(
     } else {
       const { data: newBook, error: bookErr } = await supabase
         .from('books')
-        .insert({
-          title,
-          author: author || null,
-          isbn13: isbn,
-          cover_url: coverUrl || null
-        })
+        .insert({ title, author: author || null, isbn13: isbn, cover_url: coverUrl || null })
         .select('id')
         .single();
-
-      if (bookErr || !newBook) {
-        return { error: '本の登録に失敗しました。' };
-      }
+      if (bookErr || !newBook) return { error: '本の登録に失敗しました。' };
       bookId = newBook.id;
     }
   } else {
     const { data: newBook, error: bookErr } = await supabase
       .from('books')
-      .insert({
-        title,
-        author: author || null,
-        cover_url: coverUrl || null
-      })
+      .insert({ title, author: author || null, cover_url: coverUrl || null })
       .select('id')
       .single();
-
-    if (bookErr || !newBook) {
-      return { error: '本の登録に失敗しました。' };
-    }
+    if (bookErr || !newBook) return { error: '本の登録に失敗しました。' };
     bookId = newBook.id;
   }
 
@@ -107,37 +79,22 @@ export async function createKidRecord(
       child_id: childId,
       book_id: bookId,
       status,
-      created_by: user.id
+      created_by: creatorId
     })
     .select('id')
     .single();
+  if (recordErr || !newRecord) return { error: '読書記録の作成に失敗しました。' };
 
-  if (recordErr || !newRecord) {
-    return { error: '読書記録の作成に失敗しました。' };
-  }
-
-  const { error: stampErr } = await supabase.from('record_reactions_child').insert({
-    record_id: newRecord.id,
-    child_id: childId,
-    stamp
-  });
-
-  if (stampErr) {
-    return { error: 'スタンプ保存に失敗しました。' };
-  }
+  const { error: stampErr } = await supabase
+    .from('record_reactions_child')
+    .insert({ record_id: newRecord.id, child_id: childId, stamp });
+  if (stampErr) return { error: 'スタンプ保存に失敗しました。' };
 
   if (selectedTags.length > 0) {
     const { error: tagsErr } = await supabase.from('record_feeling_tags').insert(
-      selectedTags.map((tag) => ({
-        record_id: newRecord.id,
-        child_id: childId,
-        tag
-      }))
+      selectedTags.map((tag) => ({ record_id: newRecord.id, child_id: childId, tag }))
     );
-
-    if (tagsErr) {
-      return { error: '気持ちタグ保存に失敗しました。' };
-    }
+    if (tagsErr) return { error: '気持ちタグ保存に失敗しました。' };
   }
 
   await evaluateChildBadges(childId, newRecord.id);
