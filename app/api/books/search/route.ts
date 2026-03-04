@@ -30,39 +30,43 @@ export async function GET(request: NextRequest) {
   if (q && q.trim().length > 0) {
     const variants = buildTitleQueryVariants(q);
 
-    const dedupeResults = (items: Awaited<ReturnType<typeof searchByTitle>>) => {
-      const merged: Awaited<ReturnType<typeof searchByTitle>> = [];
-      const seen = new Set<string>();
-
+    const seen = new Set<string>();
+    const pushUnique = (
+      items: Awaited<ReturnType<typeof searchByTitle>>,
+      target: Awaited<ReturnType<typeof searchByTitle>>
+    ) => {
       for (const item of items) {
         const key = `${item.isbn13 ?? ''}:${item.title}`.toLowerCase();
         if (seen.has(key)) continue;
         seen.add(key);
-        merged.push(item);
+        target.push(item);
       }
-
-      return merged;
     };
 
     // Keep NDL-first behavior: if NDL finds results, return them without calling Google.
     const ndlMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
       const ndlResults = await ndlSearchByTitle(queryVariant);
-      ndlMerged.push(...ndlResults);
+      pushUnique(ndlResults, ndlMerged);
+      if (ndlMerged.length >= 10) {
+        return NextResponse.json({ results: ndlMerged.slice(0, 10) });
+      }
     }
-    const ndlUnique = dedupeResults(ndlMerged).slice(0, 10);
-    if (ndlUnique.length > 0) {
-      return NextResponse.json({ results: ndlUnique });
+    if (ndlMerged.length > 0) {
+      return NextResponse.json({ results: ndlMerged });
     }
 
     // Fallback to Google Books only when NDL returns nothing.
     const googleMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
       const googleResults = await searchByTitle(queryVariant);
-      googleMerged.push(...googleResults);
+      pushUnique(googleResults, googleMerged);
+      if (googleMerged.length >= 10) {
+        return NextResponse.json({ results: googleMerged.slice(0, 10) });
+      }
     }
 
-    return NextResponse.json({ results: dedupeResults(googleMerged).slice(0, 10) });
+    return NextResponse.json({ results: googleMerged });
   }
 
   return NextResponse.json({ error: 'isbn or q parameter required' }, { status: 400 });
