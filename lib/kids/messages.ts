@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 type CommentRow = {
   id: string;
@@ -8,7 +8,7 @@ type CommentRow = {
 };
 
 export async function getKidMessages(childId: string) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: records } = await supabase
     .from('reading_records')

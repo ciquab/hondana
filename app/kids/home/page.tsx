@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { kidSignOut } from '@/app/actions/kid-auth';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
 import { getChildBadges } from '@/lib/kids/badges';
 import { getKidMessages } from '@/lib/kids/messages';
@@ -10,19 +10,8 @@ export default async function KidsHomePage() {
   const childId = await getKidSessionChildId();
   if (!childId) redirect('/kids/login');
 
-  const supabase = await createClient();
-  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
-    target_child_id: childId
-  });
-
-  if (!allowed) redirect('/kids/login');
-
-  const { data: child } = await supabase
-    .from('children')
-    .select('id, display_name')
-    .eq('id', childId)
-    .single();
-
+  const supabase = createAdminClient();
+  const { data: child } = await supabase.from('children').select('id, display_name').eq('id', childId).maybeSingle();
   if (!child) redirect('/kids/login');
 
   const [{ data: recent }, badges, { unreadCount }] = await Promise.all([
@@ -65,10 +54,7 @@ export default async function KidsHomePage() {
         {badges.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {badges.slice(0, 4).map((badge) => {
-              const detail = badge.badges as
-                | { icon?: string; name?: string }
-                | { icon?: string; name?: string }[]
-                | null;
+              const detail = badge.badges as { icon?: string; name?: string } | { icon?: string; name?: string }[] | null;
               const info = Array.isArray(detail) ? detail[0] : detail;
               return (
                 <span key={badge.badge_id} className="rounded-full bg-amber-100 px-3 py-1 text-sm">
@@ -100,7 +86,7 @@ export default async function KidsHomePage() {
               const title = info?.title ?? '不明な本';
               return (
                 <li key={row.id}>
-                  <Link href={`/records/${row.id}`} className="block rounded border p-1">
+                  <Link href={`/kids/records/${row.id}`} className="block rounded border p-1">
                     {info?.cover_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={info.cover_url} alt={title} className="h-24 w-full rounded object-cover" />
