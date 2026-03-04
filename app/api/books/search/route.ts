@@ -29,10 +29,12 @@ export async function GET(request: NextRequest) {
   if (q && q.trim().length > 0) {
     // Try NDL first (free, no key, good for Japanese books), fall back to Google Books
     const ndlResults = await ndlSearchByTitle(q.trim());
+    console.log(`[book-search] q="${q.trim()}" NDL=${ndlResults.length} results`);
     if (ndlResults.length > 0) {
       return NextResponse.json({ results: ndlResults });
     }
     const results = await searchByTitle(q.trim());
+    console.log(`[book-search] q="${q.trim()}" GoogleBooks=${results.length} results`);
     return NextResponse.json({ results });
   }
 

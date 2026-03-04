@@ -98,7 +98,12 @@ export default function NewRecordPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleTitleSearch())}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                handleTitleSearch();
+              }
+            }}
             className="flex-1 rounded border p-2 text-sm"
             placeholder="タイトルで本を検索…"
           />
