@@ -8,6 +8,7 @@ import { hashPin } from '@/lib/kids/pin';
 export type ActionResult = {
   error?: string;
   inviteCode?: string;
+  ok?: string;
 };
 
 export async function createFamily(
@@ -124,6 +125,34 @@ export async function createInvite(
   }
 
   return { inviteCode: data };
+}
+
+
+export async function revokeInvite(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const inviteId = String(formData.get('inviteId') ?? '').trim();
+
+  if (!inviteId) return { error: '招待IDが不正です。' };
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data, error } = await supabase.rpc('revoke_family_invite', {
+    target_invite_id: inviteId
+  });
+
+  if (error || !data) {
+    return { error: '招待コードの無効化に失敗しました。' };
+  }
+
+  revalidatePath('/settings/family');
+  return { ok: '招待コードを無効化しました。' };
 }
 
 export async function acceptInvite(
