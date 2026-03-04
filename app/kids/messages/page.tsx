@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { markKidMessageRead } from '@/app/actions/kid-message';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
 import { getKidMessages } from '@/lib/kids/messages';
 
@@ -16,24 +16,20 @@ export default async function KidsMessagesPage() {
   const childId = await getKidSessionChildId();
   if (!childId) redirect('/kids/login');
 
-  const supabase = await createClient();
-  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
-    target_child_id: childId
-  });
-
-  if (!allowed) redirect('/kids/login');
-
+  const supabase = createAdminClient();
   const [{ data: child }, { messages, unreadCount }] = await Promise.all([
-    supabase.from('children').select('display_name').eq('id', childId).single(),
+    supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
     getKidMessages(childId)
   ]);
+
+  if (!child) redirect('/kids/login');
 
   return (
     <main className="mx-auto max-w-2xl p-4">
       <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
         こどもホームへ戻る
       </Link>
-      <h1 className="text-2xl font-bold">{child?.display_name ?? 'こども'} へのメッセージ</h1>
+      <h1 className="text-2xl font-bold">{child.display_name} へのメッセージ</h1>
       <p className="mb-4 text-sm text-slate-600">未読 {unreadCount} 件</p>
 
       {messages.length === 0 ? (
@@ -49,9 +45,7 @@ export default async function KidsMessagesPage() {
             >
               <div className="mb-1 flex items-center justify-between">
                 <p className="text-sm font-semibold text-slate-700">{message.bookTitle}</p>
-                <p className="text-xs text-slate-500">
-                  {new Date(message.created_at).toLocaleString('ja-JP')}
-                </p>
+                <p className="text-xs text-slate-500">{new Date(message.created_at).toLocaleString('ja-JP')}</p>
               </div>
 
               <p className="text-slate-800">{message.body}</p>

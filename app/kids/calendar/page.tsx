@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
 import { getChildBadges } from '@/lib/kids/badges';
 
@@ -28,13 +28,7 @@ export default async function KidsCalendarPage({
   const { month } = await searchParams;
   const bounds = getMonthBounds(month);
 
-  const supabase = await createClient();
-  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
-    target_child_id: childId
-  });
-
-  if (!allowed) redirect('/kids/login');
-
+  const supabase = createAdminClient();
   const [{ data: records }, { data: child }, badges] = await Promise.all([
     supabase
       .from('reading_records')
@@ -42,9 +36,11 @@ export default async function KidsCalendarPage({
       .eq('child_id', childId)
       .gte('created_at', bounds.from)
       .lt('created_at', bounds.to),
-    supabase.from('children').select('display_name').eq('id', childId).single(),
+    supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
     getChildBadges(childId)
   ]);
+
+  if (!child) redirect('/kids/login');
 
   const dayMap = new Map<number, { count: number; stamp?: string }>();
   for (const row of records ?? []) {
@@ -63,7 +59,7 @@ export default async function KidsCalendarPage({
       <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
         こどもホームへ戻る
       </Link>
-      <h1 className="mb-1 text-2xl font-bold">{child?.display_name ?? 'こども'} のどくしょカレンダー</h1>
+      <h1 className="mb-1 text-2xl font-bold">{child.display_name} のどくしょカレンダー</h1>
       <p className="mb-4 text-sm text-slate-600">{bounds.monthLabel}</p>
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">

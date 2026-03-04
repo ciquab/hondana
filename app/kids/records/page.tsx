@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
 
 type BookRow = {
@@ -14,9 +14,7 @@ type BookRow = {
 
 function chunkRows<T>(items: T[], size: number): T[][] {
   const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    rows.push(items.slice(i, i + size));
-  }
+  for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
   return rows;
 }
 
@@ -24,15 +22,9 @@ export default async function KidsRecordsPage() {
   const childId = await getKidSessionChildId();
   if (!childId) redirect('/kids/login');
 
-  const supabase = await createClient();
-  const { data: allowed } = await supabase.rpc('is_child_in_my_family', {
-    target_child_id: childId
-  });
-
-  if (!allowed) redirect('/kids/login');
-
+  const supabase = createAdminClient();
   const [{ data: child }, { data: records }] = await Promise.all([
-    supabase.from('children').select('display_name').eq('id', childId).single(),
+    supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
     supabase
       .from('reading_records')
       .select('id, created_at, books(title, cover_url)')
@@ -40,6 +32,8 @@ export default async function KidsRecordsPage() {
       .order('created_at', { ascending: false })
       .limit(120)
   ]);
+
+  if (!child) redirect('/kids/login');
 
   const shelfRows = chunkRows((records ?? []) as BookRow[], 4);
 
@@ -50,7 +44,7 @@ export default async function KidsRecordsPage() {
       </Link>
 
       <section className="rounded-2xl bg-gradient-to-b from-amber-50 to-orange-100 p-4 shadow">
-        <h1 className="text-2xl font-bold text-amber-900">{child?.display_name ?? 'こども'} の本だな</h1>
+        <h1 className="text-2xl font-bold text-amber-900">{child.display_name} の本だな</h1>
 
         {!records || records.length === 0 ? (
           <div className="mt-4 rounded-xl bg-white/80 p-5 text-sm text-slate-700">
@@ -72,7 +66,7 @@ export default async function KidsRecordsPage() {
                       return (
                         <Link
                           key={record.id}
-                          href={`/records/${record.id}`}
+                          href={`/kids/records/${record.id}`}
                           title={title}
                           className="relative w-20 flex-shrink-0 rounded-md p-1 transition hover:-translate-y-1"
                         >

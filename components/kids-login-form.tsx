@@ -13,19 +13,35 @@ export function KidsLoginForm({ childOptions }: { childOptions: Child[] }) {
 
   return (
     <form action={formAction} className="space-y-4 rounded-xl bg-white p-4 shadow">
-      <div>
-        <label htmlFor="childId" className="mb-1 block text-sm font-medium">
-          子ども
-        </label>
-        <select id="childId" name="childId" className="w-full rounded border p-2" required>
-          <option value="">選択してください</option>
-          {childOptions.map((child) => (
-            <option key={child.id} value={child.id}>
-              {child.display_name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {childOptions.length > 0 ? (
+        <div>
+          <label htmlFor="childId" className="mb-1 block text-sm font-medium">
+            子ども
+          </label>
+          <select id="childId" name="childId" className="w-full rounded border p-2" required>
+            <option value="">選択してください</option>
+            {childOptions.map((child) => (
+              <option key={child.id} value={child.id}>
+                {child.display_name}（{child.id.slice(0, 8)}）
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div>
+          <label htmlFor="childId" className="mb-1 block text-sm font-medium">
+            子どもID
+          </label>
+          <input
+            id="childId"
+            name="childId"
+            type="text"
+            className="w-full rounded border p-2"
+            placeholder="子どもIDを入力"
+            required
+          />
+        </div>
+      )}
 
       <div>
         <label htmlFor="pin" className="mb-1 block text-sm font-medium">
