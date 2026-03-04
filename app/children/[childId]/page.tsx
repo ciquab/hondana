@@ -14,6 +14,11 @@ type BookInfo = {
   cover_url?: string | null;
 };
 
+type FinishedBookEntry = {
+  recordId: string;
+  book: BookInfo;
+};
+
 export default async function ChildRecordsPage({ params }: Props) {
   const { childId } = await params;
 
@@ -44,10 +49,13 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   const sectionOrder: ReadingStatus[] = ['reading', 'want_to_read', 'finished'];
 
-  // Collect books with covers for bookshelf visual
+  // Collect books for bookshelf visual
   const finishedBooks = grouped.finished
-    .map((r) => r.books as unknown as BookInfo | null)
-    .filter((b): b is BookInfo => b !== null);
+    .map((r) => {
+      const book = r.books as unknown as BookInfo | null;
+      return book ? { recordId: r.id, book } : null;
+    })
+    .filter((e): e is FinishedBookEntry => e !== null);
 
   return (
     <main className="mx-auto max-w-3xl p-4">
@@ -73,25 +81,31 @@ export default async function ChildRecordsPage({ params }: Props) {
             {child.display_name} の本棚（読了 {finishedBooks.length}冊）
           </h2>
           <div className="flex flex-wrap gap-2">
-            {finishedBooks.map((book, i) =>
+            {finishedBooks.map(({ recordId, book }, i) =>
               book.cover_url ? (
-                <img
+                <Link
                   key={i}
-                  src={book.cover_url}
-                  alt={book.title}
+                  href={`/records/${recordId}`}
                   title={book.title}
-                  className="h-24 rounded shadow transition hover:scale-105"
-                />
+                  className="block transition hover:scale-105"
+                >
+                  <img
+                    src={book.cover_url}
+                    alt={book.title}
+                    className="h-24 rounded shadow"
+                  />
+                </Link>
               ) : (
-                <div
+                <Link
                   key={i}
+                  href={`/records/${recordId}`}
                   title={book.title}
-                  className="flex h-24 w-16 items-center justify-center rounded bg-slate-200 p-1 text-center shadow"
+                  className="flex h-24 w-16 items-center justify-center rounded bg-slate-200 p-1 text-center shadow transition hover:scale-105"
                 >
                   <span className="text-[10px] leading-tight text-slate-600">
                     {book.title.length > 12 ? book.title.slice(0, 12) + '…' : book.title}
                   </span>
-                </div>
+                </Link>
               )
             )}
           </div>
