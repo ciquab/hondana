@@ -7,6 +7,68 @@ import { buildTitleQueryVariants } from '@/lib/books/search-query';
 
 export const dynamic = 'force-dynamic';
 
+function normalizeText(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFKC')
+    .replace(/[\s　・:：\-‐‑‒–—―ｰ]/g, '')
+    .toLowerCase();
+}
+
+function mergePreferIsbn(
+  primary: Awaited<ReturnType<typeof searchByTitle>>,
+  secondary: Awaited<ReturnType<typeof searchByTitle>>
+) {
+  const secondaryByTitleAuthor = new Map<string, (typeof secondary)[number]>();
+  const secondaryByTitle = new Map<string, (typeof secondary)[number]>();
+
+  for (const item of secondary) {
+    if (!item.isbn13) continue;
+
+    const titleKey = normalizeText(item.title);
+    if (!titleKey) continue;
+
+    const titleAuthorKey = `${titleKey}:${normalizeText(item.author)}`;
+    if (!secondaryByTitleAuthor.has(titleAuthorKey)) {
+      secondaryByTitleAuthor.set(titleAuthorKey, item);
+    }
+
+    // Keep first match by title. This widens matching for cases where one side lacks author metadata.
+    if (!secondaryByTitle.has(titleKey)) {
+      secondaryByTitle.set(titleKey, item);
+    }
+  }
+
+  return primary.map((item) => {
+    if (item.isbn13) return item;
+
+    const titleKey = normalizeText(item.title);
+    const titleAuthorKey = `${titleKey}:${normalizeText(item.author)}`;
+
+    const candidate = secondaryByTitleAuthor.get(titleAuthorKey) ?? secondaryByTitle.get(titleKey);
+    if (!candidate?.isbn13) return item;
+
+    return {
+      ...item,
+      isbn13: candidate.isbn13,
+      coverUrl: item.coverUrl ?? candidate.coverUrl,
+    };
+  });
+}
+
+function dedupeResults(items: Awaited<ReturnType<typeof searchByTitle>>) {
+  const merged: Awaited<ReturnType<typeof searchByTitle>> = [];
+  const seen = new Set<string>();
+
+  for (const item of items) {
+    const key = `${item.isbn13 ?? ''}:${normalizeText(item.title)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(item);
+  }
+
+  return merged;
+}
+
 export async function GET(request: NextRequest) {
   // Auth check
   const supabase = await createClient();
@@ -30,20 +92,6 @@ export async function GET(request: NextRequest) {
   if (q && q.trim().length > 0) {
     const variants = buildTitleQueryVariants(q);
 
-    const dedupeResults = (items: Awaited<ReturnType<typeof searchByTitle>>) => {
-      const merged: Awaited<ReturnType<typeof searchByTitle>> = [];
-      const seen = new Set<string>();
-
-      for (const item of items) {
-        const key = `${item.isbn13 ?? ''}:${item.title}`.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        merged.push(item);
-      }
-
-      return merged;
-    };
-
     // Google Books first (rich metadata, cover images). Cached, so 429 risk is low.
     const googleMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
@@ -51,18 +99,20 @@ export async function GET(request: NextRequest) {
       googleMerged.push(...googleResults);
     }
     const googleUnique = dedupeResults(googleMerged).slice(0, 10);
-    if (googleUnique.length > 0) {
-      return NextResponse.json({ results: googleUnique });
-    }
 
-    // Fallback to NDL when Google Books returns nothing.
     const ndlMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
       const ndlResults = await ndlSearchByTitle(queryVariant);
       ndlMerged.push(...ndlResults);
     }
+    const ndlUnique = dedupeResults(ndlMerged).slice(0, 10);
 
-    return NextResponse.json({ results: dedupeResults(ndlMerged).slice(0, 10) });
+    if (googleUnique.length > 0) {
+      return NextResponse.json({ results: mergePreferIsbn(googleUnique, ndlUnique) });
+    }
+
+    // Fallback to NDL when Google Books returns nothing.
+    return NextResponse.json({ results: ndlUnique });
   }
 
   return NextResponse.json({ error: 'isbn or q parameter required' }, { status: 400 });
