@@ -5,6 +5,11 @@
 
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes';
 
+function apiKeyParam(): string {
+  const key = process.env.GOOGLE_BOOKS_API_KEY;
+  return key ? `&key=${key}` : '';
+}
+
 export type GoogleBookResult = {
   title: string;
   author: string | null;
@@ -60,7 +65,7 @@ function mapVolume(vol: VolumeInfo): GoogleBookResult {
 
 /** Search by ISBN (13-digit) */
 export async function searchByIsbn(isbn: string): Promise<GoogleBookResult | null> {
-  const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1`, {
+  const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam()}`, {
     cache: 'no-store',
   });
 
@@ -79,7 +84,7 @@ export async function searchByIsbn(isbn: string): Promise<GoogleBookResult | nul
 export async function searchByTitle(query: string, maxResults = 10): Promise<GoogleBookResult[]> {
   const encoded = encodeURIComponent(query);
   const res = await fetch(
-    `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books`,
+    `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`,
     { cache: 'no-store' }
   );
 
