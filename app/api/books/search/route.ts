@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { searchByIsbn, searchByTitle } from '@/lib/books/google-books';
 import { openBdLookup } from '@/lib/books/openbd';
 import { ndlSearchByTitle } from '@/lib/books/ndl';
+import { buildTitleQueryVariants } from '@/lib/books/search-query';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,13 +28,37 @@ export async function GET(request: NextRequest) {
   }
 
   if (q && q.trim().length > 0) {
-    // Try NDL first (free, no key, good for Japanese books), fall back to Google Books
-    const ndlResults = await ndlSearchByTitle(q.trim());
-    if (ndlResults.length > 0) {
-      return NextResponse.json({ results: ndlResults });
+    const variants = buildTitleQueryVariants(q);
+    const merged: Awaited<ReturnType<typeof searchByTitle>> = [];
+
+    const seen = new Set<string>();
+    const pushUnique = (items: Awaited<ReturnType<typeof searchByTitle>>) => {
+      for (const item of items) {
+        const key = `${item.isbn13 ?? ''}:${item.title}`.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        merged.push(item);
+      }
+    };
+
+    // Try NDL first (free, no key, good for Japanese books), then Google Books.
+    for (const queryVariant of variants) {
+      const ndlResults = await ndlSearchByTitle(queryVariant);
+      pushUnique(ndlResults);
+      if (merged.length >= 10) {
+        return NextResponse.json({ results: merged.slice(0, 10) });
+      }
     }
-    const results = await searchByTitle(q.trim());
-    return NextResponse.json({ results });
+
+    for (const queryVariant of variants) {
+      const googleResults = await searchByTitle(queryVariant);
+      pushUnique(googleResults);
+      if (merged.length >= 10) {
+        break;
+      }
+    }
+
+    return NextResponse.json({ results: merged.slice(0, 10) });
   }
 
   return NextResponse.json({ error: 'isbn or q parameter required' }, { status: 400 });
