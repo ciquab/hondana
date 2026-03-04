@@ -19,6 +19,8 @@ export async function createKidRecord(
   const author = String(formData.get('author') ?? '').trim();
   const status = String(formData.get('status') ?? 'finished').trim();
   const stamp = String(formData.get('stamp') ?? '').trim();
+  const isbn = String(formData.get('isbn') ?? '').trim();
+  const coverUrl = String(formData.get('coverUrl') ?? '').trim();
   const selectedTags = formData
     .getAll('feelingTags')
     .map((v) => String(v))
@@ -27,6 +29,9 @@ export async function createKidRecord(
     );
 
   if (!title) return { error: '本のタイトルを入力してください。' };
+  if (isbn && !/^\d{13}$/.test(isbn)) {
+    return { error: 'ISBNは13桁の数字で入力してください。' };
+  }
   if (!CHILD_STAMPS.includes(stamp as (typeof CHILD_STAMPS)[number])) {
     return { error: 'スタンプを選択してください。' };
   }
@@ -55,14 +60,44 @@ export async function createKidRecord(
     return { error: '子ども情報の取得に失敗しました。' };
   }
 
-  const { data: newBook, error: bookErr } = await supabase
-    .from('books')
-    .insert({ title, author: author || null })
-    .select('id')
-    .single();
+  let bookId: string;
 
-  if (bookErr || !newBook) {
-    return { error: '本の登録に失敗しました。' };
+  if (isbn) {
+    const { data: existing } = await supabase.from('books').select('id').eq('isbn13', isbn).maybeSingle();
+    if (existing) {
+      bookId = existing.id;
+    } else {
+      const { data: newBook, error: bookErr } = await supabase
+        .from('books')
+        .insert({
+          title,
+          author: author || null,
+          isbn13: isbn,
+          cover_url: coverUrl || null
+        })
+        .select('id')
+        .single();
+
+      if (bookErr || !newBook) {
+        return { error: '本の登録に失敗しました。' };
+      }
+      bookId = newBook.id;
+    }
+  } else {
+    const { data: newBook, error: bookErr } = await supabase
+      .from('books')
+      .insert({
+        title,
+        author: author || null,
+        cover_url: coverUrl || null
+      })
+      .select('id')
+      .single();
+
+    if (bookErr || !newBook) {
+      return { error: '本の登録に失敗しました。' };
+    }
+    bookId = newBook.id;
   }
 
   const { data: newRecord, error: recordErr } = await supabase
@@ -70,7 +105,7 @@ export async function createKidRecord(
     .insert({
       family_id: child.family_id,
       child_id: childId,
-      book_id: newBook.id,
+      book_id: bookId,
       status,
       created_by: user.id
     })
