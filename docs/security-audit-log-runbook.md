@@ -22,6 +22,20 @@
 - セキュリティインシデント関連: クローズ後 1年
 - 期限を過ぎたログは定期削除（将来: Supabase Scheduled Function）
 
+
+### 3.1 定期削除ジョブ（実装済み）
+
+監査ログ削除用のDB関数を追加済み:
+- `public.purge_kid_auth_audit_logs(retention_days int default 180)`
+- `public.purge_family_invite_audit_logs(retention_days int default 180)`
+
+実行例（service_role）:
+
+```sql
+select public.purge_kid_auth_audit_logs(180);
+select public.purge_family_invite_audit_logs(180);
+```
+
 ## 4. アラート条件（初期）
 
 ### 4.1 子ども PIN 認証 (`kid_auth_audit_logs`)
@@ -89,5 +103,5 @@ order by cnt desc;
 ## 7. 今後の拡張
 
 - アラートを自動通知（Slack/Webhook）へ連携
-- 保持期間管理を自動化（Scheduled SQL）
+- 保持期間管理の自動実行（Scheduled SQL / cron）を本番環境に接続
 - service-role 依存解消後、RLS中心の監査ビューを整備

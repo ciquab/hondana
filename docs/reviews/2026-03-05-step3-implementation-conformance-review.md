@@ -22,6 +22,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ 詳細設計書の API / 画面経路を Server Actions 実装に合わせて更新
 - ✅ kid PIN 認証イベントの監査ログ（`kid_auth_audit_logs`）を追加
 - ✅ 招待操作イベントの監査ログ（`family_invite_audit_logs`）を追加
+- ✅ 監査ログ保持期間の削除関数（`purge_*_audit_logs`）を追加
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
