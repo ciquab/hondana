@@ -37,6 +37,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ `child_session` 用DBロール作成・grant付与、および child_session policy の適用先を `authenticated` から `child_session` へ修正
 - ✅ `child_session` ロールを `authenticator` から引き受け可能にし（`grant child_session to authenticator`）、JWT role 運用の前提を補強
 - ✅ `child_session <- authenticated` 継承を撤廃し、`to authenticated` policy への意図しない包含を防止（権限境界を子ども専用に明確化）
+- ✅ kid画面/Server Actionの主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）を `child_session` JWT + anon client 実行へ切替
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -100,7 +101,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 
 ## 4. 推奨アクション（残課題）
 
-1. **P0 継続（進行中）**: child_session クレーム解釈と RLS スキャフォールドを追加。次段で kid 導線の実行主体を service role から child_session JWT に移行する。
-2. **P1（進行中）**: kid 主要 read/write テーブルへ child_session 起点 policy を追加済み。次段でアプリ接続先（service role 依存）の切り替えを実施する。
+1. **P0（進行）**: kid 主要導線の実行主体を service role から child_session JWT + anon client に切替済み。残件は kid PIN認証/監査書き込みなど高権限経路の分離。
+2. **P1（進行）**: child_session role / grants / read-write policy / authenticator引受を適用済み。次段で本番相当環境のmigration適用検証をCIに組み込む。
 3. **P1 対応済み**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化した（`docs/security-audit-log-runbook.md`）。
 

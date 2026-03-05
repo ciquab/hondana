@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
+import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
 
 type CalendarEntryRow = { created_at: string; stamp: string | null };
@@ -24,13 +23,11 @@ export default async function KidsCalendarPage({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
+  const { childId, supabase } = await requireKidContext();
 
   const { month } = await searchParams;
   const bounds = getMonthBounds(month);
 
-  const supabase = createAdminClient();
   const [{ data: records }, { data: childRows }, badges] = await Promise.all([
     supabase.rpc('get_kid_calendar_entries', {
       target_child_id: childId,
@@ -38,7 +35,7 @@ export default async function KidsCalendarPage({
       to_ts: bounds.to
     }),
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
-    getChildBadges(childId)
+    getChildBadges()
   ]);
 
   const child = childRows?.[0];
