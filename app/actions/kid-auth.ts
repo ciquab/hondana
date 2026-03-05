@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
 import { verifyPin } from '@/lib/kids/pin';
-import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 
 export type KidAuthResult = {
   error?: string;
@@ -49,7 +49,10 @@ export async function verifyKidPin(
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
-  const supabase = createAdminClient();
+  const { data: authState } = await supabase.rpc('get_child_auth_for_login', {
+    target_child_id: childId
+  });
+  const state = authState?.[0];
 
   if (!childId || !/^\d{4}$/.test(pin)) {
     await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_or_pin_format' });
