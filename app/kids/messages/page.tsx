@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { markKidMessageRead } from '@/app/actions/kid-message';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
+import { requireKidContext } from '@/lib/kids/client';
 import { getKidMessages } from '@/lib/kids/messages';
 
 const EMOJI_MAP: Record<string, string> = {
@@ -13,13 +12,10 @@ const EMOJI_MAP: Record<string, string> = {
 };
 
 export default async function KidsMessagesPage() {
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
-
-  const supabase = createAdminClient();
+  const { childId, supabase } = await requireKidContext();
   const [{ data: childRows }, { messages, unreadCount }] = await Promise.all([
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
-    getKidMessages(childId)
+    getKidMessages()
   ]);
 
   const child = childRows?.[0];
