@@ -39,6 +39,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ `child_session <- authenticated` 継承を撤廃し、`to authenticated` policy への意図しない包含を防止（権限境界を子ども専用に明確化）
 - ✅ kid画面/Server Actionの主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）を `child_session` JWT + anon client 実行へ切替
 - ✅ kid PIN 認証RPCの権限を再ハードニング（`service_role` 限定）し、匿名クライアントからの `pin_hash` 取得リスクを解消
+- ✅ kid PIN監査ログRPCでDB側メタデータサニタイズ（IP/UAの改行除去・長さ制限）を追加し、入力経路依存を低減
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
