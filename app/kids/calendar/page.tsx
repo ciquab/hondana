@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getKidSessionChildId } from '@/lib/kids/session';
 import { getChildBadges } from '@/lib/kids/badges';
 
+type CalendarEntryRow = { created_at: string; stamp: string | null };
+
 function getMonthBounds(monthParam: string | undefined) {
   const base = monthParam && /^\d{4}-\d{2}$/.test(monthParam) ? `${monthParam}-01` : undefined;
   const monthStart = base ? new Date(base) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -29,26 +31,26 @@ export default async function KidsCalendarPage({
   const bounds = getMonthBounds(month);
 
   const supabase = createAdminClient();
-  const [{ data: records }, { data: child }, badges] = await Promise.all([
-    supabase
-      .from('reading_records')
-      .select('id, created_at, record_reactions_child(stamp)')
-      .eq('child_id', childId)
-      .gte('created_at', bounds.from)
-      .lt('created_at', bounds.to),
-    supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
+  const [{ data: records }, { data: childRows }, badges] = await Promise.all([
+    supabase.rpc('get_kid_calendar_entries', {
+      target_child_id: childId,
+      from_ts: bounds.from,
+      to_ts: bounds.to
+    }),
+    supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
     getChildBadges(childId)
   ]);
 
+  const child = childRows?.[0];
   if (!child) redirect('/kids/login');
 
   const dayMap = new Map<number, { count: number; stamp?: string }>();
-  for (const row of records ?? []) {
+  for (const row of ((records ?? []) as CalendarEntryRow[])) {
     const day = new Date(row.created_at).getDate();
     const prev = dayMap.get(day) ?? { count: 0 };
     dayMap.set(day, {
       count: prev.count + 1,
-      stamp: (row.record_reactions_child as { stamp?: string }[] | null)?.[0]?.stamp ?? prev.stamp
+      stamp: row.stamp ?? prev.stamp
     });
   }
 

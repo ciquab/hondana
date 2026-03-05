@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { hashPin } from '@/lib/kids/pin';
 
 export type ActionResult = {
@@ -10,6 +12,65 @@ export type ActionResult = {
   inviteCode?: string;
   ok?: string;
 };
+
+
+function sanitizeHeaderValue(value: string | null, max = 200): string | null {
+  if (!value) return null;
+  const normalized = value.replace(/[\r\n\t]/g, ' ').trim();
+  if (!normalized) return null;
+  return normalized.slice(0, max);
+}
+
+function getClientIpFromForwardedFor(value: string | null): string | null {
+  const first = value?.split(',')[0]?.trim() ?? null;
+  return sanitizeHeaderValue(first, 64);
+}
+
+
+async function logInviteAuditEvent(
+  payload: {
+    actorUserId: string;
+    action:
+      | 'create_invite_failed'
+      | 'create_invite_success'
+      | 'revoke_invite_failed'
+      | 'revoke_invite_success'
+      | 'accept_invite_failed'
+      | 'accept_invite_success';
+    familyId?: string | null;
+    inviteId?: string | null;
+    reason?: string;
+    metadata?: Record<string, unknown>;
+  }
+) {
+  if (!canCreateAdminClient()) return;
+
+  const headerStore = await headers();
+  const forwardedFor = headerStore.get('x-forwarded-for');
+  const userAgent = headerStore.get('user-agent');
+
+  const ip = getClientIpFromForwardedFor(forwardedFor);
+  const safeUserAgent = sanitizeHeaderValue(userAgent, 300);
+
+  const supabase = createAdminClient();
+
+  try {
+    await supabase.rpc('log_family_invite_audit_event', {
+      target_actor_user_id: payload.actorUserId,
+      target_family_id: payload.familyId ?? null,
+      target_invite_id: payload.inviteId ?? null,
+      target_action: payload.action,
+      target_reason: payload.reason ?? null,
+      target_metadata: {
+        ip,
+        userAgent: safeUserAgent,
+        ...(payload.metadata ?? {})
+      }
+    });
+  } catch {
+    // audit log failure must not block user action
+  }
+}
 
 export async function createFamily(
   _prev: ActionResult,
@@ -121,12 +182,26 @@ export async function createInvite(
   });
 
   if (error) {
+    await logInviteAuditEvent({
+      actorUserId: user.id,
+      action: 'create_invite_failed',
+      familyId: null,
+      reason: error.message,
+      metadata: { attemptedFamilyId: familyId }
+    });
     return { error: '招待コードの発行に失敗しました。もう一度お試しください。' };
   }
 
+  await logInviteAuditEvent({
+    actorUserId: user.id,
+    action: 'create_invite_success',
+    familyId,
+    reason: 'created',
+    metadata: { inviteCodePrefix: String(data).slice(0, 3) }
+  });
+
   return { inviteCode: data };
 }
-
 
 export async function revokeInvite(
   _prev: ActionResult,
@@ -143,13 +218,34 @@ export async function revokeInvite(
 
   if (!user) redirect('/login');
 
+  const { data: inviteBefore } = await supabase
+    .from('family_invites')
+    .select('id, family_id')
+    .eq('id', inviteId)
+    .maybeSingle();
+
   const { data, error } = await supabase.rpc('revoke_family_invite', {
     target_invite_id: inviteId
   });
 
   if (error || !data) {
+    await logInviteAuditEvent({
+      actorUserId: user.id,
+      action: 'revoke_invite_failed',
+      familyId: inviteBefore?.family_id ?? null,
+      inviteId,
+      reason: error?.message ?? 'revoke_returned_false'
+    });
     return { error: '招待コードの無効化に失敗しました。' };
   }
+
+  await logInviteAuditEvent({
+    actorUserId: user.id,
+    action: 'revoke_invite_success',
+    familyId: inviteBefore?.family_id ?? null,
+    inviteId,
+    reason: 'revoked'
+  });
 
   revalidatePath('/settings/family');
   return { ok: '招待コードを無効化しました。' };
@@ -169,21 +265,36 @@ export async function acceptInvite(
 
   if (!user) redirect('/login');
 
-  const { error } = await supabase.rpc('accept_family_invite', {
+  const { data: familyId, error } = await supabase.rpc('accept_family_invite', {
     code
   });
 
   if (error) {
+    await logInviteAuditEvent({
+      actorUserId: user.id,
+      action: 'accept_invite_failed',
+      familyId: null,
+      reason: error.message,
+      metadata: { inviteCodePrefix: code.slice(0, 3).toUpperCase() }
+    });
+
     if (error.message.includes('Already a member')) {
       return { error: 'すでにこの家族のメンバーです。' };
     }
     return { error: '招待コードが無効か、有効期限が切れています。' };
   }
 
+  await logInviteAuditEvent({
+    actorUserId: user.id,
+    action: 'accept_invite_success',
+    familyId: familyId ?? null,
+    reason: 'accepted',
+    metadata: { inviteCodePrefix: code.slice(0, 3).toUpperCase() }
+  });
+
   revalidatePath('/dashboard');
   redirect('/dashboard');
 }
-
 
 export async function updateMyDisplayName(
   _prev: ActionResult,

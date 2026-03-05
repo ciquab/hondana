@@ -23,16 +23,33 @@ const EMOJI_MAP: Record<string, string> = {
   clap: '👏'
 };
 
+type RecordDetailRow = {
+  id: string;
+  created_at: string;
+  status: string;
+  memo: string | null;
+  finished_on: string | null;
+  child_display_name: string | null;
+  title: string | null;
+  author: string | null;
+  isbn13: string | null;
+  cover_url: string | null;
+  stamp: string | null;
+  feeling_tags: string[] | null;
+};
+
 type ParentComment = {
   id: string;
   body: string;
   created_at: string;
   author_user_id: string;
+  author_display_name: string;
 };
 
 type ParentReaction = {
   emoji: string;
   user_id: string;
+  parent_display_name: string;
 };
 
 function formatYmdDate(value: string) {
@@ -50,59 +67,41 @@ export default async function KidRecordDetailPage({
   const { recordId } = await params;
   const supabase = createAdminClient();
 
-  const [{ data: record }, { data: comments }, { data: reactions }] = await Promise.all([
-    supabase
-      .from('reading_records')
-      .select(
-        'id, created_at, status, memo, finished_on, books(title, author, isbn13, cover_url), children(display_name), record_reactions_child(stamp), record_feeling_tags(tag)'
-      )
-      .eq('id', recordId)
-      .eq('child_id', childId)
-      .maybeSingle(),
-    supabase
-      .from('record_comments')
-      .select('id, body, created_at, author_user_id')
-      .eq('record_id', recordId)
-      .order('created_at', { ascending: false })
-      .limit(10),
-    supabase.from('record_reactions').select('emoji, user_id').eq('record_id', recordId)
+  const [{ data: detailRows }, { data: commentRows }, { data: reactionRows }] = await Promise.all([
+    supabase.rpc('get_kid_record_detail', {
+      target_child_id: childId,
+      target_record_id: recordId
+    }),
+    supabase.rpc('get_kid_record_comments', {
+      target_child_id: childId,
+      target_record_id: recordId,
+      max_rows: 10
+    }),
+    supabase.rpc('get_kid_record_reactions', {
+      target_child_id: childId,
+      target_record_id: recordId
+    })
   ]);
 
+  const record = (detailRows as RecordDetailRow[] | null)?.[0];
   if (!record) notFound();
 
-  const parentUserIds = new Set<string>();
-  for (const comment of (comments ?? []) as ParentComment[]) parentUserIds.add(comment.author_user_id);
-  for (const reaction of (reactions ?? []) as ParentReaction[]) parentUserIds.add(reaction.user_id);
-
-  const { data: members } = parentUserIds.size
-    ? await supabase
-        .from('family_members')
-        .select('user_id, display_name')
-        .in('user_id', Array.from(parentUserIds))
-    : { data: [] as { user_id: string; display_name: string }[] };
-
-  const memberNameMap = new Map<string, string>();
-  for (const member of members ?? []) {
-    memberNameMap.set(member.user_id, member.display_name ?? '保護者');
-  }
-
-  const book = Array.isArray(record.books) ? record.books[0] : record.books;
-  const child = Array.isArray(record.children) ? record.children[0] : record.children;
-  const stampRows = (record.record_reactions_child as { stamp?: string }[] | null) ?? [];
-  const feelingRows = (record.record_feeling_tags as { tag?: string }[] | null) ?? [];
-  const stamp = stampRows[0]?.stamp ?? null;
+  const comments = (commentRows ?? []) as ParentComment[];
+  const reactions = (reactionRows ?? []) as ParentReaction[];
 
   const reactionCountMap = new Map<string, number>();
   const reactionByParent = new Map<string, Record<string, number>>();
 
-  for (const row of (reactions ?? []) as ParentReaction[]) {
+  for (const row of reactions) {
     reactionCountMap.set(row.emoji, (reactionCountMap.get(row.emoji) ?? 0) + 1);
 
-    const parentName = memberNameMap.get(row.user_id) ?? '保護者';
+    const parentName = row.parent_display_name ?? '保護者';
     const current = reactionByParent.get(parentName) ?? {};
     current[row.emoji] = (current[row.emoji] ?? 0) + 1;
     reactionByParent.set(parentName, current);
   }
+
+  const feelingTags = record.feeling_tags ?? [];
 
   return (
     <main className="mx-auto max-w-xl p-4">
@@ -111,24 +110,24 @@ export default async function KidRecordDetailPage({
       </Link>
 
       <div className="mt-3 rounded-2xl bg-gradient-to-b from-sky-50 to-indigo-100 p-5 shadow">
-        <p className="text-xs font-medium text-indigo-700">{child?.display_name ?? 'こども'} のどくしょきろく</p>
-        <h1 className="mt-1 text-2xl font-bold text-indigo-950">{book?.title ?? 'タイトルふめい'}</h1>
+        <p className="text-xs font-medium text-indigo-700">{record.child_display_name ?? 'こども'} のどくしょきろく</p>
+        <h1 className="mt-1 text-2xl font-bold text-indigo-950">{record.title ?? 'タイトルふめい'}</h1>
 
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="rounded-full bg-white/85 px-3 py-1 text-sm font-medium text-indigo-800">
             {STATUS_LABELS[record.status] ?? record.status}
           </span>
-          {stamp ? (
+          {record.stamp ? (
             <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
-              {STAMP_LABELS[stamp] ?? stamp}
+              {STAMP_LABELS[record.stamp] ?? record.stamp}
             </span>
           ) : null}
         </div>
 
-        {book?.cover_url ? (
+        {record.cover_url ? (
           <div className="mt-4 flex justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={book.cover_url} alt={book.title ?? 'ひょうし'} className="h-48 w-32 rounded-lg object-cover shadow" />
+            <img src={record.cover_url} alt={record.title ?? 'ひょうし'} className="h-48 w-32 rounded-lg object-cover shadow" />
           </div>
         ) : (
           <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-white/80 text-sm text-slate-500">
@@ -136,13 +135,13 @@ export default async function KidRecordDetailPage({
           </div>
         )}
 
-        {feelingRows.length > 0 ? (
+        {feelingTags.length > 0 ? (
           <section className="mt-4">
             <h2 className="text-sm font-semibold text-indigo-800">きもちタグ</h2>
             <div className="mt-2 flex flex-wrap gap-2">
-              {feelingRows.map((row, i) => (
-                <span key={`${row.tag}-${i}`} className="rounded-full bg-rose-100 px-3 py-1 text-sm text-rose-900">
-                  {row.tag}
+              {feelingTags.map((tag, i) => (
+                <span key={`${tag}-${i}`} className="rounded-full bg-rose-100 px-3 py-1 text-sm text-rose-900">
+                  {tag}
                 </span>
               ))}
             </div>
@@ -183,13 +182,11 @@ export default async function KidRecordDetailPage({
 
         <section className="mt-4 rounded-xl bg-white/85 p-4">
           <h2 className="text-sm font-semibold text-indigo-900">おうちのひとからのコメント</h2>
-          {comments && comments.length > 0 ? (
+          {comments.length > 0 ? (
             <ul className="mt-2 space-y-2">
-              {(comments as ParentComment[]).map((comment) => (
+              {comments.map((comment) => (
                 <li key={comment.id} className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
-                  <p className="mb-1 text-xs font-semibold text-indigo-700">
-                    {memberNameMap.get(comment.author_user_id) ?? '保護者'}
-                  </p>
+                  <p className="mb-1 text-xs font-semibold text-indigo-700">{comment.author_display_name}</p>
                   <p className="whitespace-pre-wrap">{comment.body}</p>
                   <p className="mt-1 text-xs text-slate-500">{new Date(comment.created_at).toLocaleString('ja-JP')}</p>
                 </li>
@@ -203,11 +200,11 @@ export default async function KidRecordDetailPage({
         <dl className="mt-5 space-y-3 rounded-xl bg-white/80 p-4 text-sm">
           <div>
             <dt className="font-medium text-slate-700">ちょしゃ</dt>
-            <dd className="text-slate-700">{book?.author ?? 'ふめい'}</dd>
+            <dd className="text-slate-700">{record.author ?? 'ふめい'}</dd>
           </div>
           <div>
             <dt className="font-medium text-slate-700">ISBN</dt>
-            <dd className="text-slate-700">{book?.isbn13 ?? 'なし'}</dd>
+            <dd className="text-slate-700">{record.isbn13 ?? 'なし'}</dd>
           </div>
           <div>
             <dt className="font-medium text-slate-700">きろくしたひ</dt>

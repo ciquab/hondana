@@ -6,24 +6,22 @@ import { getKidSessionChildId } from '@/lib/kids/session';
 import { getChildBadges } from '@/lib/kids/badges';
 import { getKidMessages } from '@/lib/kids/messages';
 
+type RecentRow = { id: string; title: string | null; cover_url: string | null };
+
 export default async function KidsHomePage() {
   const childId = await getKidSessionChildId();
   if (!childId) redirect('/kids/login');
 
   const supabase = createAdminClient();
-  const { data: child } = await supabase.from('children').select('id, display_name').eq('id', childId).maybeSingle();
-  if (!child) redirect('/kids/login');
-
-  const [{ data: recent }, badges, { unreadCount }] = await Promise.all([
-    supabase
-      .from('reading_records')
-      .select('id, created_at, books(title, cover_url)')
-      .eq('child_id', childId)
-      .order('created_at', { ascending: false })
-      .limit(6),
+  const [{ data: childRows }, { data: recentRows }, badges, { unreadCount }] = await Promise.all([
+    supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
+    supabase.rpc('get_kid_recent_records', { target_child_id: childId, max_rows: 6 }),
     getChildBadges(childId),
     getKidMessages(childId)
   ]);
+
+  const child = childRows?.[0];
+  if (!child) redirect('/kids/login');
 
   return (
     <main className="mx-auto max-w-xl p-4">
@@ -75,21 +73,16 @@ export default async function KidsHomePage() {
             過去の記録をひらく
           </Link>
         </div>
-        {recent && recent.length > 0 ? (
+        {recentRows && recentRows.length > 0 ? (
           <ul className="grid grid-cols-3 gap-2">
-            {recent.map((row) => {
-              const book = row.books as
-                | { title?: string; cover_url?: string | null }
-                | { title?: string; cover_url?: string | null }[]
-                | null;
-              const info = Array.isArray(book) ? book[0] : book;
-              const title = info?.title ?? '不明な本';
+            {(recentRows as RecentRow[]).map((row) => {
+              const title = row.title ?? '不明な本';
               return (
                 <li key={row.id}>
                   <Link href={`/kids/records/${row.id}`} className="block rounded border p-1">
-                    {info?.cover_url ? (
+                    {row.cover_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={info.cover_url} alt={title} className="h-24 w-full rounded object-cover" />
+                      <img src={row.cover_url} alt={title} className="h-24 w-full rounded object-cover" />
                     ) : (
                       <div className="flex h-24 w-full items-center justify-center rounded bg-slate-100 text-xs text-slate-400">
                         No cover
