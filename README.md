@@ -52,3 +52,7 @@ Magic Link は次PRで差し替えまたは併用可能です。
 - `KID_SESSION_SECRET` は推測困難なランダム文字列を設定してください。
 - `KID_SESSION_SECRET` 未設定時、`/kids/login` は設定不足としてログイン不可になります。
 - `SUPABASE_SERVICE_ROLE_KEY` はクライアントへ露出させず、サーバー環境変数としてのみ管理してください。
+
+
+## セキュリティ運用ドキュメント
+- 監査ログ運用ランブック: `docs/security-audit-log-runbook.md`
