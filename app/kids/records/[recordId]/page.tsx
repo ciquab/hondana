@@ -35,6 +35,10 @@ type ParentReaction = {
   user_id: string;
 };
 
+function formatYmdDate(value: string) {
+  return new Date(`${value}T00:00:00`).toLocaleDateString('ja-JP');
+}
+
 export default async function KidRecordDetailPage({
   params
 }: {
@@ -212,7 +216,7 @@ export default async function KidRecordDetailPage({
           {record.finished_on ? (
             <div>
               <dt className="font-medium text-slate-700">よみおわったひ</dt>
-              <dd className="text-slate-700">{record.finished_on}</dd>
+              <dd className="text-slate-700">{formatYmdDate(record.finished_on)}</dd>
             </div>
           ) : null}
           {record.memo ? (
