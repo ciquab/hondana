@@ -21,6 +21,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ `app/settings/children/page.tsx` の未使用変数を解消し、`npm run lint` / `npm run build` が通る状態へ改善
 - ✅ 詳細設計書の API / 画面経路を Server Actions 実装に合わせて更新
 - ✅ kid PIN 認証イベントの監査ログ（`kid_auth_audit_logs`）を追加
+- ✅ 招待操作イベントの監査ログ（`family_invite_audit_logs`）を追加
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -86,5 +87,5 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 
 1. **P0 継続**: kid 導線の DB アクセスを service role 依存から分離する（RLS + 子ども専用クレームに寄せる）。
 2. **P1**: 子ども専用クレーム導入後に RLS policy を child_session 起点へ寄せ、アプリ側 `.eq(child_id)` 依存を薄くする。
-3. **P1 継続**: 招待操作ログも監査対象へ追加し、認証ログと合わせた運用手順を文書化する。
+3. **P1**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化する。
 
