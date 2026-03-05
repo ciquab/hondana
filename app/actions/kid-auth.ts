@@ -12,7 +12,7 @@ export type KidAuthResult = {
 };
 
 async function logKidAuthEvent(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   payload: {
     childId?: string;
     eventType: 'invalid_input' | 'child_not_found' | 'pin_not_set' | 'locked' | 'pin_failed' | 'pin_locked' | 'success';
@@ -45,11 +45,14 @@ export async function verifyKidPin(
   const childId = String(formData.get('childId') ?? '').trim();
   const pin = String(formData.get('pin') ?? '').trim();
 
-  if (!canUseKidSession()) {
+  if (!canCreateAdminClient() || !canUseKidSession()) {
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
-  const supabase = await createClient();
+  const { data: authState } = await supabase.rpc('get_child_auth_for_login', {
+    target_child_id: childId
+  });
+  const state = authState?.[0];
 
   if (!childId || !/^\d{4}$/.test(pin)) {
     await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_or_pin_format' });
