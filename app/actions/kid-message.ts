@@ -1,18 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
+import { requireKidContext } from '@/lib/kids/client';
 
 export async function markKidMessageRead(formData: FormData): Promise<void> {
   const commentId = String(formData.get('commentId') ?? '').trim();
   if (!commentId) return;
 
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
-
-  const supabase = createAdminClient();
+  const { childId, supabase } = await requireKidContext();
 
   const { data: marked } = await supabase.rpc('mark_kid_message_read', {
     target_child_id: childId,

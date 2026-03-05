@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { requireKidContext } from '@/lib/kids/client';
 
 export type ChildBadgeRow = {
   badge_id: string;
@@ -10,8 +10,8 @@ export type ChildBadgeRow = {
   sort_order: number;
 };
 
-export async function evaluateChildBadges(childId: string, sourceRecordId: string) {
-  const supabase = createAdminClient();
+export async function evaluateChildBadges(sourceRecordId: string) {
+  const { supabase, childId } = await requireKidContext();
 
   await supabase.rpc('evaluate_kid_badges', {
     target_child_id: childId,
@@ -19,8 +19,8 @@ export async function evaluateChildBadges(childId: string, sourceRecordId: strin
   });
 }
 
-export async function getChildBadges(childId: string): Promise<ChildBadgeRow[]> {
-  const supabase = createAdminClient();
+export async function getChildBadges(): Promise<ChildBadgeRow[]> {
+  const { supabase, childId } = await requireKidContext();
 
   const { data } = await supabase.rpc('get_kid_badges', {
     target_child_id: childId

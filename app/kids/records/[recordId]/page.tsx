@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
+import { notFound } from 'next/navigation';
+import { requireKidContext } from '@/lib/kids/client';
 
 const STATUS_LABELS: Record<string, string> = {
   want_to_read: 'よみたい',
@@ -61,11 +60,9 @@ export default async function KidRecordDetailPage({
 }: {
   params: Promise<{ recordId: string }>;
 }) {
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
+  const { childId, supabase } = await requireKidContext();
 
   const { recordId } = await params;
-  const supabase = createAdminClient();
 
   const [{ data: detailRows }, { data: commentRows }, { data: reactionRows }] = await Promise.all([
     supabase.rpc('get_kid_record_detail', {
