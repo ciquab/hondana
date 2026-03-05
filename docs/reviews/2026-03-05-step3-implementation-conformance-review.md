@@ -38,6 +38,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ `child_session` ロールを `authenticator` から引き受け可能にし（`grant child_session to authenticator`）、JWT role 運用の前提を補強
 - ✅ `child_session <- authenticated` 継承を撤廃し、`to authenticated` policy への意図しない包含を防止（権限境界を子ども専用に明確化）
 - ✅ kid画面/Server Actionの主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）を `child_session` JWT + anon client 実行へ切替
+- ✅ kid PIN 認証フローを anon 実行可能な専用RPC呼び出しへ変更し、アプリ側の kid-auth で `SUPABASE_SERVICE_ROLE_KEY` 依存を解消
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -63,7 +64,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 詳細設計では「子どもセッションを JWT claim で表現し、RLS で `child_id` / `family_id` 制御」を想定しているが、
 kid主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）は `child_session` JWT + RLS 実行へ移行済み。
 
-現時点の残件は、PIN 認証・監査ログ書き込みなど初期認証/運用系の一部で `service_role` を利用している点。
+現時点の残件は、監査ログ運用/管理系など一部高権限経路の整理。PIN 認証のアプリ側実行は anon RPC ベースへ移行済み。
 このため、権限モデル差分は「全面未達」から「高権限経路の限定残」に縮小した。
 
 ## P0: 子どもセッション秘密鍵のデフォルトフォールバック（対応済み）
@@ -98,7 +99,7 @@ kid主要導線（home/records/calendar/messages/record作成/既読/badge取得
 
 ## 4. 推奨アクション（残課題）
 
-1. **P0（進行）**: kid 主要導線の実行主体を service role から child_session JWT + anon client に切替済み。残件は kid PIN認証/監査書き込みなど高権限経路の分離。
+1. **P0（進行）**: kid 主要導線と PIN 認証アクションの実行主体を service role から child_session JWT / anon RPC に切替済み。残件は監査運用・管理系の高権限経路整理。
 2. **P1（進行）**: child_session role / grants / read-write policy / authenticator引受を適用済み。次段で本番相当環境のmigration適用検証をCIに組み込む。
 3. **P1 対応済み**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化した（`docs/security-audit-log-runbook.md`）。
 
