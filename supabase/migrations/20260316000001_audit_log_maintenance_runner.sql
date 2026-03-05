@@ -15,11 +15,11 @@ alter table public.audit_log_maintenance_runs enable row level security;
 
 create policy "service role can insert maintenance runs"
   on public.audit_log_maintenance_runs for insert
-  with check (auth.role() = 'service_role');
+  with check (coalesce(current_setting('request.jwt.claim.role', true), (current_setting('request.jwt.claims', true)::jsonb ->> 'role')) = 'service_role');
 
 create policy "service role can view maintenance runs"
   on public.audit_log_maintenance_runs for select
-  using (auth.role() = 'service_role');
+  using (coalesce(current_setting('request.jwt.claim.role', true), (current_setting('request.jwt.claims', true)::jsonb ->> 'role')) = 'service_role');
 
 create or replace function public.run_audit_log_maintenance(retention_days int default 180)
 returns table (

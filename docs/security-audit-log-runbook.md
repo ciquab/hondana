@@ -123,3 +123,48 @@ select * from public.get_audit_alert_candidates(10);
 - `get_audit_alert_candidates(10)` の結果をSlack/Webhookへ自動通知
 - `run_audit_log_maintenance(180)` を Scheduled SQL / cron で日次実行
 - service-role 依存解消後、RLS中心の監査ビューを整備
+
+## 8. Migration検証CI失敗時の運用（Task3）
+
+### 8.1 対象ジョブ
+
+- GitHub Actions: `verify-migrations`
+- ワークフロー: `.github/workflows/migration-verify.yml`
+- 検証スクリプト: `scripts/ci/verify-migrations.sh`
+
+### 8.2 役割分担（DRI）
+
+- **一次対応（15分以内）**: PR作成者
+- **二次対応（60分以内）**: DBオーナー（Step3担当）
+- **最終承認**: レビュワー（最低1名）
+
+### 8.3 一次切り分け手順
+
+1. CIログで失敗した migration ファイル名を特定
+2. 同ブランチで以下をローカル実行して再現確認
+   - `bash scripts/ci/verify-migrations.sh`
+3. 失敗種別を分類
+   - 依存順序ミス（前提テーブル/関数不足）
+   - grant/policy の対象不足（role/function signature不一致）
+   - SQL構文・型不整合
+4. PRに「原因」「暫定対応」「恒久対応」をコメント
+
+### 8.4 復旧方針
+
+- 原則: **forward-fix**（新しい migration を追加して修復）
+- 既に共有された migration の書き換えは原則禁止
+- 例外: 未共有ブランチ内でのみ修正可
+
+### 8.5 エスカレーション条件
+
+以下に該当する場合は、即時 DB オーナーにエスカレーション:
+- 同一失敗が2回連続
+- `child_session` role / grant / policy に関する失敗
+- `kid_auth_audit_logs` や認証RPC（PIN）周辺の失敗
+
+### 8.6 完了条件
+
+- `verify-migrations` が green
+- 失敗原因と対応内容を PR に記録
+- 必要なら本ランブックへ再発防止策を追記
+
