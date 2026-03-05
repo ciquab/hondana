@@ -16,6 +16,23 @@ const STAMP_LABELS: Record<string, string> = {
   hard: '😓 むずかしかった'
 };
 
+const EMOJI_MAP: Record<string, string> = {
+  heart: '❤️',
+  thumbsup: '👍',
+  star: '🌟',
+  clap: '👏'
+};
+
+type ParentComment = {
+  id: string;
+  body: string;
+  created_at: string;
+};
+
+type ParentReaction = {
+  emoji: string;
+};
+
 export default async function KidRecordDetailPage({
   params
 }: {
@@ -27,14 +44,23 @@ export default async function KidRecordDetailPage({
   const { recordId } = await params;
   const supabase = createAdminClient();
 
-  const { data: record } = await supabase
-    .from('reading_records')
-    .select(
-      'id, created_at, status, memo, finished_on, books(title, author, isbn13, cover_url), children(display_name), record_reactions_child(stamp), record_feeling_tags(tag)'
-    )
-    .eq('id', recordId)
-    .eq('child_id', childId)
-    .maybeSingle();
+  const [{ data: record }, { data: comments }, { data: reactions }] = await Promise.all([
+    supabase
+      .from('reading_records')
+      .select(
+        'id, created_at, status, memo, finished_on, books(title, author, isbn13, cover_url), children(display_name), record_reactions_child(stamp), record_feeling_tags(tag)'
+      )
+      .eq('id', recordId)
+      .eq('child_id', childId)
+      .maybeSingle(),
+    supabase
+      .from('record_comments')
+      .select('id, body, created_at')
+      .eq('record_id', recordId)
+      .order('created_at', { ascending: false })
+      .limit(10),
+    supabase.from('record_reactions').select('emoji').eq('record_id', recordId)
+  ]);
 
   if (!record) notFound();
 
@@ -43,6 +69,11 @@ export default async function KidRecordDetailPage({
   const stampRows = (record.record_reactions_child as { stamp?: string }[] | null) ?? [];
   const feelingRows = (record.record_feeling_tags as { tag?: string }[] | null) ?? [];
   const stamp = stampRows[0]?.stamp ?? null;
+
+  const reactionCountMap = new Map<string, number>();
+  for (const row of (reactions ?? []) as ParentReaction[]) {
+    reactionCountMap.set(row.emoji, (reactionCountMap.get(row.emoji) ?? 0) + 1);
+  }
 
   return (
     <main className="mx-auto max-w-xl p-4">
@@ -88,6 +119,37 @@ export default async function KidRecordDetailPage({
             </div>
           </section>
         ) : null}
+
+        <section className="mt-4 rounded-xl bg-white/85 p-4">
+          <h2 className="text-sm font-semibold text-indigo-900">おうちのひとのリアクション</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {reactionCountMap.size > 0 ? (
+              Array.from(reactionCountMap.entries()).map(([emoji, count]) => (
+                <span key={emoji} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
+                  {EMOJI_MAP[emoji] ?? emoji} {count}
+                </span>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">まだリアクションはありません</p>
+            )}
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-xl bg-white/85 p-4">
+          <h2 className="text-sm font-semibold text-indigo-900">おうちのひとからのコメント</h2>
+          {comments && comments.length > 0 ? (
+            <ul className="mt-2 space-y-2">
+              {(comments as ParentComment[]).map((comment) => (
+                <li key={comment.id} className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+                  <p className="whitespace-pre-wrap">{comment.body}</p>
+                  <p className="mt-1 text-xs text-slate-500">{new Date(comment.created_at).toLocaleString('ja-JP')}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-slate-500">まだコメントはありません</p>
+          )}
+        </section>
 
         <dl className="mt-5 space-y-3 rounded-xl bg-white/80 p-4 text-sm">
           <div>
