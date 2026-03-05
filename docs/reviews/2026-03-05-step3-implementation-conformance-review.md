@@ -24,6 +24,8 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ 招待操作イベントの監査ログ（`family_invite_audit_logs`）を追加
 - ✅ 監査ログ保持期間の削除関数（`purge_*_audit_logs`）を追加
 - ✅ 監査ログ定期削除ランナー（`run_audit_log_maintenance`）を追加
+- ✅ 監査ログアラート候補抽出関数（`get_audit_alert_candidates`）を追加
+- ✅ kid PIN認証のテーブル直接参照をRPC化し、認証アクションのservice role直アクセスを縮小
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -47,7 +49,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 ## P0: 詳細設計の権限モデルとの差異（`child_session + RLS` 未達）
 
 詳細設計では「子どもセッションを JWT claim で表現し、RLS で `child_id` / `family_id` 制御」を想定しているが、
-実装は子ども導線で Supabase の **service role** クライアントを多用している。
+実装は子ども導線で Supabase の **service role** クライアントを多用している（ただし kid PIN 認証は RPC 化で縮小済み）。
 
 - `createAdminClient()` は `SUPABASE_SERVICE_ROLE_KEY` で DB にアクセスする。
 - 子どもページ/アクションもこの admin client を直接利用している。

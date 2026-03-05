@@ -96,6 +96,20 @@ having count(*) >= 20
 order by cnt desc;
 ```
 
+
+## 5.4 アラート候補抽出（実装済み関数）
+
+手動SQLに加えて、閾値超過候補をまとめて取得できます。
+
+```sql
+select * from public.get_audit_alert_candidates(10);
+```
+
+返却される `category` 例:
+- `kid_pin_fail_burst`
+- `kid_child_not_found_ip_burst`
+- `invite_accept_fail_burst`
+
 ## 6. インシデント時の一次対応
 
 1. 該当 `child_id` / `actor_user_id` / `ip` をログで特定
@@ -106,6 +120,6 @@ order by cnt desc;
 
 ## 7. 今後の拡張
 
-- アラートを自動通知（Slack/Webhook）へ連携
+- `get_audit_alert_candidates(10)` の結果をSlack/Webhookへ自動通知
 - `run_audit_log_maintenance(180)` を Scheduled SQL / cron で日次実行
 - service-role 依存解消後、RLS中心の監査ビューを整備
