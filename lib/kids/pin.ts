@@ -18,3 +18,9 @@ export function verifyPin(pin: string, storedHash: string): boolean {
   if (storedBuf.length !== derived.length) return false;
   return timingSafeEqual(storedBuf, derived);
 }
+
+export function burnPinVerifyCost(pin: string): void {
+  // Mitigate timing gaps on auth failure paths (child not found / pin not set).
+  // Use a fixed synthetic hash format so scrypt cost is always paid.
+  verifyPin(pin, '00000000000000000000000000000000:' + '00'.repeat(KEYLEN));
+}

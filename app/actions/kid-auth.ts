@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
-import { verifyPin } from '@/lib/kids/pin';
+import { burnPinVerifyCost, verifyPin } from '@/lib/kids/pin';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { canCreateKidClient } from '@/lib/supabase/child';
 
@@ -89,16 +89,19 @@ export async function verifyKidPin(
   const state = authState?.[0];
 
   if (!state?.child_exists) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'child_not_found' });
     return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
   if (!state.pin_hash) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'pin_not_set' });
     return { error: 'PINが設定されていません。保護者画面で設定してください。' };
   }
 
   if (state.pin_locked_until && new Date(state.pin_locked_until) > new Date()) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'locked', reason: 'already_locked' });
     return { error: 'PINがロック中です。しばらく待ってから再試行してください。' };
   }
