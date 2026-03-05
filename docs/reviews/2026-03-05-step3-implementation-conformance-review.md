@@ -32,6 +32,10 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ Phase A として kid 読み取り系（home/records/calendar）の直接テーブル参照をRPC化
 - ✅ Phase B として kid 詳細/メッセージ導線（records/[recordId], messages, 既読更新）の直接参照をRPC化
 - ✅ Phase C として kid 記録作成/バッジ評価・取得（kid-record action, badges lib）の直接参照をRPC化
+- ✅ child_session クレーム解釈ヘルパーと kid 主要テーブル向け RLS スキャフォールドを追加（Phase D 準備）
+- ✅ child_session 向け write 系 RLS スキャフォールド（stamp / feeling tag / message既読）を追加（Phase E 準備）
+- ✅ `child_session` 用DBロール作成・grant付与、および child_session policy の適用先を `authenticated` から `child_session` へ修正
+- ✅ `child_session` ロールを `authenticator` から引き受け可能にし（`grant child_session to authenticator`）、JWT role 運用の前提を補強
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -95,7 +99,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 
 ## 4. 推奨アクション（残課題）
 
-1. **P0 継続**: kid 導線の DB アクセスを service role 依存から分離する（RLS + 子ども専用クレームに寄せる）。
-2. **P1**: 子ども専用クレーム導入後に RLS policy を child_session 起点へ寄せ、アプリ側 `.eq(child_id)` 依存を薄くする。
+1. **P0 継続（進行中）**: child_session クレーム解釈と RLS スキャフォールドを追加。次段で kid 導線の実行主体を service role から child_session JWT に移行する。
+2. **P1（進行中）**: kid 主要 read/write テーブルへ child_session 起点 policy を追加済み。次段でアプリ接続先（service role 依存）の切り替えを実施する。
 3. **P1 対応済み**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化した（`docs/security-audit-log-runbook.md`）。
 
