@@ -26,6 +26,10 @@ function getClientIpFromForwardedFor(value: string | null): string | null {
 }
 
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 async function logKidAuthEvent(
   supabase: SupabaseClient,
   payload: {
@@ -72,6 +76,11 @@ export async function verifyKidPin(
   if (!childId || !/^\d{4}$/.test(pin)) {
     await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_or_pin_format' });
     return { error: '子どもIDと4桁PINを入力してください。' };
+  }
+
+  if (!isUuid(childId)) {
+    await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_not_uuid' });
+    return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
   const { data: authState } = await supabase.rpc('get_child_auth_for_login', {
