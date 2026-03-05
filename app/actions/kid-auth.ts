@@ -4,8 +4,9 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
-import { verifyPin } from '@/lib/kids/pin';
+import { burnPinVerifyCost, verifyPin } from '@/lib/kids/pin';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
+import { canCreateKidClient } from '@/lib/supabase/child';
 
 export type KidAuthResult = {
   error?: string;
@@ -24,6 +25,10 @@ function getClientIpFromForwardedFor(value: string | null): string | null {
   return sanitizeHeaderValue(first, 64);
 }
 
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 
 async function logKidAuthEvent(
   supabase: ReturnType<typeof createAdminClient>,
@@ -62,7 +67,7 @@ export async function verifyKidPin(
   const childId = String(formData.get('childId') ?? '').trim();
   const pin = String(formData.get('pin') ?? '').trim();
 
-  if (!canCreateAdminClient() || !canUseKidSession()) {
+  if (!canCreateAdminClient() || !canUseKidSession() || !canCreateKidClient()) {
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
@@ -73,22 +78,30 @@ export async function verifyKidPin(
     return { error: '子どもIDと4桁PINを入力してください。' };
   }
 
+  if (!isUuid(childId)) {
+    await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_not_uuid' });
+    return { error: '子どもIDまたはPINが正しくありません。' };
+  }
+
   const { data: authState } = await supabase.rpc('get_child_auth_for_login', {
     target_child_id: childId
   });
   const state = authState?.[0];
 
   if (!state?.child_exists) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'child_not_found' });
     return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
   if (!state.pin_hash) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'pin_not_set' });
     return { error: 'PINが設定されていません。保護者画面で設定してください。' };
   }
 
   if (state.pin_locked_until && new Date(state.pin_locked_until) > new Date()) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'locked', reason: 'already_locked' });
     return { error: 'PINがロック中です。しばらく待ってから再試行してください。' };
   }
@@ -117,7 +130,11 @@ export async function verifyKidPin(
 
   await logKidAuthEvent(supabase, { childId, eventType: 'success' });
 
-  await setKidSession(childId);
+  if (!state.family_id) {
+    return { error: '子どもセッションの初期化に失敗しました。管理者に連絡してください。' };
+  }
+
+  await setKidSession({ childId, familyId: state.family_id });
   revalidatePath('/kids/home');
   redirect('/kids/home');
 }

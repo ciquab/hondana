@@ -4,10 +4,15 @@ import { cookies } from 'next/headers';
 const KID_SESSION_COOKIE = 'kid_session';
 const KID_SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 
-type KidSessionPayload = {
+export type KidSessionPayload = {
   childId: string;
+  familyId: string;
   exp: number;
 };
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 
 function getKidSessionSecret() {
   return process.env.KID_SESSION_SECRET;
@@ -42,7 +47,8 @@ function decodeSession(token: string): KidSessionPayload | null {
 
   try {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as KidSessionPayload;
-    if (!payload.childId || !payload.exp) return null;
+    if (!payload.childId || !payload.familyId || !payload.exp) return null;
+    if (!isUuid(payload.childId) || !isUuid(payload.familyId)) return null;
     if (payload.exp * 1000 <= Date.now()) return null;
     return payload;
   } catch {
@@ -50,14 +56,14 @@ function decodeSession(token: string): KidSessionPayload | null {
   }
 }
 
-export async function setKidSession(childId: string) {
+export async function setKidSession(payload: { childId: string; familyId: string }) {
   if (!canUseKidSession()) {
     throw new Error('KID_SESSION_SECRET is not configured');
   }
 
   const cookieStore = await cookies();
   const exp = Math.floor(Date.now() / 1000) + KID_SESSION_MAX_AGE_SECONDS;
-  const token = encodeSession({ childId, exp });
+  const token = encodeSession({ childId: payload.childId, familyId: payload.familyId, exp });
 
   cookieStore.set(KID_SESSION_COOKIE, token, {
     httpOnly: true,
@@ -73,7 +79,7 @@ export async function clearKidSession() {
   cookieStore.delete(KID_SESSION_COOKIE);
 }
 
-export async function getKidSessionChildId() {
+export async function getKidSession() {
   if (!canUseKidSession()) return null;
 
   const cookieStore = await cookies();
@@ -86,5 +92,10 @@ export async function getKidSessionChildId() {
     return null;
   }
 
-  return payload.childId;
+  return payload;
+}
+
+export async function getKidSessionChildId() {
+  const payload = await getKidSession();
+  return payload?.childId ?? null;
 }
