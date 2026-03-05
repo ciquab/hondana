@@ -5,8 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
 import { verifyPin } from '@/lib/kids/pin';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { canCreatePublicClient, createPublicClient } from '@/lib/supabase/public';
+import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { canCreateKidClient } from '@/lib/supabase/child';
 
 export type KidAuthResult = {
@@ -64,7 +63,7 @@ export async function verifyKidPin(
   const childId = String(formData.get('childId') ?? '').trim();
   const pin = String(formData.get('pin') ?? '').trim();
 
-  if (!canCreatePublicClient() || !canUseKidSession() || !canCreateKidClient()) {
+  if (!canCreateAdminClient() || !canUseKidSession() || !canCreateKidClient()) {
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
