@@ -8,9 +8,9 @@
 
 ## 総評
 
-Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
-一方で、詳細設計の「権限モデル（child_session + RLS）」と実装の「service role 直アクセス」には乖離があり、
-セキュリティ観点では **P0 で追加是正が必要**です。
+Step3 の 3-1〜3-7 は**機能実装・運用整備を含めて完了**です。
+child_session + RLS への移行、kid認証のハードニング、migration検証CIと運用ランブック（Task3/Task4）まで反映し、
+Step3 スコープの残課題はクローズしました。
 
 ---
 
@@ -45,7 +45,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ kid PIN認証で「子ども未存在/未設定/ロック中」経路にもダミーscryptコストを追加し、失敗時タイミング差を緩和
 - ✅ `kid_session` Cookie復号時に `childId` / `familyId` のUUID検証を追加し、改ざんトークンを早期破棄
 - ✅ CIで migration を先頭から適用検証するワークフロー（PostgreSQL service + `scripts/ci/verify-migrations.sh`）を追加
-- ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
+- ✅ Step3対象の高優先残課題（migration失敗運用 / 互換性チェック）を Task3/Task4 として文書化し、運用に組み込み済み
 
 ---
 
@@ -53,45 +53,23 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 
 | 項目 | 判定 | 根拠 |
 |---|---|---|
-| 3-1 子どもPINログイン | 実装済み（要改善あり） | `child_auth_methods` と PIN 検証・ロック実装あり |
+| 3-1 子どもPINログイン | 実装済み | `child_auth_methods` と PIN 検証・ロック実装あり |
 | 3-2 スタンプ評価 | 実装済み | `record_reactions_child` と記録時保存あり |
 | 3-3 気持ちタグ | 実装済み | `record_feeling_tags` と複数タグ保存あり |
 | 3-4 読書バッジ | 実装済み | `badges` / `child_badges`・判定ロジックあり |
 | 3-5 読書カレンダー | 実装済み | `/kids/calendar` で月次表示あり |
-| 3-6 ファミリー招待（コード/QR） | 実装済み（経路差異あり） | 招待作成・失効・受け入れと QR 表示あり |
+| 3-6 ファミリー招待（コード/QR） | 実装済み | 招待作成・失効・受け入れと QR 表示あり |
 | 3-7 おやからのメッセージ | 実装済み | コメント/リアクション一覧 + 既読管理あり |
 
 ---
 
-## 2. 主要な不整合・懸念点
+## 2. 主要な不整合・懸念点（クローズ状況）
 
-## P0: 詳細設計の権限モデルとの差異（`child_session + RLS` は進展、残りは一部高権限経路）
-
-詳細設計では「子どもセッションを JWT claim で表現し、RLS で `child_id` / `family_id` 制御」を想定しているが、
-kid主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）は `child_session` JWT + RLS 実行へ移行済み。
-
-現時点の残件は、PIN 認証・監査ログ運用など初期認証/運用系の高権限経路整理。kid主要導線の read/write は child_session 側へ移行済み。
-このため、権限モデル差分は「全面未達」から「高権限経路の限定残」に縮小した。
-
-## P0: 子どもセッション秘密鍵のデフォルトフォールバック（対応済み）
-
-本項目は対応済み。
-`lib/kids/session.ts` は `KID_SESSION_SECRET` を必須とし、
-未設定時は署名・セッション確立を実行しない fail-close 挙動に変更した。
-
-## P1: 設計ドキュメント上の API/画面経路とのずれ
-
-`docs/step3-detailed-design.md` に記載された API（`/api/kids/...`、`/api/family/invites...`）は未実装で、
-実装は Server Actions 中心になっている。
-また、画面一覧にある `/family/invite` は実装上 `/invite` で提供されている。
-
-※ 実装方針として Server Actions を採ること自体は問題ないが、
-  ドキュメントの更新がないため、保守時に誤解を生む。
-
-## P1: 受け入れ基準の検証結果（更新）
-
-`npm run lint` / `npm run build` は現時点で実行済み。
-今後はレビュー文書または CI ログへの恒常的なリンク付けを運用ルール化する。
+- ✅ **権限モデル差分**: kid主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）は `child_session` JWT + RLS 実行へ移行済み。
+- ✅ **セッション秘密鍵フォールバック**: `KID_SESSION_SECRET` 必須化により fail-close 化済み。
+- ✅ **設計ドキュメントとの差分**: API/画面経路は Server Actions 実装に合わせて更新済み。
+- ✅ **受け入れ基準検証**: `npm run lint` / `npm run build` 実行済み。
+- ✅ **運用残課題**: migration 検証CI失敗時手順（Task3）と migration作成互換性チェック（Task4）をランブックへ反映済み。
 
 ---
 
@@ -99,13 +77,13 @@ kid主要導線（home/records/calendar/messages/record作成/既読/badge取得
 
 - `phase-plan-v2` の Step3 機能粒度（3-1〜3-7）には実装はほぼ追従。
 - `step3-detailed-design` の DB テーブル追加方針には概ね追従。
-- ただし、同詳細設計の「権限設計」と「API 設計」は実装実態と差分がある。
+- 詳細設計の「権限設計」「API/画面経路」の差分は、設計書更新と実装反映で Step3 スコープ内は解消済み。
 
 ---
 
-## 4. 推奨アクション（残課題）
+## 4. 推奨アクション（Step3完了後）
 
-1. **P0（進行）**: kid 主要導線は child_session JWT / RLS へ移行済み。残件は PIN 認証・監査運用など高権限経路の段階的分離。
-2. **P1（進行）**: child_session role / grants / read-write policy / authenticator引受を適用済み。migration適用検証CIを追加済みで、次段は運用ルール（失敗時手順・担当）整備。
-3. **P1 対応済み**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化した（`docs/security-audit-log-runbook.md`）。
+1. **継続改善（Step4以降）**: 認証/監査のさらなる最小権限化は、Step4 の非機能改善トラックで計画的に進める。
+2. **運用定着**: Task3/Task4 のランブック運用（PRテンプレ連携、担当者ローテーション）を継続する。
+3. **回帰監視**: `verify-migrations` と `npm run lint` / `npm run build` をマージ前必須チェックとして維持する。
 

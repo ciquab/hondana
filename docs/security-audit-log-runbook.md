@@ -188,6 +188,8 @@ select * from public.get_audit_alert_candidates(10);
 
 ### 9.3 PRチェックリスト（DB変更時）
 
+- 運用定着のため、GitHub PRテンプレート（`.github/pull_request_template.md`）にも同チェック項目を反映済み
+
 - [ ] `bash scripts/ci/verify-migrations.sh` をローカルで実行（`DATABASE_URL` 必須）
 - [ ] 追加した migration が `supabase/migrations` の時系列順になっている
 - [ ] `auth.*` 依存を追加した場合、理由と代替不可性を PR本文へ明記

@@ -1,5 +1,7 @@
 -- Include family_id in kid auth lookup so app can mint child_session JWT claims.
 
+drop function if exists public.get_child_auth_for_login(uuid);
+
 create or replace function public.get_child_auth_for_login(target_child_id uuid)
 returns table (
   child_exists boolean,
