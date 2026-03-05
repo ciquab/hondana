@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
+import { requireKidContext } from '@/lib/kids/client';
 
 type BookRow = {
   id: string;
@@ -17,10 +16,7 @@ function chunkRows<T>(items: T[], size: number): T[][] {
 }
 
 export default async function KidsRecordsPage() {
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
-
-  const supabase = createAdminClient();
+  const { childId, supabase } = await requireKidContext();
   const [{ data: childRows }, { data: recordRows }] = await Promise.all([
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
     supabase.rpc('get_kid_recent_records', { target_child_id: childId, max_rows: 120 })

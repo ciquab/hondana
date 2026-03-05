@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { requireKidContext } from '@/lib/kids/client';
 
 type KidMessageRow = {
   id: string;
@@ -10,8 +10,8 @@ type KidMessageRow = {
   reactions: Record<string, number> | null;
 };
 
-export async function getKidMessages(childId: string) {
-  const supabase = createAdminClient();
+export async function getKidMessages() {
+  const { supabase, childId } = await requireKidContext();
 
   const { data } = await supabase.rpc('get_kid_messages', {
     target_child_id: childId,
