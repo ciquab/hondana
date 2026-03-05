@@ -20,6 +20,8 @@
 2. `.env.example` を `.env.local` にコピーして値を設定
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`（子どもPIN認証など server-only 処理で使用）
+   - `KID_SESSION_SECRET`（子どもセッション署名用。必須）
 3. Supabase SQL を `supabase/migrations/20260303_000001_day1_foundation.sql` の順に適用
 4. 開発サーバー起動
    - `npm run dev`
@@ -44,3 +46,13 @@ Magic Link は次PRで差し替えまたは併用可能です。
 - バーコード・外部API連携
 - Zodによる厳密バリデーション
 - API Routes/BFF（当面はServer Actions中心）
+
+
+## 環境変数メモ（子どもモード）
+- `KID_SESSION_SECRET` は推測困難なランダム文字列を設定してください。
+- `KID_SESSION_SECRET` 未設定時、`/kids/login` は設定不足としてログイン不可になります。
+- `SUPABASE_SERVICE_ROLE_KEY` はクライアントへ露出させず、サーバー環境変数としてのみ管理してください。
+
+
+## セキュリティ運用ドキュメント
+- 監査ログ運用ランブック: `docs/security-audit-log-runbook.md`
