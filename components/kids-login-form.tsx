@@ -3,30 +3,25 @@
 import { useActionState } from 'react';
 import { verifyKidPin, type KidAuthResult } from '@/app/actions/kid-auth';
 
-type Child = {
-  id: string;
-  display_name: string;
-};
-
-export function KidsLoginForm({ childOptions, disabled = false }: { childOptions: Child[]; disabled?: boolean }) {
+export function KidsLoginForm({
+  disabled = false,
+  childIdFromLink = ''
+}: {
+  disabled?: boolean;
+  childIdFromLink?: string;
+}) {
   const [state, formAction, pending] = useActionState<KidAuthResult, FormData>(verifyKidPin, {});
+  const hasChildIdInLink = childIdFromLink.length > 0;
 
   return (
     <form action={formAction} className="space-y-4 rounded-xl bg-white p-4 shadow">
-      {childOptions.length > 0 ? (
-        <div>
-          <label htmlFor="childId" className="mb-1 block text-sm font-medium">
-            子ども
-          </label>
-          <select id="childId" name="childId" className="w-full rounded border p-2" required disabled={disabled}>
-            <option value="">選択してください</option>
-            {childOptions.map((child) => (
-              <option key={child.id} value={child.id}>
-                {child.display_name}（{child.id.slice(0, 8)}）
-              </option>
-            ))}
-          </select>
-        </div>
+      {hasChildIdInLink ? (
+        <>
+          <input type="hidden" name="childId" value={childIdFromLink} />
+          <div className="rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
+            ログインリンクを確認しました。PINを入力してください。
+          </div>
+        </>
       ) : (
         <div>
           <label htmlFor="childId" className="mb-1 block text-sm font-medium">

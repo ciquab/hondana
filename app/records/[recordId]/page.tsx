@@ -29,6 +29,11 @@ type Comment = {
   created_at: string;
 };
 
+type FamilyMember = {
+  user_id: string;
+  display_name: string;
+};
+
 type Reaction = {
   id: string;
   user_id: string;
@@ -48,6 +53,7 @@ export default function RecordDetailPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [memberNameMap, setMemberNameMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [reactingEmoji, setReactingEmoji] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(updateRecordStatus, {});
@@ -62,6 +68,23 @@ export default function RecordDetailPage() {
     {}
   );
 
+  const fetchMemberNames = useCallback(async (userIds: string[]) => {
+    if (userIds.length === 0) return;
+
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('family_members')
+      .select('user_id, display_name')
+      .in('user_id', userIds);
+
+    const nextMap: Record<string, string> = {};
+    for (const row of (data ?? []) as FamilyMember[]) {
+      nextMap[row.user_id] = row.display_name ?? '保護者';
+    }
+
+    setMemberNameMap((prev) => ({ ...prev, ...nextMap }));
+  }, []);
+
   const fetchComments = useCallback(() => {
     const supabase = createClient();
     supabase
@@ -70,10 +93,14 @@ export default function RecordDetailPage() {
       .eq('record_id', recordId)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
-        setComments((data as Comment[]) ?? []);
+        const rows = (data as Comment[]) ?? [];
+        setComments(rows);
+        const userIds = Array.from(new Set(rows.map((row) => row.author_user_id)));
+        if (userIds.length > 0) {
+          fetchMemberNames(userIds);
+        }
       });
-  }, [recordId]);
-
+  }, [recordId, fetchMemberNames]);
   const fetchReactions = useCallback(async () => {
     const supabase = createClient();
     const { data } = await supabase
@@ -132,7 +159,7 @@ export default function RecordDetailPage() {
 
     fetchComments();
     fetchReactions();
-  }, [recordId, fetchComments, fetchReactions]);
+  }, [recordId, fetchComments, fetchReactions, fetchMemberNames]);
 
   if (loading) {
     return (
@@ -308,9 +335,9 @@ export default function RecordDetailPage() {
             {comments.map((c) => (
               <li key={c.id} className="rounded-lg bg-slate-50 p-3">
                 <div className="flex items-center gap-2 text-xs text-slate-500">
-                  {c.author_user_id === currentUserId && (
-                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700">自分</span>
-                  )}
+                  <span className="rounded bg-slate-200 px-1.5 py-0.5 text-slate-700">
+                    {c.author_user_id === currentUserId ? '自分' : (memberNameMap[c.author_user_id] ?? '保護者')}
+                  </span>
                   <time>{new Date(c.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>
                 </div>
                 <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{c.body}</p>
