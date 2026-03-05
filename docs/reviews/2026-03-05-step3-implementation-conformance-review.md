@@ -44,6 +44,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ kid PINログインで `childId` UUID形式バリデーションを追加し、不正入力時のRPC実行を事前遮断
 - ✅ kid PIN認証で「子ども未存在/未設定/ロック中」経路にもダミーscryptコストを追加し、失敗時タイミング差を緩和
 - ✅ `kid_session` Cookie復号時に `childId` / `familyId` のUUID検証を追加し、改ざんトークンを早期破棄
+- ✅ CIで migration を先頭から適用検証するワークフロー（PostgreSQL service + `scripts/ci/verify-migrations.sh`）を追加
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -105,6 +106,6 @@ kid主要導線（home/records/calendar/messages/record作成/既読/badge取得
 ## 4. 推奨アクション（残課題）
 
 1. **P0（進行）**: kid 主要導線は child_session JWT / RLS へ移行済み。残件は PIN 認証・監査運用など高権限経路の段階的分離。
-2. **P1（進行）**: child_session role / grants / read-write policy / authenticator引受を適用済み。次段で本番相当環境のmigration適用検証をCIに組み込む。
+2. **P1（進行）**: child_session role / grants / read-write policy / authenticator引受を適用済み。migration適用検証CIを追加済みで、次段は運用ルール（失敗時手順・担当）整備。
 3. **P1 対応済み**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化した（`docs/security-audit-log-runbook.md`）。
 
