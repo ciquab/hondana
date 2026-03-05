@@ -27,6 +27,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ 監査ログアラート候補抽出関数（`get_audit_alert_candidates`）を追加
 - ✅ kid PIN認証のテーブル直接参照をRPC化し、認証アクションのservice role直アクセスを縮小
 - ✅ kid PIN認証RPCの権限を `service_role` のみに制限（anon/authenticated 実行を禁止）
+- ✅ 監査ログメタデータ（IP / UA）のサニタイズを追加
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---

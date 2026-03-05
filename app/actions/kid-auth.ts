@@ -11,6 +11,20 @@ export type KidAuthResult = {
   error?: string;
 };
 
+
+function sanitizeHeaderValue(value: string | null, max = 200): string | null {
+  if (!value) return null;
+  const normalized = value.replace(/[\r\n\t]/g, ' ').trim();
+  if (!normalized) return null;
+  return normalized.slice(0, max);
+}
+
+function getClientIpFromForwardedFor(value: string | null): string | null {
+  const first = value?.split(',')[0]?.trim() ?? null;
+  return sanitizeHeaderValue(first, 64);
+}
+
+
 async function logKidAuthEvent(
   supabase: ReturnType<typeof createAdminClient>,
   payload: {
@@ -23,14 +37,17 @@ async function logKidAuthEvent(
   const forwardedFor = headerStore.get('x-forwarded-for');
   const userAgent = headerStore.get('user-agent');
 
+  const ip = getClientIpFromForwardedFor(forwardedFor);
+  const safeUserAgent = sanitizeHeaderValue(userAgent, 300);
+
   try {
     await supabase.rpc('log_kid_auth_audit_event', {
       target_child_id: payload.childId ?? null,
       target_event_type: payload.eventType,
       target_reason: payload.reason ?? null,
       target_metadata: {
-        ip: forwardedFor ? forwardedFor.split(',')[0]?.trim() : null,
-        userAgent: userAgent ?? null
+        ip: ip,
+        userAgent: safeUserAgent
       }
     });
   } catch {

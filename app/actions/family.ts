@@ -12,6 +12,20 @@ export type ActionResult = {
   ok?: string;
 };
 
+
+function sanitizeHeaderValue(value: string | null, max = 200): string | null {
+  if (!value) return null;
+  const normalized = value.replace(/[\r\n\t]/g, ' ').trim();
+  if (!normalized) return null;
+  return normalized.slice(0, max);
+}
+
+function getClientIpFromForwardedFor(value: string | null): string | null {
+  const first = value?.split(',')[0]?.trim() ?? null;
+  return sanitizeHeaderValue(first, 64);
+}
+
+
 async function logInviteAuditEvent(
   supabase: Awaited<ReturnType<typeof createClient>>,
   payload: {
@@ -33,6 +47,9 @@ async function logInviteAuditEvent(
   const forwardedFor = headerStore.get('x-forwarded-for');
   const userAgent = headerStore.get('user-agent');
 
+  const ip = getClientIpFromForwardedFor(forwardedFor);
+  const safeUserAgent = sanitizeHeaderValue(userAgent, 300);
+
   try {
     await supabase.from('family_invite_audit_logs').insert({
       actor_user_id: payload.actorUserId,
@@ -41,8 +58,8 @@ async function logInviteAuditEvent(
       action: payload.action,
       reason: payload.reason ?? null,
       metadata: {
-        ip: forwardedFor ? forwardedFor.split(',')[0]?.trim() : null,
-        userAgent: userAgent ?? null,
+        ip: ip,
+        userAgent: safeUserAgent,
         ...(payload.metadata ?? {})
       }
     });
