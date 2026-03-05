@@ -183,3 +183,31 @@ export async function acceptInvite(
   revalidatePath('/dashboard');
   redirect('/dashboard');
 }
+
+
+export async function updateMyDisplayName(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const displayName = String(formData.get('displayName') ?? '').trim();
+
+  if (!displayName) return { error: '表示名を入力してください。' };
+  if (displayName.length > 30) return { error: '表示名は30文字以内で入力してください。' };
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { error } = await supabase
+    .from('family_members')
+    .update({ display_name: displayName })
+    .eq('user_id', user.id);
+
+  if (error) return { error: '表示名の更新に失敗しました。' };
+
+  revalidatePath('/settings/family');
+  return { ok: '表示名を更新しました。' };
+}
