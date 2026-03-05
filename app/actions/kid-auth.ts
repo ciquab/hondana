@@ -27,7 +27,7 @@ function getClientIpFromForwardedFor(value: string | null): string | null {
 
 
 async function logKidAuthEvent(
-  supabase: ReturnType<typeof createAdminClient>,
+  supabase: SupabaseClient,
   payload: {
     childId?: string;
     eventType: 'invalid_input' | 'child_not_found' | 'pin_not_set' | 'locked' | 'pin_failed' | 'pin_locked' | 'success';
@@ -67,7 +67,7 @@ export async function verifyKidPin(
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
 
   if (!childId || !/^\d{4}$/.test(pin)) {
     await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_or_pin_format' });
