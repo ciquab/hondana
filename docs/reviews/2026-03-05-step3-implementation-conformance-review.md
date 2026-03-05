@@ -17,7 +17,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 ## 0. 対応状況（2026-03-05 追記）
 
 - ✅ `KID_SESSION_SECRET` を必須化（固定フォールバック廃止）
-- ✅ `kids/login` で `SUPABASE_SERVICE_ROLE_KEY` に加えて `KID_SESSION_SECRET` も必須チェック
+- ✅ `kids/login` / kid PINログイン処理で `SUPABASE_SERVICE_ROLE_KEY` と `KID_SESSION_SECRET` を必須チェック
 - ✅ `app/settings/children/page.tsx` の未使用変数を解消し、`npm run lint` / `npm run build` が通る状態へ改善
 - ✅ 詳細設計書の API / 画面経路を Server Actions 実装に合わせて更新
 - ✅ kid PIN 認証イベントの監査ログ（`kid_auth_audit_logs`）を追加
@@ -25,6 +25,13 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ 監査ログ保持期間の削除関数（`purge_*_audit_logs`）を追加
 - ✅ 監査ログ定期削除ランナー（`run_audit_log_maintenance`）を追加
 - ✅ 監査ログアラート候補抽出関数（`get_audit_alert_candidates`）を追加
+- ✅ kid PIN認証のテーブル直接参照をRPC化し、認証アクションのservice role直アクセスを縮小
+- ✅ kid PIN認証RPCの権限を `service_role` のみに制限（anon/authenticated 実行を禁止）
+- ✅ 監査ログメタデータ（IP / UA）のサニタイズを追加
+- ✅ family招待監査ログの書き込み経路を service_role RPC に一本化（authenticated 直接insertを廃止）
+- ✅ Phase A として kid 読み取り系（home/records/calendar）の直接テーブル参照をRPC化
+- ✅ Phase B として kid 詳細/メッセージ導線（records/[recordId], messages, 既読更新）の直接参照をRPC化
+- ✅ Phase C として kid 記録作成/バッジ評価・取得（kid-record action, badges lib）の直接参照をRPC化
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -48,7 +55,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 ## P0: 詳細設計の権限モデルとの差異（`child_session + RLS` 未達）
 
 詳細設計では「子どもセッションを JWT claim で表現し、RLS で `child_id` / `family_id` 制御」を想定しているが、
-実装は子ども導線で Supabase の **service role** クライアントを多用している。
+実装は子ども導線で Supabase の **service role** クライアントを多用している（kid PIN 認証は RPC 化済みだが、現時点では service_role 実行前提）。
 
 - `createAdminClient()` は `SUPABASE_SERVICE_ROLE_KEY` で DB にアクセスする。
 - 子どもページ/アクションもこの admin client を直接利用している。
