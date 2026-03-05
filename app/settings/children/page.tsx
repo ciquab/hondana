@@ -108,36 +108,13 @@ export default function ChildrenSettingsPage() {
         </button>
       </form>
 
-      <section className="mt-6 rounded-xl bg-white p-4 shadow">
-        <h2 className="text-lg font-semibold">子どもログイン用リンク（PINのみ入力）</h2>
-        <p className="mt-1 text-sm text-slate-600">QRコードやURLを子どもの端末に渡すと、子どもID入力なしでPINだけでログインできます。</p>
-
-        {children.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">まだ子どもプロフィールがありません。</p>
-        ) : (
-          <ul className="mt-3 space-y-4">
-            {children.map((child) => {
-              const loginUrl = `${loginBase}?childId=${encodeURIComponent(child.id)}`;
-              const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(loginUrl)}&size=180&margin=2&ecLevel=M`;
-
-              return (
-                <li key={child.id} className="rounded border p-3">
-                  <p className="font-medium">{child.display_name}</p>
-                  <div className="mt-2 flex flex-wrap items-start gap-3">
-                    <div>
-                      <img src={qrUrl} alt={`${child.display_name} ログインQR`} className="h-28 w-28 rounded border bg-white p-1" />
-                    </div>
-                    <div className="min-w-0 flex-1 text-xs text-slate-600">
-                      <p className="mb-1">ログインURL</p>
-                      <p className="break-all rounded bg-slate-50 p-2">{loginUrl}</p>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+      <p className="mt-4 text-sm text-slate-600">
+        子どもログイン用のURL/QRコードは{' '}
+        <Link href="/settings/family" className="text-blue-600 underline">
+          家族設定
+        </Link>{' '}
+        で管理できます。
+      </p>
     </main>
   );
 }
