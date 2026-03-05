@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { createFamily, createInvite, revokeInvite, type ActionResult } from '@/app/actions/family';
+import { createFamily, createInvite, revokeInvite, updateMyDisplayName, type ActionResult } from '@/app/actions/family';
 import { createClient } from '@/lib/supabase/client';
 
 type ActiveInvite = {
@@ -10,6 +10,11 @@ type ActiveInvite = {
   invite_code: string;
   expires_at: string;
   created_at: string;
+};
+
+type ChildRow = {
+  id: string;
+  display_name: string;
 };
 
 function InviteCard({ code }: { code: string }) {
@@ -41,6 +46,9 @@ export default function FamilySettingsPage() {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [hasFamily, setHasFamily] = useState<boolean | null>(null);
   const [activeInvites, setActiveInvites] = useState<ActiveInvite[]>([]);
+  const [displayName, setDisplayName] = useState('');
+  const [children, setChildren] = useState<ChildRow[]>([]);
+  const [origin, setOrigin] = useState('');
 
   const [familyState, familyAction, familyPending] = useActionState<ActionResult, FormData>(
     createFamily,
@@ -54,6 +62,14 @@ export default function FamilySettingsPage() {
     revokeInvite,
     {}
   );
+  const [displayNameState, displayNameAction, displayNamePending] = useActionState<ActionResult, FormData>(
+    updateMyDisplayName,
+    {}
+  );
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -66,7 +82,7 @@ export default function FamilySettingsPage() {
 
       const { data: fm } = await supabase
         .from('family_members')
-        .select('family_id')
+        .select('family_id, display_name')
         .eq('user_id', user.id)
         .limit(1);
 
@@ -76,16 +92,27 @@ export default function FamilySettingsPage() {
 
       const fid = rows[0].family_id as string;
       setFamilyId(fid);
+      setDisplayName(String(rows[0].display_name ?? ''));
 
-      const { data: inviteRows } = await supabase.rpc('get_active_family_invites', {
-        target_family_id: fid
-      });
+      const [{ data: inviteRows }, { data: childRows }] = await Promise.all([
+        supabase.rpc('get_active_family_invites', {
+          target_family_id: fid
+        }),
+        supabase
+          .from('children')
+          .select('id, display_name, created_at')
+          .eq('family_id', fid)
+          .order('created_at', { ascending: false })
+      ]);
 
       setActiveInvites((inviteRows ?? []) as ActiveInvite[]);
+      setChildren((childRows ?? []) as ChildRow[]);
     };
 
     load();
-  }, [inviteState.inviteCode, revokeState.ok]);
+  }, [inviteState.inviteCode, revokeState.ok, displayNameState.ok]);
+
+  const kidLoginBase = useMemo(() => (origin ? `${origin}/kids/login` : '/kids/login'), [origin]);
 
   return (
     <main className="mx-auto max-w-xl p-4">
@@ -93,6 +120,31 @@ export default function FamilySettingsPage() {
       <Link className="mb-4 inline-block text-blue-600 underline" href="/dashboard">
         ダッシュボードへ戻る
       </Link>
+
+      <form action={displayNameAction} className="mb-6 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-2 text-lg font-semibold">親アカウント表示名</h2>
+        <p className="mb-2 text-sm text-slate-600">子ども画面のコメント・リアクションに表示される名前です。</p>
+        <input
+          name="displayName"
+          className="mb-3 w-full rounded border p-2"
+          maxLength={30}
+          placeholder="例: ママ / パパ"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          required
+        />
+
+        {displayNameState.error && <p className="mb-3 text-sm text-red-600">{displayNameState.error}</p>}
+        {displayNameState.ok && <p className="mb-3 text-sm text-green-700">{displayNameState.ok}</p>}
+
+        <button
+          className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50"
+          type="submit"
+          disabled={displayNamePending}
+        >
+          {displayNamePending ? '更新中…' : '表示名を更新'}
+        </button>
+      </form>
 
       {hasFamily === null ? null : hasFamily ? (
         <div className="mb-6 rounded bg-green-50 p-4 text-green-800">
@@ -140,65 +192,98 @@ export default function FamilySettingsPage() {
       </form>
 
       {familyId && (
-        <section className="space-y-4 rounded-xl bg-white p-4 shadow">
-          <h2 className="text-lg font-semibold">パートナーを招待</h2>
-          <p className="text-sm text-slate-600">
-            招待コードを発行して、もう一人の保護者をこの家族に追加できます。コードの有効期限は48時間です。
-          </p>
+        <>
+          <section className="mb-6 space-y-4 rounded-xl bg-white p-4 shadow">
+            <h2 className="text-lg font-semibold">子どもログインリンク（PINのみ）</h2>
+            <p className="text-sm text-slate-600">
+              子どもごとのURL/QRを共有すると、子どもはID入力なしでPINだけでログインできます。
+            </p>
 
-          <form action={inviteAction}>
-            <input type="hidden" name="familyId" value={familyId} />
-
-            {inviteState.error && (
-              <p className="mb-3 text-sm text-red-600" role="alert">
-                {inviteState.error}
-              </p>
-            )}
-
-            <button
-              className="rounded bg-purple-600 px-4 py-2 text-white disabled:opacity-50"
-              type="submit"
-              disabled={invitePending}
-            >
-              {invitePending ? '発行中…' : '招待コードを発行'}
-            </button>
-          </form>
-
-          {inviteState.inviteCode && <InviteCard code={inviteState.inviteCode} />}
-
-          <div>
-            <h3 className="mb-2 text-sm font-semibold text-slate-700">有効な招待コード</h3>
-            {revokeState.error && <p className="mb-2 text-sm text-red-600">{revokeState.error}</p>}
-            {revokeState.ok && <p className="mb-2 text-sm text-green-700">{revokeState.ok}</p>}
-
-            {activeInvites.length === 0 ? (
-              <p className="text-sm text-slate-500">現在有効な招待コードはありません。</p>
+            {children.length === 0 ? (
+              <p className="text-sm text-slate-500">子どもプロフィールがありません。先に子どもを追加してください。</p>
             ) : (
-              <ul className="space-y-2">
-                {activeInvites.map((invite) => (
-                  <li key={invite.id} className="flex items-center justify-between rounded border p-2">
-                    <div>
-                      <p className="font-mono font-semibold tracking-widest">{invite.invite_code}</p>
-                      <p className="text-xs text-slate-500">
-                        期限: {new Date(invite.expires_at).toLocaleString('ja-JP')}
-                      </p>
-                    </div>
-                    <form action={revokeAction}>
-                      <input type="hidden" name="inviteId" value={invite.id} />
-                      <button
-                        type="submit"
-                        className="rounded bg-slate-700 px-3 py-1 text-xs text-white disabled:opacity-50"
-                        disabled={revokePending}
-                      >
-                        無効化
-                      </button>
-                    </form>
-                  </li>
-                ))}
+              <ul className="space-y-4">
+                {children.map((child) => {
+                  const loginUrl = `${kidLoginBase}?childId=${encodeURIComponent(child.id)}`;
+                  const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(loginUrl)}&size=180&margin=2&ecLevel=M`;
+
+                  return (
+                    <li key={child.id} className="rounded border p-3">
+                      <p className="font-medium">{child.display_name}</p>
+                      <div className="mt-2 flex flex-wrap items-start gap-3">
+                        <img src={qrUrl} alt={`${child.display_name} ログインQR`} className="h-28 w-28 rounded border bg-white p-1" />
+                        <div className="min-w-0 flex-1 text-xs text-slate-600">
+                          <p className="mb-1">ログインURL</p>
+                          <p className="break-all rounded bg-slate-50 p-2">{loginUrl}</p>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
-          </div>
-        </section>
+          </section>
+
+          <section className="space-y-4 rounded-xl bg-white p-4 shadow">
+            <h2 className="text-lg font-semibold">パートナーを招待</h2>
+            <p className="text-sm text-slate-600">
+              招待コードを発行して、もう一人の保護者をこの家族に追加できます。コードの有効期限は48時間です。
+            </p>
+
+            <form action={inviteAction}>
+              <input type="hidden" name="familyId" value={familyId} />
+
+              {inviteState.error && (
+                <p className="mb-3 text-sm text-red-600" role="alert">
+                  {inviteState.error}
+                </p>
+              )}
+
+              <button
+                className="rounded bg-purple-600 px-4 py-2 text-white disabled:opacity-50"
+                type="submit"
+                disabled={invitePending}
+              >
+                {invitePending ? '発行中…' : '招待コードを発行'}
+              </button>
+            </form>
+
+            {inviteState.inviteCode && <InviteCard code={inviteState.inviteCode} />}
+
+            <div>
+              <h3 className="mb-2 text-sm font-semibold text-slate-700">有効な招待コード</h3>
+              {revokeState.error && <p className="mb-2 text-sm text-red-600">{revokeState.error}</p>}
+              {revokeState.ok && <p className="mb-2 text-sm text-green-700">{revokeState.ok}</p>}
+
+              {activeInvites.length === 0 ? (
+                <p className="text-sm text-slate-500">現在有効な招待コードはありません。</p>
+              ) : (
+                <ul className="space-y-2">
+                  {activeInvites.map((invite) => (
+                    <li key={invite.id} className="flex items-center justify-between rounded border p-2">
+                      <div>
+                        <p className="font-mono font-semibold tracking-widest">{invite.invite_code}</p>
+                        <p className="text-xs text-slate-500">
+                          期限: {new Date(invite.expires_at).toLocaleString('ja-JP')}
+                        </p>
+                      </div>
+                      <form action={revokeAction}>
+                        <input type="hidden" name="inviteId" value={invite.id} />
+                        <button
+                          type="submit"
+                          className="rounded bg-slate-700 px-3 py-1 text-xs text-white disabled:opacity-50"
+                          disabled={revokePending}
+                        >
+                          無効化
+                        </button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+        </>
       )}
     </main>
   );

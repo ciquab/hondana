@@ -7,6 +7,8 @@ import { getKidSessionChildId } from '@/lib/kids/session';
 import { evaluateChildBadges } from '@/lib/kids/badges';
 import { CHILD_FEELINGS, CHILD_STAMPS } from '@/lib/kids/feelings';
 
+const KID_RECORD_STATUSES = ['want_to_read', 'reading', 'finished'] as const;
+
 export type KidRecordActionResult = {
   error?: string;
 };
@@ -31,6 +33,9 @@ export async function createKidRecord(
   if (!title) return { error: '本のタイトルを入力してください。' };
   if (isbn && !/^\d{13}$/.test(isbn)) return { error: 'ISBNは13桁の数字で入力してください。' };
   if (!CHILD_STAMPS.includes(stamp as (typeof CHILD_STAMPS)[number])) return { error: 'スタンプを選択してください。' };
+  if (!KID_RECORD_STATUSES.includes(status as (typeof KID_RECORD_STATUSES)[number])) {
+    return { error: '記録ステータスが不正です。' };
+  }
 
   const childId = await getKidSessionChildId();
   if (!childId) redirect('/kids/login');

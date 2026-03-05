@@ -65,6 +65,14 @@ export default function ChildrenSettingsPage() {
           {pending ? '追加中…' : '子どもを追加'}
         </button>
       </form>
+
+      <p className="mt-4 text-sm text-slate-600">
+        子どもログイン用のURL/QRコードは{' '}
+        <Link href="/settings/family" className="text-blue-600 underline">
+          家族設定
+        </Link>{' '}
+        で管理できます。
+      </p>
     </main>
   );
 }
