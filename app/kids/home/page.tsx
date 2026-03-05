@@ -1,23 +1,20 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { kidSignOut } from '@/app/actions/kid-auth';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
+import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
 import { getKidMessages } from '@/lib/kids/messages';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 
 export default async function KidsHomePage() {
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
+  const { childId, supabase } = await requireKidContext();
 
-  const supabase = createAdminClient();
   const [{ data: childRows }, { data: recentRows }, badges, { unreadCount }] = await Promise.all([
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
     supabase.rpc('get_kid_recent_records', { target_child_id: childId, max_rows: 6 }),
-    getChildBadges(childId),
-    getKidMessages(childId)
+    getChildBadges(),
+    getKidMessages()
   ]);
 
   const child = childRows?.[0];
