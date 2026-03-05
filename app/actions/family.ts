@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { hashPin } from '@/lib/kids/pin';
 
 export type ActionResult = {
@@ -27,7 +28,6 @@ function getClientIpFromForwardedFor(value: string | null): string | null {
 
 
 async function logInviteAuditEvent(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   payload: {
     actorUserId: string;
     action:
@@ -43,6 +43,8 @@ async function logInviteAuditEvent(
     metadata?: Record<string, unknown>;
   }
 ) {
+  if (!canCreateAdminClient()) return;
+
   const headerStore = await headers();
   const forwardedFor = headerStore.get('x-forwarded-for');
   const userAgent = headerStore.get('user-agent');
@@ -50,15 +52,17 @@ async function logInviteAuditEvent(
   const ip = getClientIpFromForwardedFor(forwardedFor);
   const safeUserAgent = sanitizeHeaderValue(userAgent, 300);
 
+  const supabase = createAdminClient();
+
   try {
-    await supabase.from('family_invite_audit_logs').insert({
-      actor_user_id: payload.actorUserId,
-      family_id: payload.familyId ?? null,
-      invite_id: payload.inviteId ?? null,
-      action: payload.action,
-      reason: payload.reason ?? null,
-      metadata: {
-        ip: ip,
+    await supabase.rpc('log_family_invite_audit_event', {
+      target_actor_user_id: payload.actorUserId,
+      target_family_id: payload.familyId ?? null,
+      target_invite_id: payload.inviteId ?? null,
+      target_action: payload.action,
+      target_reason: payload.reason ?? null,
+      target_metadata: {
+        ip,
         userAgent: safeUserAgent,
         ...(payload.metadata ?? {})
       }
@@ -178,7 +182,7 @@ export async function createInvite(
   });
 
   if (error) {
-    await logInviteAuditEvent(supabase, {
+    await logInviteAuditEvent({
       actorUserId: user.id,
       action: 'create_invite_failed',
       familyId: null,
@@ -188,7 +192,7 @@ export async function createInvite(
     return { error: '招待コードの発行に失敗しました。もう一度お試しください。' };
   }
 
-  await logInviteAuditEvent(supabase, {
+  await logInviteAuditEvent({
     actorUserId: user.id,
     action: 'create_invite_success',
     familyId,
@@ -225,7 +229,7 @@ export async function revokeInvite(
   });
 
   if (error || !data) {
-    await logInviteAuditEvent(supabase, {
+    await logInviteAuditEvent({
       actorUserId: user.id,
       action: 'revoke_invite_failed',
       familyId: inviteBefore?.family_id ?? null,
@@ -235,7 +239,7 @@ export async function revokeInvite(
     return { error: '招待コードの無効化に失敗しました。' };
   }
 
-  await logInviteAuditEvent(supabase, {
+  await logInviteAuditEvent({
     actorUserId: user.id,
     action: 'revoke_invite_success',
     familyId: inviteBefore?.family_id ?? null,
@@ -266,7 +270,7 @@ export async function acceptInvite(
   });
 
   if (error) {
-    await logInviteAuditEvent(supabase, {
+    await logInviteAuditEvent({
       actorUserId: user.id,
       action: 'accept_invite_failed',
       familyId: null,
@@ -280,7 +284,7 @@ export async function acceptInvite(
     return { error: '招待コードが無効か、有効期限が切れています。' };
   }
 
-  await logInviteAuditEvent(supabase, {
+  await logInviteAuditEvent({
     actorUserId: user.id,
     action: 'accept_invite_success',
     familyId: familyId ?? null,
