@@ -5,7 +5,6 @@ alter table public.family_members
 
 update public.family_members fm
 set display_name = coalesce(
-  nullif(u.raw_user_meta_data->>'name', ''),
   split_part(u.email, '@', 1),
   '保護者'
 )
