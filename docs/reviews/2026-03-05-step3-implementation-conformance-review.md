@@ -1,0 +1,83 @@
+# Step3 実装整合レビュー（2026-03-05）
+
+対象:
+- 仕様書: `docs/spec-v0.1.md`
+- 計画書: `docs/phase-plan-v2.md`
+- 詳細設計: `docs/step3-detailed-design.md`
+- 実装: Step3 関連の migration / page / action / lib
+
+## 総評
+
+Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
+一方で、詳細設計の「権限モデル（child_session + RLS）」と実装の「service role 直アクセス」には乖離があり、
+セキュリティ観点では **P0 で追加是正が必要**です。
+
+---
+
+## 1. スコープ達成状況（3-1〜3-7）
+
+| 項目 | 判定 | 根拠 |
+|---|---|---|
+| 3-1 子どもPINログイン | 実装済み（要改善あり） | `child_auth_methods` と PIN 検証・ロック実装あり |
+| 3-2 スタンプ評価 | 実装済み | `record_reactions_child` と記録時保存あり |
+| 3-3 気持ちタグ | 実装済み | `record_feeling_tags` と複数タグ保存あり |
+| 3-4 読書バッジ | 実装済み | `badges` / `child_badges`・判定ロジックあり |
+| 3-5 読書カレンダー | 実装済み | `/kids/calendar` で月次表示あり |
+| 3-6 ファミリー招待（コード/QR） | 実装済み（経路差異あり） | 招待作成・失効・受け入れと QR 表示あり |
+| 3-7 おやからのメッセージ | 実装済み | コメント/リアクション一覧 + 既読管理あり |
+
+---
+
+## 2. 主要な不整合・懸念点
+
+## P0: 詳細設計の権限モデルとの差異（`child_session + RLS` 未達）
+
+詳細設計では「子どもセッションを JWT claim で表現し、RLS で `child_id` / `family_id` 制御」を想定しているが、
+実装は子ども導線で Supabase の **service role** クライアントを多用している。
+
+- `createAdminClient()` は `SUPABASE_SERVICE_ROLE_KEY` で DB にアクセスする。
+- 子どもページ/アクションもこの admin client を直接利用している。
+
+この構成だと、DB 側 RLS を前提にした境界防御ではなく、
+アプリコードでの `.eq('child_id', childId)` に依存するため、設計意図（RLS 中心）から外れる。
+
+## P0: 子どもセッション秘密鍵のデフォルトフォールバック
+
+`lib/kids/session.ts` の署名秘密鍵は
+`KID_SESSION_SECRET` 未設定時に `SUPABASE_SERVICE_ROLE_KEY`、さらに未設定時は固定文字列 `dev-only-kid-session-secret` を使用する。
+
+- 本番で `KID_SESSION_SECRET` 運用ルールを強制していない場合、
+  予測可能な秘密鍵で Cookie 署名されるリスクがある。
+- しかも kid 系処理が service role 直アクセスのため、偽造セッションの影響が大きい。
+
+## P1: 設計ドキュメント上の API/画面経路とのずれ
+
+`docs/step3-detailed-design.md` に記載された API（`/api/kids/...`、`/api/family/invites...`）は未実装で、
+実装は Server Actions 中心になっている。
+また、画面一覧にある `/family/invite` は実装上 `/invite` で提供されている。
+
+※ 実装方針として Server Actions を採ること自体は問題ないが、
+  ドキュメントの更新がないため、保守時に誤解を生む。
+
+## P1: 受け入れ基準の検証結果が文書化されていない
+
+詳細設計の完了条件にある `npm run lint` / `npm run build` の結果を
+Step3 成果物として残した形跡がない（CI 連携またはレビュー記録不足）。
+
+---
+
+## 3. 文書間比較の要点
+
+- `phase-plan-v2` の Step3 機能粒度（3-1〜3-7）には実装はほぼ追従。
+- `step3-detailed-design` の DB テーブル追加方針には概ね追従。
+- ただし、同詳細設計の「権限設計」と「API 設計」は実装実態と差分がある。
+
+---
+
+## 4. 推奨アクション
+
+1. **P0**: kid 導線の DB アクセスを service role 依存から分離する（RLS + 子ども専用クレームに寄せる）。
+2. **P0**: `KID_SESSION_SECRET` を必須化し、未設定時は起動失敗にする。
+3. **P1**: `step3-detailed-design.md` を実装方針（Server Actions / 実ルート）に合わせて更新する。
+4. **P1**: Step3 完了時の lint/build 実行結果をレビュー記録へ添付する。
+
