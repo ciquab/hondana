@@ -52,11 +52,9 @@ export default async function KidsHomePage() {
         {badges.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {badges.slice(0, 4).map((badge) => {
-              const detail = badge.badges as { icon?: string; name?: string } | { icon?: string; name?: string }[] | null;
-              const info = Array.isArray(detail) ? detail[0] : detail;
               return (
                 <span key={badge.badge_id} className="rounded-full bg-amber-100 px-3 py-1 text-sm">
-                  {info?.icon ?? '🏅'} {info?.name ?? badge.badge_id}
+                  {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
                 </span>
               );
             })}

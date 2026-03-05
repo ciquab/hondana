@@ -30,6 +30,8 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ 監査ログメタデータ（IP / UA）のサニタイズを追加
 - ✅ family招待監査ログの書き込み経路を service_role RPC に一本化（authenticated 直接insertを廃止）
 - ✅ Phase A として kid 読み取り系（home/records/calendar）の直接テーブル参照をRPC化
+- ✅ Phase B として kid 詳細/メッセージ導線（records/[recordId], messages, 既読更新）の直接参照をRPC化
+- ✅ Phase C として kid 記録作成/バッジ評価・取得（kid-record action, badges lib）の直接参照をRPC化
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---

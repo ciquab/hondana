@@ -92,18 +92,12 @@ export default async function KidsCalendarPage({
         {badges.length > 0 ? (
           <ul className="space-y-2">
             {badges.map((badge) => {
-              const detail = badge.badges as
-                | { icon?: string; name?: string; description?: string }
-                | { icon?: string; name?: string; description?: string }[]
-                | null;
-              const info = Array.isArray(detail) ? detail[0] : detail;
-
               return (
                 <li key={badge.badge_id} className="rounded border p-3">
                   <p className="font-medium">
-                    {info?.icon ?? '🏅'} {info?.name ?? badge.badge_id}
+                    {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
                   </p>
-                  <p className="text-sm text-slate-600">{info?.description ?? ''}</p>
+                  <p className="text-sm text-slate-600">{badge.description ?? ''}</p>
                 </li>
               );
             })}
