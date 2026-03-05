@@ -41,68 +41,21 @@ export async function createKidRecord(
   if (!childId) redirect('/kids/login');
 
   const supabase = createAdminClient();
-  const { data: child } = await supabase
-    .from('children')
-    .select('family_id, families(created_by)')
-    .eq('id', childId)
-    .maybeSingle();
 
-  if (!child?.family_id) return { error: '子ども情報の取得に失敗しました。' };
+  const { data: recordId } = await supabase.rpc('create_kid_reading_record', {
+    target_child_id: childId,
+    target_title: title,
+    target_author: author || null,
+    target_isbn13: isbn || null,
+    target_cover_url: coverUrl || null,
+    target_status: status,
+    target_stamp: stamp,
+    target_feeling_tags: selectedTags
+  });
 
-  const family = Array.isArray(child.families) ? child.families[0] : child.families;
-  const creatorId = family?.created_by;
-  if (!creatorId) return { error: '記録作成に必要な保護者情報が見つかりません。' };
+  if (!recordId) return { error: '読書記録の作成に失敗しました。' };
 
-  let bookId: string;
-  if (isbn) {
-    const { data: existing } = await supabase.from('books').select('id').eq('isbn13', isbn).maybeSingle();
-    if (existing) {
-      bookId = existing.id;
-    } else {
-      const { data: newBook, error: bookErr } = await supabase
-        .from('books')
-        .insert({ title, author: author || null, isbn13: isbn, cover_url: coverUrl || null })
-        .select('id')
-        .single();
-      if (bookErr || !newBook) return { error: '本の登録に失敗しました。' };
-      bookId = newBook.id;
-    }
-  } else {
-    const { data: newBook, error: bookErr } = await supabase
-      .from('books')
-      .insert({ title, author: author || null, cover_url: coverUrl || null })
-      .select('id')
-      .single();
-    if (bookErr || !newBook) return { error: '本の登録に失敗しました。' };
-    bookId = newBook.id;
-  }
-
-  const { data: newRecord, error: recordErr } = await supabase
-    .from('reading_records')
-    .insert({
-      family_id: child.family_id,
-      child_id: childId,
-      book_id: bookId,
-      status,
-      created_by: creatorId
-    })
-    .select('id')
-    .single();
-  if (recordErr || !newRecord) return { error: '読書記録の作成に失敗しました。' };
-
-  const { error: stampErr } = await supabase
-    .from('record_reactions_child')
-    .insert({ record_id: newRecord.id, child_id: childId, stamp });
-  if (stampErr) return { error: 'スタンプ保存に失敗しました。' };
-
-  if (selectedTags.length > 0) {
-    const { error: tagsErr } = await supabase.from('record_feeling_tags').insert(
-      selectedTags.map((tag) => ({ record_id: newRecord.id, child_id: childId, tag }))
-    );
-    if (tagsErr) return { error: '気持ちタグ保存に失敗しました。' };
-  }
-
-  await evaluateChildBadges(childId, newRecord.id);
+  await evaluateChildBadges(childId, recordId);
 
   revalidatePath('/kids/home');
   revalidatePath('/kids/calendar');
