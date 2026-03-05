@@ -29,11 +29,15 @@
 - `public.purge_kid_auth_audit_logs(retention_days int default 180)`
 - `public.purge_family_invite_audit_logs(retention_days int default 180)`
 
+また、定期ジョブから呼ぶための統合ランナーを追加済み:
+- `public.run_audit_log_maintenance(retention_days int default 180)`
+  - 2種類の削除関数を実行
+  - 実行履歴を `audit_log_maintenance_runs` に保存
+
 実行例（service_role）:
 
 ```sql
-select public.purge_kid_auth_audit_logs(180);
-select public.purge_family_invite_audit_logs(180);
+select * from public.run_audit_log_maintenance(180);
 ```
 
 ## 4. アラート条件（初期）
@@ -103,5 +107,5 @@ order by cnt desc;
 ## 7. 今後の拡張
 
 - アラートを自動通知（Slack/Webhook）へ連携
-- 保持期間管理の自動実行（Scheduled SQL / cron）を本番環境に接続
+- `run_audit_log_maintenance(180)` を Scheduled SQL / cron で日次実行
 - service-role 依存解消後、RLS中心の監査ビューを整備
