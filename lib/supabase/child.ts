@@ -1,10 +1,15 @@
-import { createHmac } from 'crypto';
+import { createHmac, randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
 type KidSessionClaims = {
   childId: string;
   familyId: string;
 };
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 
 function getKidSupabaseConfig() {
   return {
@@ -31,11 +36,18 @@ function createChildSessionAccessToken(claims: KidSessionClaims): string {
   const cfg = getKidSupabaseConfig();
   if (!cfg.jwtSecret) throw new Error('SUPABASE_JWT_SECRET is required for child_session token generation');
 
+  if (!isUuid(claims.childId) || !isUuid(claims.familyId)) {
+    throw new Error('child_session claims must be valid UUID values');
+  }
+
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     aud: 'authenticated',
     exp: now + 60 * 10,
     iat: now,
+    nbf: now - 5,
+    iss: 'hondana-kid-session',
+    jti: randomUUID(),
     role: 'child_session',
     child_id: claims.childId,
     family_id: claims.familyId,
