@@ -17,11 +17,12 @@ export default async function KidsMessagesPage() {
   if (!childId) redirect('/kids/login');
 
   const supabase = createAdminClient();
-  const [{ data: child }, { messages, unreadCount }] = await Promise.all([
-    supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
+  const [{ data: childRows }, { messages, unreadCount }] = await Promise.all([
+    supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
     getKidMessages(childId)
   ]);
 
+  const child = childRows?.[0];
   if (!child) redirect('/kids/login');
 
   return (

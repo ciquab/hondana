@@ -14,25 +14,12 @@ export async function markKidMessageRead(formData: FormData): Promise<void> {
 
   const supabase = createAdminClient();
 
-  const { data: comment } = await supabase
-    .from('record_comments')
-    .select('record_id')
-    .eq('id', commentId)
-    .maybeSingle();
-  if (!comment?.record_id) return;
+  const { data: marked } = await supabase.rpc('mark_kid_message_read', {
+    target_child_id: childId,
+    target_comment_id: commentId
+  });
 
-  const { data: targetRecord } = await supabase
-    .from('reading_records')
-    .select('id')
-    .eq('id', comment.record_id)
-    .eq('child_id', childId)
-    .maybeSingle();
-  if (!targetRecord) return;
-
-  await supabase.from('child_message_views').upsert(
-    { child_id: childId, comment_id: commentId, viewed_at: new Date().toISOString() },
-    { onConflict: 'child_id,comment_id' }
-  );
+  if (!marked) return;
 
   revalidatePath('/kids/messages');
   revalidatePath('/kids/home');
