@@ -32,6 +32,12 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ Phase A として kid 読み取り系（home/records/calendar）の直接テーブル参照をRPC化
 - ✅ Phase B として kid 詳細/メッセージ導線（records/[recordId], messages, 既読更新）の直接参照をRPC化
 - ✅ Phase C として kid 記録作成/バッジ評価・取得（kid-record action, badges lib）の直接参照をRPC化
+- ✅ child_session クレーム解釈ヘルパーと kid 主要テーブル向け RLS スキャフォールドを追加（Phase D 準備）
+- ✅ child_session 向け write 系 RLS スキャフォールド（stamp / feeling tag / message既読）を追加（Phase E 準備）
+- ✅ `child_session` 用DBロール作成・grant付与、および child_session policy の適用先を `authenticated` から `child_session` へ修正
+- ✅ `child_session` ロールを `authenticator` から引き受け可能にし（`grant child_session to authenticator`）、JWT role 運用の前提を補強
+- ✅ `child_session <- authenticated` 継承を撤廃し、`to authenticated` policy への意図しない包含を防止（権限境界を子ども専用に明確化）
+- ✅ kid画面/Server Actionの主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）を `child_session` JWT + anon client 実行へ切替
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -52,16 +58,13 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 
 ## 2. 主要な不整合・懸念点
 
-## P0: 詳細設計の権限モデルとの差異（`child_session + RLS` 未達）
+## P0: 詳細設計の権限モデルとの差異（`child_session + RLS` は進展、残りは一部高権限経路）
 
 詳細設計では「子どもセッションを JWT claim で表現し、RLS で `child_id` / `family_id` 制御」を想定しているが、
-実装は子ども導線で Supabase の **service role** クライアントを多用している（kid PIN 認証は RPC 化済みだが、現時点では service_role 実行前提）。
+kid主要導線（home/records/calendar/messages/record作成/既読/badge取得・評価）は `child_session` JWT + RLS 実行へ移行済み。
 
-- `createAdminClient()` は `SUPABASE_SERVICE_ROLE_KEY` で DB にアクセスする。
-- 子どもページ/アクションもこの admin client を直接利用している。
-
-この構成だと、DB 側 RLS を前提にした境界防御ではなく、
-アプリコードでの `.eq('child_id', childId)` に依存するため、設計意図（RLS 中心）から外れる。
+現時点の残件は、PIN 認証・監査ログ書き込みなど初期認証/運用系の一部で `service_role` を利用している点。
+このため、権限モデル差分は「全面未達」から「高権限経路の限定残」に縮小した。
 
 ## P0: 子どもセッション秘密鍵のデフォルトフォールバック（対応済み）
 
@@ -95,7 +98,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 
 ## 4. 推奨アクション（残課題）
 
-1. **P0 継続**: kid 導線の DB アクセスを service role 依存から分離する（RLS + 子ども専用クレームに寄せる）。
-2. **P1**: 子ども専用クレーム導入後に RLS policy を child_session 起点へ寄せ、アプリ側 `.eq(child_id)` 依存を薄くする。
+1. **P0（進行）**: kid 主要導線の実行主体を service role から child_session JWT + anon client に切替済み。残件は kid PIN認証/監査書き込みなど高権限経路の分離。
+2. **P1（進行）**: child_session role / grants / read-write policy / authenticator引受を適用済み。次段で本番相当環境のmigration適用検証をCIに組み込む。
 3. **P1 対応済み**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化した（`docs/security-audit-log-runbook.md`）。
 
