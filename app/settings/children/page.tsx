@@ -1,53 +1,11 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useState } from 'react';
+import { useActionState } from 'react';
 import Link from 'next/link';
 import { createChild, type ActionResult } from '@/app/actions/family';
-import { createClient } from '@/lib/supabase/client';
-
-type ChildRow = {
-  id: string;
-  display_name: string;
-};
 
 export default function ChildrenSettingsPage() {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(createChild, {});
-  const [children, setChildren] = useState<ChildRow[]>([]);
-  const [origin, setOrigin] = useState('');
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    const load = async () => {
-      const {
-        data: { user }
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: members } = await supabase.from('family_members').select('family_id').eq('user_id', user.id);
-      const familyIds = (members ?? []).map((row) => row.family_id);
-      if (familyIds.length === 0) {
-        setChildren([]);
-        return;
-      }
-
-      const { data: childRows } = await supabase
-        .from('children')
-        .select('id, display_name, created_at')
-        .in('family_id', familyIds)
-        .order('created_at', { ascending: false });
-
-      setChildren((childRows ?? []) as ChildRow[]);
-    };
-
-    load();
-  }, [state.error]);
-
-  const loginBase = useMemo(() => (origin ? `${origin}/kids/login` : '/kids/login'), [origin]);
 
   return (
     <main className="mx-auto max-w-xl p-4">

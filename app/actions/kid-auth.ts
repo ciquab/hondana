@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { clearKidSession, setKidSession } from '@/lib/kids/session';
+import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
 import { verifyPin } from '@/lib/kids/pin';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 
@@ -21,7 +21,7 @@ export async function verifyKidPin(
     return { error: '子どもIDと4桁PINを入力してください。' };
   }
 
-  if (!canCreateAdminClient()) {
+  if (!canCreateAdminClient() || !canUseKidSession()) {
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
