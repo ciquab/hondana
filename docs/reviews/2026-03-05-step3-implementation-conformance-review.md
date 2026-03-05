@@ -33,6 +33,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ Phase B として kid 詳細/メッセージ導線（records/[recordId], messages, 既読更新）の直接参照をRPC化
 - ✅ Phase C として kid 記録作成/バッジ評価・取得（kid-record action, badges lib）の直接参照をRPC化
 - ✅ child_session クレーム解釈ヘルパーと kid 主要テーブル向け RLS スキャフォールドを追加（Phase D 準備）
+- ✅ child_session 向け write 系 RLS スキャフォールド（stamp / feeling tag / message既読）を追加（Phase E 準備）
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
@@ -97,6 +98,6 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 ## 4. 推奨アクション（残課題）
 
 1. **P0 継続（進行中）**: child_session クレーム解釈と RLS スキャフォールドを追加。次段で kid 導線の実行主体を service role から child_session JWT に移行する。
-2. **P1（進行中）**: kid 主要 read テーブルへ child_session 起点の SELECT policy を追加済み。次段で write 系 policy とアプリ接続先の切り替えを実施する。
+2. **P1（進行中）**: kid 主要 read/write テーブルへ child_session 起点 policy を追加済み。次段でアプリ接続先（service role 依存）の切り替えを実施する。
 3. **P1 対応済み**: 監査ログの運用手順（確認頻度・保持期間・アラート条件）を文書化した（`docs/security-audit-log-runbook.md`）。
 
