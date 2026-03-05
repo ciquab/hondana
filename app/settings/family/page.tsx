@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { createFamily, createInvite, revokeInvite, type ActionResult } from '@/app/actions/family';
+import { createFamily, createInvite, revokeInvite, updateMyDisplayName, type ActionResult } from '@/app/actions/family';
 import { createClient } from '@/lib/supabase/client';
 
 type ActiveInvite = {
@@ -41,6 +41,7 @@ export default function FamilySettingsPage() {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [hasFamily, setHasFamily] = useState<boolean | null>(null);
   const [activeInvites, setActiveInvites] = useState<ActiveInvite[]>([]);
+  const [displayName, setDisplayName] = useState('');
 
   const [familyState, familyAction, familyPending] = useActionState<ActionResult, FormData>(
     createFamily,
@@ -52,6 +53,10 @@ export default function FamilySettingsPage() {
   );
   const [revokeState, revokeAction, revokePending] = useActionState<ActionResult, FormData>(
     revokeInvite,
+    {}
+  );
+  const [displayNameState, displayNameAction, displayNamePending] = useActionState<ActionResult, FormData>(
+    updateMyDisplayName,
     {}
   );
 
@@ -66,7 +71,7 @@ export default function FamilySettingsPage() {
 
       const { data: fm } = await supabase
         .from('family_members')
-        .select('family_id')
+        .select('family_id, display_name')
         .eq('user_id', user.id)
         .limit(1);
 
@@ -76,6 +81,7 @@ export default function FamilySettingsPage() {
 
       const fid = rows[0].family_id as string;
       setFamilyId(fid);
+      setDisplayName(String(rows[0].display_name ?? ''));
 
       const { data: inviteRows } = await supabase.rpc('get_active_family_invites', {
         target_family_id: fid
@@ -85,7 +91,7 @@ export default function FamilySettingsPage() {
     };
 
     load();
-  }, [inviteState.inviteCode, revokeState.ok]);
+  }, [inviteState.inviteCode, revokeState.ok, displayNameState.ok]);
 
   return (
     <main className="mx-auto max-w-xl p-4">
@@ -93,6 +99,31 @@ export default function FamilySettingsPage() {
       <Link className="mb-4 inline-block text-blue-600 underline" href="/dashboard">
         ダッシュボードへ戻る
       </Link>
+
+      <form action={displayNameAction} className="mb-6 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-2 text-lg font-semibold">親アカウント表示名</h2>
+        <p className="mb-2 text-sm text-slate-600">子ども画面のコメント・リアクションに表示される名前です。</p>
+        <input
+          name="displayName"
+          className="mb-3 w-full rounded border p-2"
+          maxLength={30}
+          placeholder="例: ママ / パパ"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          required
+        />
+
+        {displayNameState.error && <p className="mb-3 text-sm text-red-600">{displayNameState.error}</p>}
+        {displayNameState.ok && <p className="mb-3 text-sm text-green-700">{displayNameState.ok}</p>}
+
+        <button
+          className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50"
+          type="submit"
+          disabled={displayNamePending}
+        >
+          {displayNamePending ? '更新中…' : '表示名を更新'}
+        </button>
+      </form>
 
       {hasFamily === null ? null : hasFamily ? (
         <div className="mb-6 rounded bg-green-50 p-4 text-green-800">
