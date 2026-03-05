@@ -6,7 +6,6 @@ import { headers } from 'next/headers';
 import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
 import { verifyPin } from '@/lib/kids/pin';
 import { createClient } from '@/lib/supabase/server';
-import { canCreateAdminClient } from '@/lib/supabase/admin';
 
 export type KidAuthResult = {
   error?: string;
@@ -46,7 +45,7 @@ export async function verifyKidPin(
   const childId = String(formData.get('childId') ?? '').trim();
   const pin = String(formData.get('pin') ?? '').trim();
 
-  if (!canCreateAdminClient() || !canUseKidSession()) {
+  if (!canUseKidSession()) {
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
@@ -91,12 +90,6 @@ export async function verifyKidPin(
       reason: `fail_count:${current?.pin_failed_count ?? 'unknown'}`
     });
 
-    await logKidAuthEvent(supabase, {
-      childId,
-      eventType: lockedUntil ? 'pin_locked' : 'pin_failed',
-      reason: `fail_count:${nextFailCount}`
-    });
-
     return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
@@ -104,8 +97,6 @@ export async function verifyKidPin(
     target_child_id: childId,
     success: true
   });
-
-  await logKidAuthEvent(supabase, { childId, eventType: 'success' });
 
   await logKidAuthEvent(supabase, { childId, eventType: 'success' });
 

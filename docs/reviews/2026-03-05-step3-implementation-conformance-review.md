@@ -17,7 +17,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 ## 0. 対応状況（2026-03-05 追記）
 
 - ✅ `KID_SESSION_SECRET` を必須化（固定フォールバック廃止）
-- ✅ `kids/login` で `SUPABASE_SERVICE_ROLE_KEY` に加えて `KID_SESSION_SECRET` も必須チェック
+- ✅ `kids/login` / kid PINログイン処理で `KID_SESSION_SECRET` を必須チェック（PIN認証はservice role必須依存を除外）
 - ✅ `app/settings/children/page.tsx` の未使用変数を解消し、`npm run lint` / `npm run build` が通る状態へ改善
 - ✅ 詳細設計書の API / 画面経路を Server Actions 実装に合わせて更新
 - ✅ kid PIN 認証イベントの監査ログ（`kid_auth_audit_logs`）を追加
@@ -26,6 +26,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ 監査ログ定期削除ランナー（`run_audit_log_maintenance`）を追加
 - ✅ 監査ログアラート候補抽出関数（`get_audit_alert_candidates`）を追加
 - ✅ kid PIN認証のテーブル直接参照をRPC化し、認証アクションのservice role直アクセスを縮小
+- ✅ kid PINログイン処理から `SUPABASE_SERVICE_ROLE_KEY` 必須依存を除外
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
