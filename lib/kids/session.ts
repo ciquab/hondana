@@ -10,11 +10,17 @@ type KidSessionPayload = {
 };
 
 function getKidSessionSecret() {
-  return process.env.KID_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'dev-only-kid-session-secret';
+  return process.env.KID_SESSION_SECRET;
+}
+
+export function canUseKidSession() {
+  return Boolean(getKidSessionSecret());
 }
 
 function sign(payloadBase64: string): string {
-  return createHmac('sha256', getKidSessionSecret()).update(payloadBase64).digest('base64url');
+  const secret = getKidSessionSecret();
+  if (!secret) throw new Error('KID_SESSION_SECRET is required for kid session signing');
+  return createHmac('sha256', secret).update(payloadBase64).digest('base64url');
 }
 
 function encodeSession(payload: KidSessionPayload): string {
@@ -45,6 +51,10 @@ function decodeSession(token: string): KidSessionPayload | null {
 }
 
 export async function setKidSession(childId: string) {
+  if (!canUseKidSession()) {
+    throw new Error('KID_SESSION_SECRET is not configured');
+  }
+
   const cookieStore = await cookies();
   const exp = Math.floor(Date.now() / 1000) + KID_SESSION_MAX_AGE_SECONDS;
   const token = encodeSession({ childId, exp });
@@ -64,6 +74,8 @@ export async function clearKidSession() {
 }
 
 export async function getKidSessionChildId() {
+  if (!canUseKidSession()) return null;
+
   const cookieStore = await cookies();
   const token = cookieStore.get(KID_SESSION_COOKIE)?.value;
   if (!token) return null;
