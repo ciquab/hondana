@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
-import { verifyPin } from '@/lib/kids/pin';
+import { burnPinVerifyCost, verifyPin } from '@/lib/kids/pin';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { canCreateKidClient } from '@/lib/supabase/child';
 
@@ -26,8 +26,12 @@ function getClientIpFromForwardedFor(value: string | null): string | null {
 }
 
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 async function logKidAuthEvent(
-  supabase: ReturnType<typeof createAdminClient>,
+  supabase: SupabaseClient,
   payload: {
     childId?: string;
     eventType: 'invalid_input' | 'child_not_found' | 'pin_not_set' | 'locked' | 'pin_failed' | 'pin_locked' | 'success';
@@ -67,11 +71,16 @@ export async function verifyKidPin(
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
 
   if (!childId || !/^\d{4}$/.test(pin)) {
     await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_or_pin_format' });
     return { error: '子どもIDと4桁PINを入力してください。' };
+  }
+
+  if (!isUuid(childId)) {
+    await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_not_uuid' });
+    return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
   const { data: authState } = await supabase.rpc('get_child_auth_for_login', {
@@ -80,16 +89,19 @@ export async function verifyKidPin(
   const state = authState?.[0];
 
   if (!state?.child_exists) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'child_not_found' });
     return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
   if (!state.pin_hash) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'pin_not_set' });
     return { error: 'PINが設定されていません。保護者画面で設定してください。' };
   }
 
   if (state.pin_locked_until && new Date(state.pin_locked_until) > new Date()) {
+    burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'locked', reason: 'already_locked' });
     return { error: 'PINがロック中です。しばらく待ってから再試行してください。' };
   }
