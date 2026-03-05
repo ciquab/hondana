@@ -168,3 +168,36 @@ select * from public.get_audit_alert_candidates(10);
 - 失敗原因と対応内容を PR に記録
 - 必要なら本ランブックへ再発防止策を追記
 
+
+## 9. Migration作成時の互換性チェック（Task4）
+
+`verify-migrations` での失敗を未然に防ぐため、SQL作成時に以下を確認する。
+
+### 9.1 authスキーマ依存の確認
+
+- `auth.users` の列参照は、対象環境で存在する列に限定する
+- `auth.users` 依存が必須でない backfill は、`public` 側テーブルのみで完結する形を優先する
+- `auth.role()` のような環境差異がある関数は使わず、JWT claim (`request.jwt.claims`) を参照する
+
+### 9.2 RLS policy 記述ガイド
+
+- role 判定は以下の形式を推奨:
+  - `coalesce(current_setting('request.jwt.claim.role', true), (current_setting('request.jwt.claims', true)::jsonb ->> 'role')) = 'service_role'`
+- `with check` / `using` の両方に同等条件が必要かを確認する
+- policy追加後は `revoke` / `grant` と合わせて、実行主体が最小権限になっているか確認する
+
+### 9.3 PRチェックリスト（DB変更時）
+
+- [ ] `bash scripts/ci/verify-migrations.sh` をローカルで実行（`DATABASE_URL` 必須）
+- [ ] 追加した migration が `supabase/migrations` の時系列順になっている
+- [ ] `auth.*` 依存を追加した場合、理由と代替不可性を PR本文へ明記
+- [ ] RLS / grant 変更時、影響ロール（`anon` / `authenticated` / `child_session` / `service_role`）をPR本文へ明記
+
+### 9.4 失敗パターン早見表
+
+- `column ... does not exist`:
+  - 参照先テーブルの列が環境差異で欠落。`public`側のみで完結できるか再検討
+- `function auth.role() does not exist`:
+  - role判定を JWT claim 参照へ置換
+- `permission denied for table ...`:
+  - policy対象ロールと grant/revoke の順序・対象を見直す
