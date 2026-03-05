@@ -6,10 +6,8 @@ import { getKidSessionChildId } from '@/lib/kids/session';
 type BookRow = {
   id: string;
   created_at: string;
-  books:
-    | { title?: string; cover_url?: string | null }
-    | { title?: string; cover_url?: string | null }[]
-    | null;
+  title: string | null;
+  cover_url: string | null;
 };
 
 function chunkRows<T>(items: T[], size: number): T[][] {
@@ -23,19 +21,17 @@ export default async function KidsRecordsPage() {
   if (!childId) redirect('/kids/login');
 
   const supabase = createAdminClient();
-  const [{ data: child }, { data: records }] = await Promise.all([
-    supabase.from('children').select('display_name').eq('id', childId).maybeSingle(),
-    supabase
-      .from('reading_records')
-      .select('id, created_at, books(title, cover_url)')
-      .eq('child_id', childId)
-      .order('created_at', { ascending: false })
-      .limit(120)
+  const [{ data: childRows }, { data: recordRows }] = await Promise.all([
+    supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
+    supabase.rpc('get_kid_recent_records', { target_child_id: childId, max_rows: 120 })
   ]);
+
+  const child = childRows?.[0];
 
   if (!child) redirect('/kids/login');
 
-  const shelfRows = chunkRows((records ?? []) as BookRow[], 4);
+  const records = (recordRows ?? []) as BookRow[];
+  const shelfRows = chunkRows(records, 4);
 
   return (
     <main className="mx-auto max-w-4xl p-4">
@@ -46,7 +42,7 @@ export default async function KidsRecordsPage() {
       <section className="rounded-2xl bg-gradient-to-b from-amber-50 to-orange-100 p-4 shadow">
         <h1 className="text-2xl font-bold text-amber-900">{child.display_name} の本だな</h1>
 
-        {!records || records.length === 0 ? (
+        {records.length === 0 ? (
           <div className="mt-4 rounded-xl bg-white/80 p-5 text-sm text-slate-700">
             まだ読書記録がありません。まずは「きょうの記録をつける」からはじめよう！
           </div>
@@ -59,9 +55,8 @@ export default async function KidsRecordsPage() {
                 <div key={rowIndex} className="relative rounded-lg bg-amber-100/70 px-3 pb-4 pt-3">
                   <div className="flex min-h-48 items-end gap-3">
                     {row.map((record) => {
-                      const detail = Array.isArray(record.books) ? record.books[0] : record.books;
-                      const title = detail?.title ?? 'ふめいな本';
-                      const cover = detail?.cover_url ?? null;
+                      const title = record.title ?? 'ふめいな本';
+                      const cover = record.cover_url ?? null;
 
                       return (
                         <Link
