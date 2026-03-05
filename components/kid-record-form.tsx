@@ -32,6 +32,8 @@ export function KidRecordForm() {
   const [author, setAuthor] = useState('');
   const [isbn, setIsbn] = useState('');
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [stamp, setStamp] = useState<(typeof STAMPS)[number]['value'] | ''>('');
+  const [feelingTags, setFeelingTags] = useState<string[]>([]);
 
   const fillFromBook = useCallback((book: GoogleBookResult) => {
     setTitle(book.title);
@@ -76,6 +78,10 @@ export function KidRecordForm() {
       setSearching(false);
     }
   }, [searchQuery]);
+
+  const toggleFeeling = (tag: string) => {
+    setFeelingTags((prev) => (prev.includes(tag) ? prev.filter((v) => v !== tag) : [...prev, tag]));
+  };
 
   return (
     <>
@@ -146,6 +152,11 @@ export function KidRecordForm() {
 
       <form action={formAction} className="space-y-4 rounded-xl bg-white p-4 shadow">
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
+        <input type="hidden" name="status" value="finished" />
+        <input type="hidden" name="stamp" value={stamp} />
+        {feelingTags.map((tag) => (
+          <input key={tag} type="hidden" name="feelingTags" value={tag} />
+        ))}
 
         {coverUrl && (
           <div className="flex justify-center">
@@ -189,43 +200,48 @@ export function KidRecordForm() {
           />
         </div>
 
-        <div>
-          <label htmlFor="status" className="mb-1 block text-sm font-medium">ステータス</label>
-          <select id="status" name="status" className="w-full rounded border p-2" defaultValue="finished">
-            <option value="want_to_read">よみたい</option>
-            <option value="reading">よんでる</option>
-            <option value="finished">よみおわった</option>
-          </select>
-        </div>
-
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">スタンプ</legend>
-          <div className="space-y-2">
-            {STAMPS.map((stamp) => (
-              <label key={stamp.value} className="flex items-center gap-2">
-                <input type="radio" name="stamp" value={stamp.value} required />
-                <span>{stamp.label}</span>
-              </label>
-            ))}
+          <legend className="mb-2 text-sm font-medium">スタンプをえらぶ</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {STAMPS.map((item) => {
+              const selected = stamp === item.value;
+              return (
+                <button
+                  type="button"
+                  key={item.value}
+                  onClick={() => setStamp(item.value)}
+                  className={`rounded-lg border px-3 py-2 text-sm ${selected ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white'}`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">きもちタグ（複数選択）</legend>
+          <legend className="mb-2 text-sm font-medium">きもちタグ（ふくすうえらべる）</legend>
           <div className="flex flex-wrap gap-2">
-            {CHILD_FEELINGS.map((tag) => (
-              <label key={tag} className="rounded border px-2 py-1 text-sm">
-                <input type="checkbox" name="feelingTags" value={tag} className="mr-1" />
-                {tag}
-              </label>
-            ))}
+            {CHILD_FEELINGS.map((tag) => {
+              const selected = feelingTags.includes(tag);
+              return (
+                <button
+                  type="button"
+                  key={tag}
+                  onClick={() => toggleFeeling(tag)}
+                  className={`rounded-full border px-3 py-1 text-sm ${selected ? 'border-amber-400 bg-amber-100 text-amber-900' : 'border-slate-300 bg-white text-slate-700'}`}
+                >
+                  {tag}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
 
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-        <button type="submit" disabled={pending} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">
-          {pending ? '保存中…' : '保存する'}
+        <button type="submit" disabled={pending || !stamp} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">
+          {pending ? '保存中…' : 'ほぞんする'}
         </button>
       </form>
 

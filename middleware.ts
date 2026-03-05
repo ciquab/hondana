@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const protectedRoutes = ['/dashboard', '/settings', '/children', '/records', '/kids'];
+const protectedRoutes = ['/dashboard', '/settings', '/children', '/records'];
 
 function redirectKidRecordPathIfNeeded(request: NextRequest) {
   const { pathname } = request.nextUrl;
