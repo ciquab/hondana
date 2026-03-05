@@ -10,6 +10,10 @@ export type KidSessionPayload = {
   exp: number;
 };
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 function getKidSessionSecret() {
   return process.env.KID_SESSION_SECRET;
 }
@@ -44,6 +48,7 @@ function decodeSession(token: string): KidSessionPayload | null {
   try {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as KidSessionPayload;
     if (!payload.childId || !payload.familyId || !payload.exp) return null;
+    if (!isUuid(payload.childId) || !isUuid(payload.familyId)) return null;
     if (payload.exp * 1000 <= Date.now()) return null;
     return payload;
   } catch {

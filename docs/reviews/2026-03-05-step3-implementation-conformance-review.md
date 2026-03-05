@@ -42,6 +42,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ kid PIN監査ログRPCでDB側メタデータサニタイズ（IP/UAの改行除去・長さ制限）を追加し、入力経路依存を低減
 - ✅ kid PIN監査ログRPCで `event_type` ホワイトリスト化と `reason` サニタイズ（改行除去・長さ制限）を追加
 - ✅ kid PINログインで `childId` UUID形式バリデーションを追加し、不正入力時のRPC実行を事前遮断
+- ✅ `kid_session` Cookie復号時に `childId` / `familyId` のUUID検証を追加し、改ざんトークンを早期破棄
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
