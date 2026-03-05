@@ -6,6 +6,7 @@ import { headers } from 'next/headers';
 import { canUseKidSession, clearKidSession, setKidSession } from '@/lib/kids/session';
 import { verifyPin } from '@/lib/kids/pin';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
+import { canCreateKidClient } from '@/lib/supabase/child';
 
 export type KidAuthResult = {
   error?: string;
@@ -62,7 +63,7 @@ export async function verifyKidPin(
   const childId = String(formData.get('childId') ?? '').trim();
   const pin = String(formData.get('pin') ?? '').trim();
 
-  if (!canCreateAdminClient() || !canUseKidSession()) {
+  if (!canCreateAdminClient() || !canUseKidSession() || !canCreateKidClient()) {
     return { error: 'こどもモードの設定が不足しています。管理者に連絡してください。' };
   }
 
@@ -117,7 +118,11 @@ export async function verifyKidPin(
 
   await logKidAuthEvent(supabase, { childId, eventType: 'success' });
 
-  await setKidSession(childId);
+  if (!state.family_id) {
+    return { error: '子どもセッションの初期化に失敗しました。管理者に連絡してください。' };
+  }
+
+  await setKidSession({ childId, familyId: state.family_id });
   revalidatePath('/kids/home');
   redirect('/kids/home');
 }
