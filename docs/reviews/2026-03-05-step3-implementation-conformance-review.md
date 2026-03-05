@@ -35,6 +35,7 @@ Step3 の 3-1〜3-7 は**機能としては概ね実装済み**です。
 - ✅ child_session クレーム解釈ヘルパーと kid 主要テーブル向け RLS スキャフォールドを追加（Phase D 準備）
 - ✅ child_session 向け write 系 RLS スキャフォールド（stamp / feeling tag / message既読）を追加（Phase E 準備）
 - ✅ `child_session` 用DBロール作成・grant付与、および child_session policy の適用先を `authenticated` から `child_session` へ修正
+- ✅ `child_session` ロールを `authenticator` から引き受け可能にし（`grant child_session to authenticator`）、JWT role 運用の前提を補強
 - ⏳ service role 依存の段階的解消（RLS 中心化）は次段で継続対応
 
 ---
