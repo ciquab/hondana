@@ -2,8 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getKidSessionChildId } from '@/lib/kids/session';
+import { requireKidContext } from '@/lib/kids/client';
 import { evaluateChildBadges } from '@/lib/kids/badges';
 import { CHILD_FEELINGS, CHILD_STAMPS } from '@/lib/kids/feelings';
 
@@ -37,10 +36,7 @@ export async function createKidRecord(
     return { error: '記録ステータスが不正です。' };
   }
 
-  const childId = await getKidSessionChildId();
-  if (!childId) redirect('/kids/login');
-
-  const supabase = createAdminClient();
+  const { childId, supabase } = await requireKidContext();
 
   const { data: recordId } = await supabase.rpc('create_kid_reading_record', {
     target_child_id: childId,
@@ -55,7 +51,7 @@ export async function createKidRecord(
 
   if (!recordId) return { error: '読書記録の作成に失敗しました。' };
 
-  await evaluateChildBadges(childId, recordId);
+  await evaluateChildBadges(recordId);
 
   revalidatePath('/kids/home');
   revalidatePath('/kids/calendar');
