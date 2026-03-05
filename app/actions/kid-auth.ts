@@ -91,6 +91,12 @@ export async function verifyKidPin(
       reason: `fail_count:${current?.pin_failed_count ?? 'unknown'}`
     });
 
+    await logKidAuthEvent(supabase, {
+      childId,
+      eventType: lockedUntil ? 'pin_locked' : 'pin_failed',
+      reason: `fail_count:${nextFailCount}`
+    });
+
     return { error: '子どもIDまたはPINが正しくありません。' };
   }
 
@@ -98,6 +104,8 @@ export async function verifyKidPin(
     target_child_id: childId,
     success: true
   });
+
+  await logKidAuthEvent(supabase, { childId, eventType: 'success' });
 
   await logKidAuthEvent(supabase, { childId, eventType: 'success' });
 
