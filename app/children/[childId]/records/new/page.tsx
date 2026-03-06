@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { createRecord, type ActionResult } from '@/app/actions/record';
 import { READING_STATUSES, STATUS_LABELS } from '@/lib/validations/record';
+import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
 import type { GoogleBookResult } from '@/lib/books/google-books';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
@@ -222,6 +223,20 @@ export default function NewRecordPage() {
             {READING_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {STATUS_LABELS[s]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="genre" className="mb-1 block text-sm font-medium">
+            ジャンル
+          </label>
+          <select id="genre" name="genre" className="w-full rounded border p-2" defaultValue="">
+            <option value="">未分類</option>
+            {CHILD_GENRES.map((g) => (
+              <option key={g} value={g}>
+                {GENRE_LABELS[g]}
               </option>
             ))}
           </select>
