@@ -49,7 +49,7 @@ export default async function KidsRecordsPage() {
             <div className="mt-4 space-y-4">
               {shelfRows.map((row, rowIndex) => (
                 <div key={rowIndex} className="relative rounded-lg bg-amber-100/70 px-3 pb-4 pt-3">
-                  <div className="flex min-h-48 items-end gap-3">
+                  <div className="flex min-h-48 items-end gap-3 overflow-x-auto pb-1">
                     {row.map((record) => {
                       const title = record.title ?? 'ふめいな本';
                       const cover = record.cover_url ?? null;

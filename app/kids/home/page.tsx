@@ -69,7 +69,7 @@ export default async function KidsHomePage() {
           </Link>
         </div>
         {recentRows && recentRows.length > 0 ? (
-          <ul className="grid grid-cols-3 gap-2">
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {(recentRows as RecentRow[]).map((row) => {
               const title = row.title ?? '不明な本';
               return (
