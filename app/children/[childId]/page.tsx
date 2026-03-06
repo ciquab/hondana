@@ -1,8 +1,49 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getRecordsForChild } from '@/lib/db/records';
+import { getRecordsForChild, getGenreBreakdownForChild } from '@/lib/db/records';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
+
+const GENRE_LABELS: Record<string, { emoji: string; label: string }> = {
+  story:        { emoji: '📖', label: '物語・小説' },
+  zukan:        { emoji: '🔬', label: '図鑑・科学' },
+  manga:        { emoji: '🎭', label: 'マンガ' },
+  picture_book: { emoji: '🖼️', label: '絵本・詩' },
+  other:        { emoji: '📚', label: 'その他' },
+};
+
+const GENRE_ORDER = ['story', 'zukan', 'manga', 'picture_book', 'other'];
+
+function GenreBreakdownChart({ breakdown }: { breakdown: Record<string, number> }) {
+  const maxCount = Math.max(...Object.values(breakdown), 1);
+  return (
+    <div className="max-w-xs space-y-2">
+      {GENRE_ORDER.map((key) => {
+        const count = breakdown[key] ?? 0;
+        const { emoji, label } = GENRE_LABELS[key] ?? { emoji: '📚', label: key };
+        const pct = Math.round((count / maxCount) * 100);
+        return (
+          <div key={key} className="flex items-center gap-2 text-sm">
+            <span className="w-28 flex-shrink-0 text-slate-600">
+              {emoji} {label}
+            </span>
+            <div className="flex flex-1 items-center gap-2">
+              <div className="h-4 flex-1 overflow-hidden rounded bg-slate-100">
+                <div
+                  className={`h-full rounded transition-all ${count === 0 ? 'bg-slate-200' : 'bg-amber-400'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className={`w-10 text-right font-medium ${count === 0 ? 'text-amber-600' : 'text-slate-700'}`}>
+                {count} 冊
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 type Props = {
   params: Promise<{ childId: string }>;
@@ -39,7 +80,10 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   if (!child) notFound();
 
-  const records = await getRecordsForChild(childId);
+  const [records, genreBreakdown] = await Promise.all([
+    getRecordsForChild(childId),
+    getGenreBreakdownForChild(childId),
+  ]);
 
   const grouped = {
     reading: records.filter((r) => r.status === 'reading'),
@@ -111,6 +155,14 @@ export default async function ChildRecordsPage({ params }: Props) {
           </div>
           {/* Shelf line */}
           <div className="mt-2 h-1.5 rounded bg-amber-700/30" />
+        </section>
+      )}
+
+      {/* Genre breakdown chart */}
+      {Object.keys(genreBreakdown).length > 0 && (
+        <section className="mb-6 rounded-xl bg-white p-4 shadow">
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">ジャンル内訳</h2>
+          <GenreBreakdownChart breakdown={genreBreakdown} />
         </section>
       )}
 
