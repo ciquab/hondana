@@ -22,6 +22,8 @@ export async function createKidRecord(
   const stamp = String(formData.get('stamp') ?? '').trim();
   const isbn = String(formData.get('isbn') ?? '').trim();
   const coverUrl = String(formData.get('coverUrl') ?? '').trim();
+  const memo = String(formData.get('memo') ?? '').trim();
+  const finishedOn = String(formData.get('finishedOn') ?? '').trim();
   const selectedTags = formData
     .getAll('feelingTags')
     .map((v) => String(v))
@@ -35,6 +37,9 @@ export async function createKidRecord(
   if (!KID_RECORD_STATUSES.includes(status as (typeof KID_RECORD_STATUSES)[number])) {
     return { error: '記録ステータスが不正です。' };
   }
+  if (finishedOn && !/^\d{4}-\d{2}-\d{2}$/.test(finishedOn)) {
+    return { error: '読んだ日の形式が正しくありません。' };
+  }
 
   const { childId, supabase } = await requireKidContext();
 
@@ -46,7 +51,9 @@ export async function createKidRecord(
     target_cover_url: coverUrl || null,
     target_status: status,
     target_stamp: stamp,
-    target_feeling_tags: selectedTags
+    target_feeling_tags: selectedTags,
+    target_memo: memo || null,
+    target_finished_on: finishedOn || null,
   });
 
   if (!recordId) return { error: '読書記録の作成に失敗しました。' };
