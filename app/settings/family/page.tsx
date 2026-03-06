@@ -18,6 +18,8 @@ type ChildRow = {
 };
 
 function InviteCard({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
   const inviteUrl = useMemo(() => {
     if (typeof window === 'undefined') return `/invite?code=${encodeURIComponent(code)}`;
     return `${window.location.origin}/invite?code=${encodeURIComponent(code)}`;
@@ -29,10 +31,26 @@ function InviteCard({ code }: { code: string }) {
     [inviteUrl]
   );
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="rounded border bg-blue-50 p-3">
       <p className="mb-1 text-sm text-slate-600">招待コード:</p>
-      <p className="text-center font-mono text-2xl font-bold tracking-widest text-blue-700">{code}</p>
+      <div className="flex items-center justify-center gap-2">
+        <p className="font-mono text-2xl font-bold tracking-widest text-blue-700">{code}</p>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="rounded border bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+        >
+          {copied ? 'コピー済み ✓' : 'コピー'}
+        </button>
+      </div>
       <p className="mt-2 text-xs text-slate-500">QRを読み取るか、コードを入力して参加できます。</p>
       <div className="mt-2 flex justify-center">
         <img src={qrUrl} alt="招待QRコード" className="h-40 w-40 rounded border bg-white p-2" />

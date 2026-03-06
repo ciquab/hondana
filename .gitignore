@@ -15,5 +15,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# typescript
+*.tsbuildinfo
+
 # misc
 .DS_Store

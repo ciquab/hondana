@@ -48,7 +48,7 @@ export default async function KidsHomePage() {
         <h2 className="mb-2 text-lg font-semibold">バッジ</h2>
         {badges.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {badges.slice(0, 4).map((badge) => {
+            {badges.map((badge) => {
               return (
                 <span key={badge.badge_id} className="rounded-full bg-amber-100 px-3 py-1 text-sm">
                   {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
@@ -69,7 +69,7 @@ export default async function KidsHomePage() {
           </Link>
         </div>
         {recentRows && recentRows.length > 0 ? (
-          <ul className="grid grid-cols-3 gap-2">
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {(recentRows as RecentRow[]).map((row) => {
               const title = row.title ?? '不明な本';
               return (
