@@ -9,6 +9,8 @@ export const STATUS_LABELS: Record<ReadingStatus, string> = {
   finished: '読了'
 };
 
+export const RECORD_GENRES = ['story', 'zukan', 'manga', 'picture_book', 'other'] as const;
+
 export const createRecordSchema = z.object({
   childId: z.string().uuid('子どもの指定が不正です'),
   title: z.string().trim().min(1, '本のタイトルを入力してください').max(200, 'タイトルは200文字以内です'),
@@ -19,6 +21,7 @@ export const createRecordSchema = z.object({
     .optional()
     .or(z.literal('')),
   status: z.enum(READING_STATUSES, { message: 'ステータスを選択してください' }),
+  genre: z.enum(RECORD_GENRES).optional().or(z.literal('')),
   memo: z.string().max(2000, 'メモは2000文字以内です').optional().or(z.literal('')),
   finishedOn: z.string().date('日付の形式が正しくありません').optional().or(z.literal(''))
 });

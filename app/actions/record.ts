@@ -21,6 +21,7 @@ export async function createRecord(
     author: formData.get('author') ?? '',
     isbn: formData.get('isbn') ?? '',
     status: formData.get('status') ?? '',
+    genre: formData.get('genre') ?? '',
     memo: formData.get('memo') ?? '',
     finishedOn: formData.get('finishedOn') ?? ''
   };
@@ -30,7 +31,7 @@ export async function createRecord(
     return { error: parsed.error.issues[0].message };
   }
 
-  const { childId, title, author, isbn, status, memo, finishedOn } = parsed.data;
+  const { childId, title, author, isbn, status, genre, memo, finishedOn } = parsed.data;
 
   const supabase = await createClient();
   const {
@@ -102,6 +103,7 @@ export async function createRecord(
     child_id: childId,
     book_id: bookId,
     status,
+    genre: genre || null,
     memo: memo || null,
     finished_on: finishedOn || null,
     created_by: user.id

@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useActionState, useCallback, useState } from 'react';
 import { createKidRecord, type KidRecordActionResult } from '@/app/actions/kid-record';
-import { CHILD_FEELINGS } from '@/lib/kids/feelings';
+import { CHILD_FEELINGS, CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
 import type { GoogleBookResult } from '@/lib/books/google-books';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
@@ -33,6 +33,7 @@ export function KidRecordForm() {
   const [isbn, setIsbn] = useState('');
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [stamp, setStamp] = useState<(typeof STAMPS)[number]['value'] | ''>('');
+  const [genre, setGenre] = useState<(typeof CHILD_GENRES)[number] | ''>('');
   const [feelingTags, setFeelingTags] = useState<string[]>([]);
   const [finished, setFinished] = useState(true);
   const [finishedOn, setFinishedOn] = useState(() => new Date().toISOString().slice(0, 10));
@@ -156,6 +157,7 @@ export function KidRecordForm() {
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
         <input type="hidden" name="status" value={finished ? 'finished' : 'reading'} />
         <input type="hidden" name="stamp" value={stamp} />
+        <input type="hidden" name="genre" value={genre} />
         {feelingTags.map((tag) => (
           <input key={tag} type="hidden" name="feelingTags" value={tag} />
         ))}
@@ -215,6 +217,27 @@ export function KidRecordForm() {
                   className={`rounded-lg border px-3 py-2 text-sm ${selected ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white'}`}
                 >
                   {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium">
+            ジャンルをえらぶ <span className="text-xs font-normal text-slate-400">（かかなくてもOK）</span>
+          </legend>
+          <div className="grid grid-cols-2 gap-2">
+            {CHILD_GENRES.map((g) => {
+              const selected = genre === g;
+              return (
+                <button
+                  type="button"
+                  key={g}
+                  onClick={() => setGenre(selected ? '' : g)}
+                  className={`rounded-lg border px-3 py-2 text-sm transition-transform active:scale-95 ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white'}`}
+                >
+                  {GENRE_LABELS[g]}
                 </button>
               );
             })}
