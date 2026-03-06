@@ -5,6 +5,17 @@ import { getChildBadges } from '@/lib/kids/badges';
 
 type CalendarEntryRow = { created_at: string; stamp: string | null };
 
+const STAMP_EMOJI: Record<string, string> = {
+  great: '🌟',
+  fun: '😊',
+  ok: '😐',
+  hard: '😓'
+};
+
+function formatMonthParam(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
 function getMonthBounds(monthParam: string | undefined) {
   const base = monthParam && /^\d{4}-\d{2}$/.test(monthParam) ? `${monthParam}-01` : undefined;
   const monthStart = base ? new Date(base) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -53,30 +64,61 @@ export default async function KidsCalendarPage({
 
   const daysInMonth = new Date(bounds.monthStart.getFullYear(), bounds.monthStart.getMonth() + 1, 0).getDate();
 
+  const today = new Date();
+  const isCurrentMonth =
+    today.getFullYear() === bounds.monthStart.getFullYear() &&
+    today.getMonth() === bounds.monthStart.getMonth();
+
+  const prevMonth = formatMonthParam(
+    new Date(bounds.monthStart.getFullYear(), bounds.monthStart.getMonth() - 1, 1)
+  );
+  const nextMonthParam = formatMonthParam(
+    new Date(bounds.monthStart.getFullYear(), bounds.monthStart.getMonth() + 1, 1)
+  );
+
   return (
     <main className="mx-auto max-w-2xl p-4">
       <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
         こどもホームへ戻る
       </Link>
       <h1 className="mb-1 text-2xl font-bold">{child.display_name} のどくしょカレンダー</h1>
-      <p className="mb-4 text-sm text-slate-600">{bounds.monthLabel}</p>
+
+      <div className="mb-4 flex items-center gap-2">
+        <Link
+          href={`/kids/calendar?month=${prevMonth}`}
+          className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
+        >
+          ◀ 前の月
+        </Link>
+        <p className="flex-1 text-center font-semibold">{bounds.monthLabel}</p>
+        <Link
+          href={`/kids/calendar?month=${nextMonthParam}`}
+          className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
+        >
+          次の月 ▶
+        </Link>
+      </div>
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
         <h2 className="mb-3 text-lg font-semibold">今月の記録</h2>
-        <div className="grid grid-cols-7 gap-2 text-center text-xs">
+        <div className="grid grid-cols-7 gap-1 text-center text-xs">
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
             const info = dayMap.get(day);
+            const isToday = isCurrentMonth && day === today.getDate();
             return (
-              <div key={day} className="rounded border p-2">
-                <div className="font-semibold">{day}</div>
+              <div
+                key={day}
+                className={`rounded border p-1.5 ${isToday ? 'border-blue-400 bg-blue-50' : ''}`}
+              >
+                <div className={`font-semibold ${isToday ? 'text-blue-600' : ''}`}>{day}</div>
                 {info ? (
-                  <div className="mt-1 text-[11px] text-slate-700">
+                  <div className="mt-0.5 text-[11px] text-slate-700">
                     <div>{info.count}冊</div>
-                    <div>{info.stamp ?? '📘'}</div>
+                    <div>{info.stamp ? (STAMP_EMOJI[info.stamp] ?? info.stamp) : ''}</div>
                   </div>
                 ) : (
-                  <div className="mt-1 text-[11px] text-slate-400">-</div>
+                  <div className="mt-0.5 text-[11px] text-slate-300">-</div>
                 )}
               </div>
             );
