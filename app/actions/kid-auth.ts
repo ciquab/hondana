@@ -8,28 +8,12 @@ import { burnPinVerifyCost, verifyPin } from '@/lib/kids/pin';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { canCreateKidClient } from '@/lib/supabase/child';
+import { isUuid } from '@/lib/utils/validation';
+import { sanitizeHeaderValue, getClientIpFromForwardedFor } from '@/lib/utils/request';
 
 export type KidAuthResult = {
   error?: string;
 };
-
-
-function sanitizeHeaderValue(value: string | null, max = 200): string | null {
-  if (!value) return null;
-  const normalized = value.replace(/[\r\n\t]/g, ' ').trim();
-  if (!normalized) return null;
-  return normalized.slice(0, max);
-}
-
-function getClientIpFromForwardedFor(value: string | null): string | null {
-  const first = value?.split(',')[0]?.trim() ?? null;
-  return sanitizeHeaderValue(first, 64);
-}
-
-
-function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 async function logKidAuthEvent(
   supabase: SupabaseClient,

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { cookies } from 'next/headers';
+import { isUuid } from '@/lib/utils/validation';
 
 const KID_SESSION_COOKIE = 'kid_session';
 const KID_SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
@@ -9,10 +10,6 @@ export type KidSessionPayload = {
   familyId: string;
   exp: number;
 };
-
-function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 function getKidSessionSecret() {
   return process.env.KID_SESSION_SECRET;

@@ -7,6 +7,10 @@ function redirectKidRecordPathIfNeeded(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const kidSession = request.cookies.get('kid_session')?.value;
 
+  // Middleware runs in the Edge Runtime where Node.js crypto (createHmac) is unavailable,
+  // so HMAC signature verification cannot be performed here.
+  // Full session validation (signature + expiry + UUID checks) is done in
+  // requireKidContext() / getKidSession() on each protected kid page/action.
   if (!kidSession) return null;
 
   const match = pathname.match(/^\/records\/([^/]+)$/);

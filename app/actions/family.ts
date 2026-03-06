@@ -6,25 +6,13 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { hashPin } from '@/lib/kids/pin';
+import { sanitizeHeaderValue, getClientIpFromForwardedFor } from '@/lib/utils/request';
 
 export type ActionResult = {
   error?: string;
   inviteCode?: string;
   ok?: string;
 };
-
-
-function sanitizeHeaderValue(value: string | null, max = 200): string | null {
-  if (!value) return null;
-  const normalized = value.replace(/[\r\n\t]/g, ' ').trim();
-  if (!normalized) return null;
-  return normalized.slice(0, max);
-}
-
-function getClientIpFromForwardedFor(value: string | null): string | null {
-  const first = value?.split(',')[0]?.trim() ?? null;
-  return sanitizeHeaderValue(first, 64);
-}
 
 
 async function logInviteAuditEvent(
