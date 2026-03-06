@@ -2,7 +2,8 @@
 --
 -- 変更点:
 --   1. create_kid_reading_record に target_genre を追加（シグネチャ変更 → DROP → RECREATE）
---   2. get_kid_recent_records の返却カラムに genre を追加（シグネチャ変更なし → CREATE OR REPLACE）
+--   2. get_kid_recent_records の返却カラムに genre を追加
+--      PostgreSQL は RETURNS TABLE の列追加を CREATE OR REPLACE で拒否するため DROP → RECREATE
 
 -- 1. create_kid_reading_record（シグネチャが変わるため DROP してから再作成）
 drop function if exists public.create_kid_reading_record(uuid, text, text, text, text, text, text, text[], text, date);
@@ -95,7 +96,9 @@ revoke all on function public.create_kid_reading_record(uuid, text, text, text, 
 grant execute on function public.create_kid_reading_record(uuid, text, text, text, text, text, text, text[], text, date, text) to service_role;
 grant execute on function public.create_kid_reading_record(uuid, text, text, text, text, text, text, text[], text, date, text) to child_session;
 
--- 2. get_kid_recent_records に genre を追加（引数シグネチャ変更なし → GRANT 不要）
+-- 2. get_kid_recent_records に genre を追加（返却型変更のため DROP → RECREATE + GRANT 付け直し）
+drop function if exists public.get_kid_recent_records(uuid, int);
+
 create or replace function public.get_kid_recent_records(
   target_child_id uuid,
   max_rows int default 50
@@ -123,3 +126,7 @@ as $$
   order by rr.created_at desc
   limit greatest(max_rows, 1);
 $$;
+
+revoke all on function public.get_kid_recent_records(uuid, int) from public;
+grant execute on function public.get_kid_recent_records(uuid, int) to service_role;
+grant execute on function public.get_kid_recent_records(uuid, int) to child_session;
