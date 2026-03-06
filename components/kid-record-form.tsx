@@ -34,6 +34,8 @@ export function KidRecordForm() {
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [stamp, setStamp] = useState<(typeof STAMPS)[number]['value'] | ''>('');
   const [feelingTags, setFeelingTags] = useState<string[]>([]);
+  const [finished, setFinished] = useState(true);
+  const [finishedOn, setFinishedOn] = useState(() => new Date().toISOString().slice(0, 10));
 
   const fillFromBook = useCallback((book: GoogleBookResult) => {
     setTitle(book.title);
@@ -152,7 +154,7 @@ export function KidRecordForm() {
 
       <form action={formAction} className="space-y-4 rounded-xl bg-white p-4 shadow">
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
-        <input type="hidden" name="status" value="finished" />
+        <input type="hidden" name="status" value={finished ? 'finished' : 'reading'} />
         <input type="hidden" name="stamp" value={stamp} />
         {feelingTags.map((tag) => (
           <input key={tag} type="hidden" name="feelingTags" value={tag} />
@@ -237,6 +239,53 @@ export function KidRecordForm() {
             })}
           </div>
         </fieldset>
+
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium">さいごまで読んだ？</legend>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setFinished(true)}
+              className={`rounded-lg border px-3 py-2 text-sm ${finished ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
+            >
+              📖 さいごまで読んだ！
+            </button>
+            <button
+              type="button"
+              onClick={() => setFinished(false)}
+              className={`rounded-lg border px-3 py-2 text-sm ${!finished ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
+            >
+              🔖 とちゅうまで読んだ
+            </button>
+          </div>
+        </fieldset>
+
+        <div>
+          <label htmlFor="finishedOn" className="mb-1 block text-sm font-medium">
+            読んだ日
+          </label>
+          <input
+            id="finishedOn"
+            name="finishedOn"
+            type="date"
+            className="w-full rounded border p-2"
+            value={finishedOn}
+            onChange={(e) => setFinishedOn(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="memo" className="mb-1 block text-sm font-medium">
+            ひとことかんそう <span className="text-xs font-normal text-slate-400">（かかなくてもOK）</span>
+          </label>
+          <textarea
+            id="memo"
+            name="memo"
+            className="w-full rounded border p-2 text-sm"
+            rows={3}
+            placeholder="おもしろかった！　つぎは〇〇を読みたい…など"
+          />
+        </div>
 
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
