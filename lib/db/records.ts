@@ -9,7 +9,7 @@ export async function getRecordsForChild(childId: string) {
 
   const { data } = await supabase
     .from('reading_records')
-    .select('id, status, memo, finished_on, created_at, updated_at, books(id, title, author, isbn13, cover_url)')
+    .select('id, status, memo, finished_on, genre, created_at, updated_at, books(id, title, author, isbn13, cover_url)')
     .eq('child_id', childId)
     .order('created_at', { ascending: false });
 
@@ -44,6 +44,27 @@ export async function getRecordCountsForChildren(childIds: string[]) {
   const counts: Record<string, number> = {};
   for (const row of data ?? []) {
     counts[row.child_id] = (counts[row.child_id] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export async function getGenreBreakdownForChild(childId: string) {
+  const supabase = await createClient();
+  const user = await getCurrentUser();
+
+  if (!user) return {};
+
+  const { data } = await supabase
+    .from('reading_records')
+    .select('genre')
+    .eq('child_id', childId)
+    .not('genre', 'is', null);
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    if (row.genre) {
+      counts[row.genre] = (counts[row.genre] ?? 0) + 1;
+    }
   }
   return counts;
 }

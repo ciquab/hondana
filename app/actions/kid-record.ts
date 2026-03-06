@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { evaluateChildBadges } from '@/lib/kids/badges';
-import { CHILD_FEELINGS, CHILD_STAMPS } from '@/lib/kids/feelings';
+import { CHILD_FEELINGS, CHILD_GENRES, CHILD_STAMPS } from '@/lib/kids/feelings';
 
 const KID_RECORD_STATUSES = ['want_to_read', 'reading', 'finished'] as const;
 
@@ -24,6 +24,10 @@ export async function createKidRecord(
   const coverUrl = String(formData.get('coverUrl') ?? '').trim();
   const memo = String(formData.get('memo') ?? '').trim();
   const finishedOn = String(formData.get('finishedOn') ?? '').trim();
+  const genreRaw = String(formData.get('genre') ?? '').trim();
+  const genre = CHILD_GENRES.includes(genreRaw as (typeof CHILD_GENRES)[number])
+    ? (genreRaw as (typeof CHILD_GENRES)[number])
+    : null;
   const selectedTags = formData
     .getAll('feelingTags')
     .map((v) => String(v))
@@ -54,6 +58,7 @@ export async function createKidRecord(
     target_feeling_tags: selectedTags,
     target_memo: memo || null,
     target_finished_on: finishedOn || null,
+    target_genre: genre,
   });
 
   if (!recordId) return { error: '読書記録の作成に失敗しました。' };
