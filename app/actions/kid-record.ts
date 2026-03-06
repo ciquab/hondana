@@ -63,9 +63,19 @@ export async function createKidRecord(
 
   if (!recordId) return { error: '読書記録の作成に失敗しました。' };
 
+  // バッジ評価前のバッジ一覧を取得
+  const { data: badgesBefore } = await supabase.rpc('get_kid_badges', { target_child_id: childId });
+  const badgeIdsBefore = new Set((badgesBefore ?? []).map((b: { badge_id: string }) => b.badge_id));
+
   await evaluateChildBadges(recordId);
+
+  // 新規獲得バッジを検出
+  const { data: badgesAfter } = await supabase.rpc('get_kid_badges', { target_child_id: childId });
+  const newBadge = (badgesAfter ?? []).find(
+    (b: { badge_id: string }) => !badgeIdsBefore.has(b.badge_id)
+  );
 
   revalidatePath('/kids/home');
   revalidatePath('/kids/calendar');
-  redirect('/kids/home');
+  redirect(newBadge ? `/kids/home?badge=${newBadge.badge_id}` : '/kids/home');
 }
