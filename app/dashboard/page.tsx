@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { signOut } from '@/app/actions/auth';
 import { getChildrenForCurrentUser, getFamiliesForCurrentUser } from '@/lib/db/family';
-import { getRecordCountsForChildren } from '@/lib/db/records';
+import { getRecordCountsForChildren, getMonthlyReadCountsForChildren } from '@/lib/db/records';
 
 export default async function DashboardPage() {
   const families = await getFamiliesForCurrentUser();
@@ -12,7 +12,11 @@ export default async function DashboardPage() {
   }
 
   const children = await getChildrenForCurrentUser();
-  const recordCounts = await getRecordCountsForChildren(children.map((c) => c.id));
+  const childIds = children.map((c) => c.id);
+  const [recordCounts, { total: monthlyTotal, byChild: monthlyByChild }] = await Promise.all([
+    getRecordCountsForChildren(childIds),
+    getMonthlyReadCountsForChildren(childIds),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl p-4">
@@ -37,6 +41,25 @@ export default async function DashboardPage() {
           こどもモード
         </Link>
       </div>
+
+      {children.length > 0 && (
+        <section className="mb-4 rounded-xl bg-blue-50 p-4 shadow">
+          <h2 className="mb-2 text-sm font-semibold text-blue-700">
+            📅 今月の読書まとめ（{new Date().getMonth() + 1}月）
+          </h2>
+          <p className="mb-2 text-2xl font-bold text-blue-900">{monthlyTotal} 冊</p>
+          {children.length > 1 && (
+            <ul className="space-y-1">
+              {children.map((child) => (
+                <li key={child.id} className="flex items-center justify-between text-sm">
+                  <span className="text-blue-800">{child.display_name}</span>
+                  <span className="font-medium text-blue-700">{monthlyByChild[child.id] ?? 0} 冊</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section className="rounded-xl bg-white p-4 shadow">
         <h2 className="mb-3 text-lg font-semibold">子ども一覧</h2>

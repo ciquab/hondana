@@ -57,16 +57,20 @@ export default function RecordDetailPage() {
   const [loading, setLoading] = useState(true);
   const [reactingEmoji, setReactingEmoji] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(updateRecordStatus, {});
+  const [commentBody, setCommentBody] = useState('');
   const [commentState, commentFormAction, commentPending] = useActionState<CommentActionResult, FormData>(
     async (prev, formData) => {
       const result = await createComment(prev, formData);
       if (!result.error) {
+        setCommentBody('');
         fetchComments();
       }
       return result;
     },
     {}
   );
+
+  const COMMENT_TEMPLATES = ['よくよめたね！', 'すごい！', 'いっしょに読もうね', 'どんなお話だった？'];
 
   const fetchMemberNames = useCallback(async (userIds: string[]) => {
     if (userIds.length === 0) return;
@@ -348,6 +352,18 @@ export default function RecordDetailPage() {
 
         <form action={commentFormAction} className="mt-4">
           <input type="hidden" name="recordId" value={record.id} />
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {COMMENT_TEMPLATES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setCommentBody(t)}
+                className="rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-700 hover:bg-emerald-100"
+              >
+                {t}
+              </button>
+            ))}
+          </div>
           <textarea
             name="body"
             className="w-full rounded border p-2 text-sm"
@@ -355,6 +371,8 @@ export default function RecordDetailPage() {
             placeholder="コメントを入力…"
             maxLength={500}
             required
+            value={commentBody}
+            onChange={(e) => setCommentBody(e.target.value)}
           />
           {commentState.error && (
             <p className="mt-1 text-sm text-red-600" role="alert">
