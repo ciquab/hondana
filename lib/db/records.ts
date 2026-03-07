@@ -69,6 +69,41 @@ export async function getGenreBreakdownForChild(childId: string) {
   return counts;
 }
 
+export async function getCommentedRecordIds(recordIds: string[]) {
+  if (recordIds.length === 0) return new Set<string>();
+
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from('record_comments')
+    .select('record_id')
+    .in('record_id', recordIds);
+
+  return new Set((data ?? []).map((r) => r.record_id));
+}
+
+export async function getMonthlyReadCountsForChildren(childIds: string[]) {
+  if (childIds.length === 0) return { total: 0, byChild: {} as Record<string, number> };
+
+  const supabase = await createClient();
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+
+  const { data } = await supabase
+    .from('reading_records')
+    .select('child_id')
+    .in('child_id', childIds)
+    .eq('status', 'finished')
+    .gte('finished_on', monthStart);
+
+  const byChild: Record<string, number> = {};
+  for (const row of data ?? []) {
+    byChild[row.child_id] = (byChild[row.child_id] ?? 0) + 1;
+  }
+  const total = Object.values(byChild).reduce((sum, n) => sum + n, 0);
+  return { total, byChild };
+}
+
 export async function findBookByIsbn(isbn: string) {
   const supabase = await createClient();
 

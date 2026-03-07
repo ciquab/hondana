@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getRecordsForChild, getGenreBreakdownForChild } from '@/lib/db/records';
+import { getRecordsForChild, getGenreBreakdownForChild, getCommentedRecordIds } from '@/lib/db/records';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 
 const GENRE_LABELS: Record<string, { emoji: string; label: string }> = {
@@ -84,6 +84,8 @@ export default async function ChildRecordsPage({ params }: Props) {
     getRecordsForChild(childId),
     getGenreBreakdownForChild(childId),
   ]);
+
+  const commentedRecordIds = await getCommentedRecordIds(records.map((r) => r.id));
 
   const grouped = {
     reading: records.filter((r) => r.status === 'reading'),
@@ -206,13 +208,22 @@ export default async function ChildRecordsPage({ params }: Props) {
                               No img
                             </div>
                           )}
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="font-medium">{book?.title ?? '不明な本'}</p>
                             <p className="text-sm text-slate-500">
                               {book?.author ?? '著者不明'}
                               {record.finished_on && ` ・ 読了: ${record.finished_on}`}
                             </p>
                           </div>
+                          {commentedRecordIds.has(record.id) ? (
+                            <span className="flex-shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
+                              💬 コメント済み
+                            </span>
+                          ) : (
+                            <span className="flex-shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                              ✏️ コメントする
+                            </span>
+                          )}
                         </Link>
                       </li>
                     );

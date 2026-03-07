@@ -16,12 +16,14 @@ export default async function KidsHomePage({
   const { childId, supabase } = await requireKidContext();
   const params = await searchParams;
 
-  const [{ data: childRows }, { data: recentRows }, badges, { unreadCount }] = await Promise.all([
+  const [{ data: childRows }, { data: recentRows }, badges, { messages, unreadCount }] = await Promise.all([
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
     supabase.rpc('get_kid_recent_records', { target_child_id: childId, max_rows: 6 }),
     getChildBadges(),
     getKidMessages()
   ]);
+
+  const latestMessage = messages[0] ?? null;
 
   const child = childRows?.[0];
   if (!child) redirect('/kids/login');
@@ -83,6 +85,19 @@ export default async function KidsHomePage({
           </span>
         </Link>
       </div>
+
+      {latestMessage && (
+        <section className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-xs font-semibold text-rose-600">💌 おとなからのメッセージ</p>
+            <Link href="/kids/messages" className="text-xs text-rose-500 underline">
+              すべて見る
+            </Link>
+          </div>
+          <p className="text-sm text-rose-900 line-clamp-2">{latestMessage.body}</p>
+          <p className="mt-1 text-xs text-rose-400">{latestMessage.bookTitle}</p>
+        </section>
+      )}
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
         <h2 className="mb-2 text-lg font-semibold">バッジ</h2>

@@ -11,10 +11,10 @@ const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
 });
 
 const STAMPS = [
-  { value: 'great', emoji: '🌟', label: 'すごくよかった' },
-  { value: 'fun', emoji: '😊', label: 'たのしかった' },
-  { value: 'ok', emoji: '😐', label: 'ふつう' },
-  { value: 'hard', emoji: '😓', label: 'むずかしかった' }
+  { value: 'great', emoji: '🌟', label: 'すごくよかった', selectedClass: 'border-amber-500 bg-amber-50 text-amber-700' },
+  { value: 'fun', emoji: '😊', label: 'たのしかった', selectedClass: 'border-emerald-500 bg-emerald-50 text-emerald-700' },
+  { value: 'ok', emoji: '😐', label: 'ふつう', selectedClass: 'border-slate-500 bg-slate-100 text-slate-700' },
+  { value: 'hard', emoji: '😓', label: 'むずかしかった', selectedClass: 'border-violet-500 bg-violet-50 text-violet-700' }
 ] as const;
 
 export function KidRecordForm() {
@@ -216,7 +216,7 @@ export function KidRecordForm() {
                   onClick={() => setStamp(item.value)}
                   className={`flex flex-col items-center gap-1 rounded-lg border py-4 text-sm transition-transform ${
                     selected
-                      ? 'scale-105 border-blue-500 bg-blue-50 text-blue-700'
+                      ? `scale-105 ${item.selectedClass}`
                       : 'border-slate-200 bg-white hover:bg-slate-50'
                   }`}
                 >
