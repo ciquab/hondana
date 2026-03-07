@@ -4,11 +4,17 @@ import { kidSignOut } from '@/app/actions/kid-auth';
 import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
 import { getKidMessages } from '@/lib/kids/messages';
+import { BadgeCelebration } from '@/components/badge-celebration';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 
-export default async function KidsHomePage() {
+export default async function KidsHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ badge?: string }>;
+}) {
   const { childId, supabase } = await requireKidContext();
+  const params = await searchParams;
 
   const [{ data: childRows }, { data: recentRows }, badges, { unreadCount }] = await Promise.all([
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
@@ -20,8 +26,14 @@ export default async function KidsHomePage() {
   const child = childRows?.[0];
   if (!child) redirect('/kids/login');
 
+  const newBadge = params.badge
+    ? badges.find((b) => b.badge_id === params.badge) ?? null
+    : null;
+
   return (
     <main className="mx-auto max-w-xl p-4">
+      {newBadge && <BadgeCelebration badge={newBadge} />}
+
       <header className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">{child.display_name} のホーム</h1>
         <form action={kidSignOut}>
@@ -29,18 +41,46 @@ export default async function KidsHomePage() {
         </form>
       </header>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Link href="/kids/records/new" className="inline-block rounded bg-emerald-600 px-4 py-2 text-white">
-          きょうの記録をつける
+      {/* ナビゲーション: 2×2 カードグリッド */}
+      <div className="mb-6 grid grid-cols-2 gap-3">
+        <Link
+          href="/kids/records/new"
+          className="relative flex flex-col items-center gap-2 rounded-2xl bg-emerald-50 p-4 shadow-sm transition hover:bg-emerald-100 border border-emerald-200"
+        >
+          <span className="text-4xl">✏️</span>
+          <span className="text-sm font-medium text-emerald-800 text-center">きょうの記録をつける</span>
         </Link>
-        <Link href="/kids/records" className="inline-block rounded bg-indigo-600 px-4 py-2 text-white">
-          本だなを見る
+        <Link
+          href="/kids/records"
+          className="relative flex flex-col items-center gap-2 rounded-2xl bg-indigo-50 p-4 shadow-sm transition hover:bg-indigo-100 border border-indigo-200"
+        >
+          <span className="text-4xl">📚</span>
+          <span className="text-sm font-medium text-indigo-800 text-center">本だなを見る</span>
         </Link>
-        <Link href="/kids/calendar" className="inline-block rounded bg-violet-600 px-4 py-2 text-white">
-          カレンダーを見る
+        <Link
+          href="/kids/calendar"
+          className="relative flex flex-col items-center gap-2 rounded-2xl bg-violet-50 p-4 shadow-sm transition hover:bg-violet-100 border border-violet-200"
+        >
+          <span className="text-4xl">📅</span>
+          <span className="text-sm font-medium text-violet-800 text-center">カレンダーを見る</span>
         </Link>
-        <Link href="/kids/messages" className="inline-block rounded bg-rose-600 px-4 py-2 text-white">
-          メッセージ {unreadCount > 0 ? `(${unreadCount})` : ''}
+        <Link
+          href="/kids/messages"
+          className={`relative flex flex-col items-center gap-2 rounded-2xl p-4 shadow-sm transition border ${
+            unreadCount > 0
+              ? 'bg-rose-50 border-rose-200 hover:bg-rose-100'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          {unreadCount > 0 && (
+            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs text-white">
+              {unreadCount}
+            </span>
+          )}
+          <span className="text-4xl">💌</span>
+          <span className={`text-sm font-medium text-center ${unreadCount > 0 ? 'text-rose-800' : 'text-slate-700'}`}>
+            メッセージ
+          </span>
         </Link>
       </div>
 
