@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ほんだな - 家族の本棚</title>
+    <!-- 仕様書に基づきTailwind CSSを使用 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap');
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #FFFBF0; /* 優しいクリーム色 */
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* 本棚の木目調スタイル */
+        .wood-shelf {
+            background-color: #DEB887;
+            border-bottom: 8px solid #8B4513;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* 縦書き用ユーティリティ */
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+        /* モーダルアニメーション */
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="pb-24">
+
+    <!-- ヘッダーエリア -->
+    <header class="bg-amber-100 p-4 shadow-sm sticky top-0 z-10 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl shadow">
+                👦
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-amber-800">たろうの ほんだな</h1>
+                <p class="text-xs text-amber-600">🏅 10さつ たっせい！</p>
+            </div>
+        </div>
+        <button class="bg-white p-2 rounded-full shadow text-amber-500 hover:bg-amber-50 w-10 h-10 flex items-center justify-center">
+            <i class="fa-solid fa-gear"></i>
+        </button>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto">
+
+        <!-- おやからのメッセージ -->
+        <section class="mb-6 bg-white border-2 border-orange-200 rounded-2xl p-4 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+            <p class="text-xs text-orange-500 font-bold mb-1"><i class="fa-solid fa-envelope mr-1"></i>ママからの メッセージ📬</p>
+            <p class="text-sm text-gray-700">「宇宙のひみつ」よみおわったね！こんどプラネタリウムにいこう🌟</p>
+        </section>
+
+        <!-- 最近よんだ本（本棚ビジュアル） -->
+        <section class="mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-amber-500"></i> さいきん よんだほん
+            </h2>
+
+            <div class="wood-shelf rounded-t-lg p-4 pb-0 flex items-end gap-3 overflow-x-auto" style="scrollbar-width: none;">
+                <!-- 本のアイテム 1 -->
+                <div class="flex flex-col items-center cursor-pointer transform transition hover:-translate-y-2 flex-shrink-0">
+                    <div class="w-20 h-28 bg-blue-400 rounded-r-md rounded-l-sm shadow-md border-l-4 border-blue-600 flex items-center justify-center p-1 relative">
+                        <span class="text-white font-bold text-xs writing-vertical text-center leading-tight">うちゅうの<br>ひみつ</span>
+                        <div class="absolute -top-2 -right-2 bg-yellow-400 text-xs rounded-full w-6 h-6 flex items-center justify-center shadow">🌟</div>
+                    </div>
+                </div>
+                <!-- 本のアイテム 2 -->
+                <div class="flex flex-col items-center cursor-pointer transform transition hover:-translate-y-2 flex-shrink-0">
+                    <div class="w-20 h-28 bg-green-400 rounded-r-md rounded-l-sm shadow-md border-l-4 border-green-600 flex items-center justify-center p-1 relative">
+                        <span class="text-white font-bold text-xs writing-vertical text-center leading-tight">ずかん<br>きょうりゅう</span>
+                        <div class="absolute -top-2 -right-2 bg-yellow-400 text-xs rounded-full w-6 h-6 flex items-center justify-center shadow">😊</div>
+                    </div>
+                </div>
+                <!-- 本のアイテム 3 -->
+                <div class="flex flex-col items-center cursor-pointer transform transition hover:-translate-y-2 flex-shrink-0">
+                    <div class="w-20 h-28 bg-red-400 rounded-r-md rounded-l-sm shadow-md border-l-4 border-red-600 flex items-center justify-center p-1 relative">
+                        <span class="text-white font-bold text-xs writing-vertical text-center leading-tight">ぼうけん<br>ストーリー</span>
+                        <div class="absolute -top-2 -right-2 bg-yellow-400 text-xs rounded-full w-6 h-6 flex items-center justify-center shadow">🌟</div>
+                    </div>
+                </div>
+                 <!-- 本のアイテム 4 -->
+                 <div class="flex flex-col items-center cursor-pointer transform transition hover:-translate-y-2 flex-shrink-0">
+                    <div class="w-20 h-24 bg-purple-400 rounded-r-md rounded-l-sm shadow-md border-l-4 border-purple-600 flex items-center justify-center p-1 relative">
+                        <span class="text-white font-bold text-xs writing-vertical text-center leading-tight">まほうの<br>つえ</span>
+                        <div class="absolute -top-2 -right-2 bg-yellow-400 text-xs rounded-full w-6 h-6 flex items-center justify-center shadow">😊</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- よみたいほんリスト -->
+        <section>
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-bookmark text-amber-500"></i> よみたい ほん
+            </h2>
+            <div class="bg-white rounded-2xl shadow-sm border border-amber-100 p-2">
+                <div class="flex items-center gap-3 p-2 border-b border-gray-100">
+                    <div class="w-12 h-16 bg-purple-300 rounded shadow-sm border-l-2 border-purple-500"></div>
+                    <div>
+                        <p class="font-bold text-gray-800 text-sm">まほうの 学校</p>
+                        <p class="text-xs text-orange-500 font-bold mt-1"><i class="fa-solid fa-envelope"></i> ママからのおすすめ</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-2">
+                    <div class="w-12 h-16 bg-yellow-300 rounded shadow-sm border-l-2 border-yellow-500"></div>
+                    <div>
+                        <p class="font-bold text-gray-800 text-sm">なぞなぞ 100れんぱつ</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フローティングアクションボタン（バーコードスキャン用） -->
+    <div class="fixed bottom-6 left-0 right-0 flex justify-center z-20 pointer-events-none">
+        <button onclick="openScanner()" class="pointer-events-auto bg-orange-500 hover:bg-orange-600 text-white rounded-full py-4 px-8 font-bold text-lg shadow-lg flex items-center gap-2 transform transition active:scale-95 border-4 border-white">
+            <i class="fa-solid fa-barcode text-2xl"></i> ほんを とうろくする
+        </button>
+    </div>
+
+    <!-- バーコードスキャン・登録モーダル (初期状態は非表示) -->
+    <div id="scanModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 hidden flex-col items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden flex flex-col">
+            <!-- カメラプレビュー風エリア -->
+            <div class="bg-gray-800 h-64 relative flex items-center justify-center">
+                <div class="w-48 h-32 border-4 border-red-500 rounded-lg flex items-center justify-center">
+                    <div class="w-full h-0.5 bg-red-500 opacity-75 animate-pulse"></div>
+                </div>
+                <p class="absolute bottom-4 text-white text-sm font-bold bg-black bg-opacity-50 px-3 py-1 rounded-full">バーコードを うつしてね</p>
+            </div>
+
+            <div class="p-6 bg-orange-50">
+                <p class="text-center font-bold text-gray-800 mb-4">※テスト用アクション</p>
+                <button onclick="showRecordForm()" class="w-full bg-orange-500 text-white rounded-xl py-3 font-bold shadow mb-3 hover:bg-orange-600 transition">ピピッ！（スキャン成功）</button>
+                <button onclick="closeScanner()" class="w-full bg-gray-300 text-gray-700 rounded-xl py-3 font-bold shadow hover:bg-gray-400 transition">やめる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 読書記録入力モーダル (初期状態は非表示) -->
+    <div id="recordModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex-col justify-end">
+        <div class="bg-white rounded-t-3xl w-full max-w-md mx-auto p-6 animate-slide-up h-5/6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 py-2">
+                <h3 class="font-bold text-xl text-gray-800">きろくを つける</h3>
+                <button onclick="closeRecordForm()" class="text-gray-400 hover:text-gray-600 text-2xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="flex items-center gap-4 mb-6 bg-amber-50 p-3 rounded-xl border border-amber-100">
+                <div class="w-16 h-24 bg-blue-400 rounded shadow border-l-2 border-blue-600 flex items-center justify-center">
+                    <span class="text-white font-bold text-[10px] writing-vertical text-center leading-tight">うちゅうの<br>ひみつ</span>
+                </div>
+                <div>
+                    <p class="font-bold text-lg text-gray-800">うちゅうの ひみつ</p>
+                    <p class="text-sm text-gray-600">ほしぞら たろう</p>
+                </div>
+            </div>
+
+            <!-- スタンプ評価 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-700 mb-3">どうだった？（スタンプ）</p>
+                <div class="grid grid-cols-2 gap-3" id="stamp-container">
+                    <button onclick="selectStamp(this)" class="stamp-btn bg-white border-2 border-pink-200 hover:bg-pink-50 rounded-2xl p-3 text-center transition">
+                        <div class="text-3xl mb-1">🌟</div>
+                        <span class="text-sm font-bold text-pink-700">めちゃよかった</span>
+                    </button>
+                    <button onclick="selectStamp(this)" class="stamp-btn bg-white border-2 border-green-200 hover:bg-green-50 rounded-2xl p-3 text-center transition">
+                        <div class="text-3xl mb-1">😊</div>
+                        <span class="text-sm font-bold text-green-700">よかった</span>
+                    </button>
+                    <button onclick="selectStamp(this)" class="stamp-btn bg-white border-2 border-blue-200 hover:bg-blue-50 rounded-2xl p-3 text-center transition">
+                        <div class="text-3xl mb-1">😐</div>
+                        <span class="text-sm font-bold text-blue-700">ふつう</span>
+                    </button>
+                    <button onclick="selectStamp(this)" class="stamp-btn bg-white border-2 border-gray-200 hover:bg-gray-50 rounded-2xl p-3 text-center transition">
+                        <div class="text-3xl mb-1">😓</div>
+                        <span class="text-sm font-bold text-gray-700">むずかしかった</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 気持ちタグ -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-700 mb-3">きもちタグ（えらんでね）</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="toggleTag(this)" class="tag-btn bg-white text-gray-700 px-4 py-2 rounded-full text-sm font-bold border-2 border-gray-200 transition">ドキドキした</button>
+                    <button onclick="toggleTag(this)" class="tag-btn bg-white text-gray-700 px-4 py-2 rounded-full text-sm font-bold border-2 border-gray-200 transition">笑った</button>
+                    <button onclick="toggleTag(this)" class="tag-btn bg-white text-gray-700 px-4 py-2 rounded-full text-sm font-bold border-2 border-gray-200 transition">ためになった</button>
+                    <button onclick="toggleTag(this)" class="tag-btn bg-white text-gray-700 px-4 py-2 rounded-full text-sm font-bold border-2 border-gray-200 transition">また読みたい</button>
+                    <button onclick="toggleTag(this)" class="tag-btn bg-white text-gray-700 px-4 py-2 rounded-full text-sm font-bold border-2 border-gray-200 transition">かなしかった</button>
+                </div>
+            </div>
+
+            <!-- ひとことメモ -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-700 mb-3">ひとことメモ（かかなくてもOK）</p>
+                <textarea class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl p-3 text-gray-700 focus:outline-none focus:border-orange-400 resize-none h-24" placeholder="どんなところが おもしろかった？"></textarea>
+            </div>
+
+            <button onclick="saveRecord()" class="w-full bg-orange-500 text-white rounded-2xl py-4 font-bold text-lg shadow-md mb-8 hover:bg-orange-600 transition transform active:scale-95">
+                ほんだなに しまう！
+            </button>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 -translate-y-full opacity-0 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 z-50 font-bold whitespace-nowrap flex items-center gap-2 pointer-events-none">
+        <i class="fa-solid fa-circle-check"></i> きろくしました！ポイントゲット🌟
+    </div>
+
+    <!-- モーダル制御・インタラクション用のJavaScript -->
+    <script>
+        // モーダルの開閉
+        function openScanner() {
+            const modal = document.getElementById('scanModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function closeScanner() {
+            const modal = document.getElementById('scanModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        function showRecordForm() {
+            closeScanner();
+            const modal = document.getElementById('recordModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function closeRecordForm() {
+            const modal = document.getElementById('recordModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // スタンプ選択のUI切り替え
+        function selectStamp(btn) {
+            // 全てのスタンプの選択状態を解除
+            const stamps = document.querySelectorAll('.stamp-btn');
+            stamps.forEach(s => {
+                s.classList.remove('bg-pink-100', 'bg-green-100', 'bg-blue-100', 'bg-gray-100', 'border-pink-400', 'border-green-400', 'border-blue-400', 'border-gray-400');
+                s.classList.add('bg-white');
+            });
+
+            // 選択されたスタンプをハイライト（色に応じてクラスを変える簡単な処理）
+            btn.classList.remove('bg-white');
+            if(btn.innerText.includes('めちゃよかった')) btn.classList.add('bg-pink-100', 'border-pink-400');
+            else if(btn.innerText.includes('よかった')) btn.classList.add('bg-green-100', 'border-green-400');
+            else if(btn.innerText.includes('ふつう')) btn.classList.add('bg-blue-100', 'border-blue-400');
+            else btn.classList.add('bg-gray-100', 'border-gray-400');
+        }
+
+        // タグのトグル選択
+        function toggleTag(btn) {
+            btn.classList.toggle('bg-white');
+            btn.classList.toggle('bg-orange-100');
+            btn.classList.toggle('border-orange-400');
+            btn.classList.toggle('text-orange-700');
+        }
+
+        // 保存とトースト通知
+        function saveRecord() {
+            closeRecordForm();
+            showToast();
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('-translate-y-full', 'opacity-0');
+            toast.classList.add('translate-y-4', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-100');
+                toast.classList.add('-translate-y-full', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

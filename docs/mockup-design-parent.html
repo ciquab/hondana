@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ほんだな - 保護者用ダッシュボード</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #F9FAFB; /* 落ち着いたオフホワイト */
+            -webkit-tap-highlight-color: transparent;
+        }
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+        /* モーダルアニメーション */
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        /* スクロールバー非表示 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- ヘッダーエリア -->
+    <header class="bg-white p-4 shadow-sm sticky top-0 z-10 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <h1 class="font-bold text-xl text-gray-800 tracking-wide"><i class="fa-solid fa-book-open text-orange-500 mr-1"></i>ほんだな <span class="text-sm font-normal text-gray-500">for Family</span></h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="text-gray-400 hover:text-orange-500 relative">
+                <i class="fa-regular fa-bell text-xl"></i>
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center border-2 border-white">2</span>
+            </button>
+            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-sm shadow-sm border border-orange-200">
+                👩
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto">
+
+        <!-- 子ども切り替えタブ -->
+        <div class="bg-white border-b border-gray-100 px-4 pt-4 flex gap-4 overflow-x-auto no-scrollbar">
+            <!-- アクティブなタブ -->
+            <button class="flex flex-col items-center gap-1 border-b-4 border-orange-500 pb-2 px-2">
+                <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-2xl shadow-inner border-2 border-orange-300">👦</div>
+                <span class="text-sm font-bold text-gray-800">たろう</span>
+            </button>
+            <!-- 非アクティブなタブ -->
+            <button class="flex flex-col items-center gap-1 border-b-4 border-transparent pb-2 px-2 opacity-60 hover:opacity-100 transition">
+                <div class="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center text-2xl shadow-inner">👧</div>
+                <span class="text-sm font-bold text-gray-600">はなこ</span>
+            </button>
+            <!-- 子ども追加ボタン -->
+            <button class="flex flex-col items-center gap-1 border-b-4 border-transparent pb-2 px-2 opacity-50 hover:opacity-100 transition">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl border-2 border-dashed border-gray-300 text-gray-400">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <span class="text-sm font-bold text-gray-500">ついか</span>
+            </button>
+        </div>
+
+        <div class="p-4">
+            <!-- 読書サマリー -->
+            <section class="mb-6">
+                <div class="bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl p-4 shadow-md text-white">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="text-orange-100 text-sm font-bold">今月の読書数</p>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-bold">8</span><span class="text-sm">冊</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-orange-100 text-xs">累計: 42冊</p>
+                            <div class="bg-white/20 px-2 py-1 rounded-full text-xs mt-1 inline-block border border-white/30">
+                                🏅 連続3ヶ月達成！
+                            </div>
+                        </div>
+                    </div>
+                    <!-- プログレスバー -->
+                    <div class="mt-2">
+                        <div class="flex justify-between text-xs text-orange-100 mb-1">
+                            <span>目標(10冊)まであと2冊</span>
+                            <span>80%</span>
+                        </div>
+                        <div class="w-full bg-orange-200/40 rounded-full h-2">
+                            <div class="bg-white rounded-full h-2" style="width: 80%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- アクションボタン -->
+            <section class="mb-6 flex gap-3">
+                <button onclick="alert('おすすめ本検索画面へ移動します')" class="flex-1 bg-white border-2 border-amber-200 text-amber-700 py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 font-bold hover:bg-amber-50 transition">
+                    <i class="fa-solid fa-gift"></i> おすすめをおくる
+                </button>
+                <button onclick="alert('読書レポート（PDF/グラフ）画面へ移動します')" class="flex-1 bg-white border-2 border-blue-200 text-blue-700 py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 font-bold hover:bg-blue-50 transition">
+                    <i class="fa-solid fa-chart-pie"></i> レポートを見る
+                </button>
+            </section>
+
+            <!-- タイムライン（読書記録） -->
+            <section>
+                <h2 class="text-sm font-bold text-gray-500 mb-3 ml-1">最近のきろく</h2>
+
+                <div class="flex flex-col gap-4">
+                    <!-- 記録アイテム 1 (コメント済) -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative">
+                        <div class="absolute top-4 right-4 text-xs text-gray-400">今日 14:30</div>
+
+                        <div class="flex gap-3 mb-3">
+                            <div class="w-16 h-20 bg-blue-400 rounded-md shadow flex-shrink-0 flex items-center justify-center border-l-2 border-blue-600">
+                                <span class="text-white font-bold text-[10px] writing-vertical text-center leading-tight">うちゅうの<br>ひみつ</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-800 leading-tight mb-1">うちゅうの ひみつ</h3>
+                                <p class="text-xs text-gray-500 mb-2">ほしぞら たろう</p>
+
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="bg-pink-100 text-pink-700 text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">🌟 めちゃよかった</span>
+                                </div>
+
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    <span class="text-[10px] text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">ドキドキした</span>
+                                    <span class="text-[10px] text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">ためになった</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 子どものひとことメモ -->
+                        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 mb-3 border border-gray-100 relative">
+                            <div class="absolute -top-2 left-4 text-gray-300"><i class="fa-solid fa-caret-up text-xl"></i></div>
+                            「ブラックホールがどうやってできるのかわかった。すいこまれたらどうなるのかな。」
+                        </div>
+
+                        <!-- リアクションエリア（コメント済） -->
+                        <div class="border-t border-gray-100 pt-3">
+                            <div class="bg-orange-50 border border-orange-100 rounded-lg p-3 relative">
+                                <p class="text-xs font-bold text-orange-600 mb-1 flex justify-between">
+                                    <span><i class="fa-solid fa-reply mr-1"></i>ママからのメッセージ</span>
+                                    <button class="text-gray-400 hover:text-orange-500"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                                </p>
+                                <p class="text-sm text-gray-700">「宇宙のひみつ」よみおわったね！こんどプラネタリウムにいこう🌟</p>
+                            </div>
+                            <div class="flex justify-end mt-2">
+                                <span class="text-xs text-orange-500 font-bold flex items-center gap-1 bg-orange-100 px-2 py-1 rounded-full"><i class="fa-solid fa-heart"></i> いいね済み</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 記録アイテム 2 (未コメント) -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative">
+                        <div class="absolute top-4 right-4 text-xs text-gray-400">昨日</div>
+
+                        <div class="flex gap-3 mb-3">
+                            <div class="w-16 h-20 bg-green-400 rounded-md shadow flex-shrink-0 flex items-center justify-center border-l-2 border-green-600">
+                                <span class="text-white font-bold text-[10px] writing-vertical text-center leading-tight">ずかん<br>きょうりゅう</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-800 leading-tight mb-1">ずかん きょうりゅう</h3>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">😊 よかった</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 子どものひとことメモ -->
+                        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 mb-3 border border-gray-100 relative">
+                            <div class="absolute -top-2 left-4 text-gray-300"><i class="fa-solid fa-caret-up text-xl"></i></div>
+                            「ティラノサウルスがかっこよかった。」
+                        </div>
+
+                        <!-- リアクションエリア（未コメント・アクションを促す） -->
+                        <div class="border-t border-gray-100 pt-3 flex gap-2">
+                            <button onclick="toggleLike(this)" class="flex-1 py-2 border border-gray-200 rounded-xl text-gray-500 font-bold text-sm flex justify-center items-center gap-2 hover:bg-gray-50 transition">
+                                <i class="fa-regular fa-heart text-lg"></i> いいね
+                            </button>
+                            <button onclick="openCommentModal('ずかん きょうりゅう')" class="flex-1 py-2 bg-orange-100 text-orange-600 border border-orange-200 rounded-xl font-bold text-sm flex justify-center items-center gap-2 hover:bg-orange-200 transition">
+                                <i class="fa-regular fa-comment-dots text-lg"></i> コメントする
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- もっと見る -->
+                    <button class="w-full py-3 text-sm text-gray-500 font-bold hover:text-gray-800 transition">
+                        かこの記録をもっと見る <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ボトムナビゲーション -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around pb-safe pt-2 px-2 z-10 max-w-md mx-auto">
+        <a href="#" class="flex flex-col items-center p-2 text-orange-500 w-16">
+            <i class="fa-solid fa-house text-xl mb-1"></i>
+            <span class="text-[10px] font-bold">ホーム</span>
+        </a>
+        <a href="#" class="flex flex-col items-center p-2 text-gray-400 hover:text-orange-400 transition w-16">
+            <i class="fa-solid fa-magnifying-glass text-xl mb-1"></i>
+            <span class="text-[10px] font-bold">さがす</span>
+        </a>
+        <a href="#" class="flex flex-col items-center p-2 text-gray-400 hover:text-orange-400 transition w-16">
+            <i class="fa-solid fa-chart-line text-xl mb-1"></i>
+            <span class="text-[10px] font-bold">レポート</span>
+        </a>
+        <a href="#" class="flex flex-col items-center p-2 text-gray-400 hover:text-orange-400 transition w-16">
+            <i class="fa-solid fa-users-gear text-xl mb-1"></i>
+            <span class="text-[10px] font-bold">かぞく</span>
+        </a>
+    </nav>
+
+    <!-- コメント入力モーダル (初期状態は非表示) -->
+    <div id="commentModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex-col justify-end">
+        <!-- モーダルの背景クリックで閉じる -->
+        <div class="absolute inset-0" onclick="closeCommentModal()"></div>
+
+        <div class="bg-white rounded-t-3xl w-full max-w-md mx-auto p-6 animate-slide-up relative z-10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-gray-800">メッセージをおくる</h3>
+                <button onclick="closeCommentModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <p id="commentTargetTitle" class="text-xs text-gray-500 mb-2 font-bold bg-gray-100 inline-block px-2 py-1 rounded">対象: ずかん きょうりゅう</p>
+
+            <!-- テンプレート入力（親の負担軽減） -->
+            <div class="flex gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
+                <button onclick="insertTemplate('よくよめたね！')" class="flex-shrink-0 bg-orange-50 text-orange-600 text-xs px-3 py-1.5 rounded-full border border-orange-200 whitespace-nowrap">よくよめたね！👏</button>
+                <button onclick="insertTemplate('おもしろそうだね！')" class="flex-shrink-0 bg-orange-50 text-orange-600 text-xs px-3 py-1.5 rounded-full border border-orange-200 whitespace-nowrap">おもしろそうだね！✨</button>
+                <button onclick="insertTemplate('こんど感想きかせてね')" class="flex-shrink-0 bg-orange-50 text-orange-600 text-xs px-3 py-1.5 rounded-full border border-orange-200 whitespace-nowrap">こんど感想きかせてね👂</button>
+            </div>
+
+            <textarea id="commentInput" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none h-28 mb-4 text-sm" placeholder="たろうへのメッセージを入力してください..."></textarea>
+
+            <div class="flex gap-3">
+                <button onclick="closeCommentModal()" class="flex-1 bg-gray-100 text-gray-600 rounded-xl py-3 font-bold text-sm">キャンセル</button>
+                <button onclick="submitComment()" class="flex-1 bg-orange-500 text-white rounded-xl py-3 font-bold text-sm shadow-md hover:bg-orange-600 transition flex items-center justify-center gap-2">
+                    <i class="fa-regular fa-paper-plane"></i> 送信する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 -translate-y-full opacity-0 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 z-50 font-bold text-sm whitespace-nowrap flex items-center gap-2 pointer-events-none">
+        <i class="fa-solid fa-check text-green-400"></i> メッセージを送信しました
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // いいねボタンのトグル
+        function toggleLike(btn) {
+            const icon = btn.querySelector('i');
+            if (icon.classList.contains('fa-regular')) {
+                // いいねする
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid', 'text-pink-500');
+                btn.classList.add('border-pink-200', 'bg-pink-50', 'text-pink-600');
+                btn.innerHTML = '<i class="fa-solid fa-heart text-lg text-pink-500"></i> いいね済み';
+            } else {
+                // いいね解除
+                icon.classList.remove('fa-solid', 'text-pink-500');
+                icon.classList.add('fa-regular');
+                btn.classList.remove('border-pink-200', 'bg-pink-50', 'text-pink-600');
+                btn.innerHTML = '<i class="fa-regular fa-heart text-lg"></i> いいね';
+            }
+        }
+
+        // コメントモーダルの制御
+        function openCommentModal(bookTitle) {
+            document.getElementById('commentTargetTitle').innerText = '対象: ' + bookTitle;
+            document.getElementById('commentInput').value = '';
+            const modal = document.getElementById('commentModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCommentModal() {
+            const modal = document.getElementById('commentModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function insertTemplate(text) {
+            const textarea = document.getElementById('commentInput');
+            textarea.value = text;
+        }
+
+        function submitComment() {
+            const text = document.getElementById('commentInput').value;
+            if (!text.trim()) {
+                alert('メッセージを入力してください。');
+                return;
+            }
+            closeCommentModal();
+            showToast('メッセージを送信しました');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fa-solid fa-check text-green-400"></i> ${message}`;
+            toast.classList.remove('-translate-y-full', 'opacity-0');
+            toast.classList.add('translate-y-4', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-100');
+                toast.classList.add('-translate-y-full', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
