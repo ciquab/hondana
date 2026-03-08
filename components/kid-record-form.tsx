@@ -2,8 +2,15 @@
 
 import dynamic from 'next/dynamic';
 import { useActionState, useCallback, useState } from 'react';
-import { createKidRecord, type KidRecordActionResult } from '@/app/actions/kid-record';
-import { CHILD_FEELINGS, CHILD_GENRES, genreDisplayName } from '@/lib/kids/feelings';
+import {
+  createKidRecord,
+  type KidRecordActionResult
+} from '@/app/actions/kid-record';
+import {
+  CHILD_FEELINGS,
+  CHILD_GENRES,
+  genreDisplayName
+} from '@/lib/kids/feelings';
 import type { BookSearchResult } from '@/lib/books/types';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
@@ -11,17 +18,37 @@ const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
 });
 
 const STAMPS = [
-  { value: 'great', emoji: '🌟', label: 'すごくよかった', selectedClass: 'border-amber-500 bg-amber-50 text-amber-700' },
-  { value: 'fun', emoji: '😊', label: 'たのしかった', selectedClass: 'border-emerald-500 bg-emerald-50 text-emerald-700' },
-  { value: 'ok', emoji: '😐', label: 'ふつう', selectedClass: 'border-slate-500 bg-slate-100 text-slate-700' },
-  { value: 'hard', emoji: '😓', label: 'むずかしかった', selectedClass: 'border-violet-500 bg-violet-50 text-violet-700' }
+  {
+    value: 'great',
+    emoji: '🌟',
+    label: 'すごくよかった',
+    selectedClass: 'border-amber-500 bg-amber-50 text-amber-700'
+  },
+  {
+    value: 'fun',
+    emoji: '😊',
+    label: 'たのしかった',
+    selectedClass: 'border-emerald-500 bg-emerald-50 text-emerald-700'
+  },
+  {
+    value: 'ok',
+    emoji: '😐',
+    label: 'ふつう',
+    selectedClass: 'border-slate-500 bg-slate-100 text-slate-700'
+  },
+  {
+    value: 'hard',
+    emoji: '😓',
+    label: 'むずかしかった',
+    selectedClass: 'border-violet-500 bg-violet-50 text-violet-700'
+  }
 ] as const;
 
 export function KidRecordForm() {
-  const [state, formAction, pending] = useActionState<KidRecordActionResult, FormData>(
-    createKidRecord,
-    {}
-  );
+  const [state, formAction, pending] = useActionState<
+    KidRecordActionResult,
+    FormData
+  >(createKidRecord, {});
   const [showScanner, setShowScanner] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
@@ -36,7 +63,9 @@ export function KidRecordForm() {
   const [genre, setGenre] = useState<(typeof CHILD_GENRES)[number] | ''>('');
   const [feelingTags, setFeelingTags] = useState<string[]>([]);
   const [finished, setFinished] = useState(true);
-  const [finishedOn, setFinishedOn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [finishedOn, setFinishedOn] = useState(() =>
+    new Date().toISOString().slice(0, 10)
+  );
 
   const fillFromBook = useCallback((book: BookSearchResult) => {
     setTitle(book.title);
@@ -72,7 +101,9 @@ export function KidRecordForm() {
     setSearching(true);
     setHasSearched(true);
     try {
-      const res = await fetch(`/api/books/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      const res = await fetch(
+        `/api/books/search?q=${encodeURIComponent(searchQuery.trim())}`
+      );
       const data = await res.json();
       setSearchResults(data.results ?? []);
     } catch {
@@ -83,7 +114,9 @@ export function KidRecordForm() {
   }, [searchQuery]);
 
   const toggleFeeling = (tag: string) => {
-    setFeelingTags((prev) => (prev.includes(tag) ? prev.filter((v) => v !== tag) : [...prev, tag]));
+    setFeelingTags((prev) =>
+      prev.includes(tag) ? prev.filter((v) => v !== tag) : [...prev, tag]
+    );
   };
 
   return (
@@ -117,7 +150,7 @@ export function KidRecordForm() {
             disabled={searching}
             className="rounded bg-slate-600 px-3 py-2 text-sm text-white disabled:opacity-50"
           >
-            {searching ? 'けんさく中…' : 'けんさく'}
+            {searching ? 'けんさくちゅう…' : 'けんさく'}
           </button>
         </div>
 
@@ -132,7 +165,11 @@ export function KidRecordForm() {
                 >
                   {book.coverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={book.coverUrl} alt="" className="h-14 w-10 flex-shrink-0 rounded object-cover" />
+                    <img
+                      src={book.coverUrl}
+                      alt=""
+                      className="h-14 w-10 flex-shrink-0 rounded object-cover"
+                    />
                   ) : (
                     <div className="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-400">
                       No img
@@ -140,22 +177,34 @@ export function KidRecordForm() {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{book.title}</p>
-                    <p className="truncate text-xs text-slate-500">{book.author ?? 'ちょしゃふめい'}</p>
+                    <p className="truncate text-xs text-slate-500">
+                      {book.author ?? 'ちょしゃふめい'}
+                    </p>
                   </div>
                 </button>
               </li>
             ))}
           </ul>
         ) : (
-          hasSearched && !searching && (
-            <p className="text-sm text-slate-500">みつかりませんでした。したのフォームでにゅうりょくできます。</p>
+          hasSearched &&
+          !searching && (
+            <p className="text-sm text-slate-500">
+              みつかりませんでした。したのフォームでにゅうりょくできます。
+            </p>
           )
         )}
       </div>
 
-      <form action={formAction} className="space-y-4 rounded-xl bg-white p-4 shadow">
+      <form
+        action={formAction}
+        className="space-y-4 rounded-xl bg-white p-4 shadow"
+      >
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
-        <input type="hidden" name="status" value={finished ? 'finished' : 'reading'} />
+        <input
+          type="hidden"
+          name="status"
+          value={finished ? 'finished' : 'reading'}
+        />
         <input type="hidden" name="stamp" value={stamp} />
         <input type="hidden" name="genre" value={genre} />
         {feelingTags.map((tag) => (
@@ -165,12 +214,18 @@ export function KidRecordForm() {
         {coverUrl && (
           <div className="flex justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={coverUrl} alt="ひょうし" className="h-32 rounded shadow" />
+            <img
+              src={coverUrl}
+              alt="ひょうし"
+              className="h-32 rounded shadow"
+            />
           </div>
         )}
 
         <div>
-          <label htmlFor="title" className="mb-1 block text-sm font-medium">本のタイトル</label>
+          <label htmlFor="title" className="mb-1 block text-sm font-medium">
+            ほんのタイトル
+          </label>
           <input
             id="title"
             name="title"
@@ -182,7 +237,9 @@ export function KidRecordForm() {
         </div>
 
         <div>
-          <label htmlFor="author" className="mb-1 block text-sm font-medium">著者（任意）</label>
+          <label htmlFor="author" className="mb-1 block text-sm font-medium">
+            かいたひと（にゅうりょくはじゆう）
+          </label>
           <input
             id="author"
             name="author"
@@ -193,7 +250,9 @@ export function KidRecordForm() {
         </div>
 
         <div>
-          <label htmlFor="isbn" className="mb-1 block text-sm font-medium">ISBN（13けた・任意）</label>
+          <label htmlFor="isbn" className="mb-1 block text-sm font-medium">
+            ISBN（13けた・にゅうりょくはじゆう）
+          </label>
           <input
             id="isbn"
             name="isbn"
@@ -230,7 +289,10 @@ export function KidRecordForm() {
 
         <fieldset>
           <legend className="mb-2 text-sm font-medium">
-            ジャンルをえらぶ <span className="text-xs font-normal text-slate-400">（かかなくてもOK）</span>
+            ジャンルをえらぶ{' '}
+            <span className="text-xs font-normal text-slate-400">
+              （かかなくてもOK）
+            </span>
           </legend>
           <div className="grid grid-cols-2 gap-2">
             {CHILD_GENRES.map((g) => {
@@ -250,7 +312,9 @@ export function KidRecordForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">きもちタグ（ふくすうえらべる）</legend>
+          <legend className="mb-2 text-sm font-medium">
+            きもちタグ（ふくすうえらべる）
+          </legend>
           <div className="flex flex-wrap gap-2">
             {CHILD_FEELINGS.map((tag) => {
               const selected = feelingTags.includes(tag);
@@ -269,28 +333,33 @@ export function KidRecordForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">さいごまで読んだ？</legend>
+          <legend className="mb-2 text-sm font-medium">
+            さいごまでよんだ？
+          </legend>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setFinished(true)}
               className={`rounded-lg border px-3 py-2 text-sm ${finished ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
             >
-              📖 さいごまで読んだ！
+              📖 さいごまでよんだ！
             </button>
             <button
               type="button"
               onClick={() => setFinished(false)}
               className={`rounded-lg border px-3 py-2 text-sm ${!finished ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
             >
-              🔖 とちゅうまで読んだ
+              🔖 とちゅうまでよんだ
             </button>
           </div>
         </fieldset>
 
         <div>
-          <label htmlFor="finishedOn" className="mb-1 block text-sm font-medium">
-            読んだ日
+          <label
+            htmlFor="finishedOn"
+            className="mb-1 block text-sm font-medium"
+          >
+            よんだひ
           </label>
           <input
             id="finishedOn"
@@ -304,25 +373,37 @@ export function KidRecordForm() {
 
         <div>
           <label htmlFor="memo" className="mb-1 block text-sm font-medium">
-            ひとことかんそう <span className="text-xs font-normal text-slate-400">（かかなくてもOK）</span>
+            ひとことかんそう{' '}
+            <span className="text-xs font-normal text-slate-400">
+              （かかなくてもOK）
+            </span>
           </label>
           <textarea
             id="memo"
             name="memo"
             className="w-full rounded border p-2 text-sm"
             rows={3}
-            placeholder="おもしろかった！　つぎは〇〇を読みたい…など"
+            placeholder="おもしろかった！　つぎは〇〇をよみたい…など"
           />
         </div>
 
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-        <button type="submit" disabled={pending || !stamp} className="rounded-xl bg-orange-500 px-4 py-2 font-bold text-white disabled:opacity-50">
-          {pending ? '保存中…' : 'ほぞんする'}
+        <button
+          type="submit"
+          disabled={pending || !stamp}
+          className="rounded-xl bg-orange-500 px-4 py-2 font-bold text-white disabled:opacity-50"
+        >
+          {pending ? 'ほぞんちゅう…' : 'ほぞんする'}
         </button>
       </form>
 
-      {showScanner && <BarcodeScanner onDetected={handleBarcodeDetected} onClose={() => setShowScanner(false)} />}
+      {showScanner && (
+        <BarcodeScanner
+          onDetected={handleBarcodeDetected}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </>
   );
 }
