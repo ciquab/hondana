@@ -24,7 +24,7 @@ export type Env = z.infer<typeof envSchema>;
 function validateEnv(): Env {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
-    const errors = result.error.errors
+    const errors = result.error.issues
       .map((e) => `  - ${e.path.join('.')}: ${e.message}`)
       .join('\n');
     throw new Error(
