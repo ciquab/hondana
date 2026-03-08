@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/db/family';
 
-export async function getRecordsForChild(childId: string) {
+export async function getRecordsForChild(
+  childId: string,
+  { limit = 200, offset = 0 }: { limit?: number; offset?: number } = {}
+) {
   const supabase = await createClient();
   const user = await getCurrentUser();
 
@@ -11,7 +14,8 @@ export async function getRecordsForChild(childId: string) {
     .from('reading_records')
     .select('id, status, memo, finished_on, genre, created_at, updated_at, books(id, title, author, isbn13, cover_url)')
     .eq('child_id', childId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
 
   return data ?? [];
 }

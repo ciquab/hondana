@@ -1,24 +1,15 @@
 import { createHmac, randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { isUuid } from '@/lib/utils/validation';
+import { env } from '@/lib/env';
 
 type KidSessionClaims = {
   childId: string;
   familyId: string;
 };
 
-
-function getKidSupabaseConfig() {
-  return {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    jwtSecret: process.env.SUPABASE_JWT_SECRET
-  };
-}
-
 export function canCreateKidClient() {
-  const cfg = getKidSupabaseConfig();
-  return Boolean(cfg.url && cfg.anonKey && cfg.jwtSecret);
+  return true; // validated at startup via lib/env
 }
 
 function base64urlJson(value: unknown): string {
@@ -30,9 +21,6 @@ function signHs256(input: string, secret: string): string {
 }
 
 function createChildSessionAccessToken(claims: KidSessionClaims): string {
-  const cfg = getKidSupabaseConfig();
-  if (!cfg.jwtSecret) throw new Error('SUPABASE_JWT_SECRET is required for child_session token generation');
-
   if (!isUuid(claims.childId) || !isUuid(claims.familyId)) {
     throw new Error('child_session claims must be valid UUID values');
   }
@@ -59,20 +47,15 @@ function createChildSessionAccessToken(claims: KidSessionClaims): string {
   const encodedHeader = base64urlJson(header);
   const encodedPayload = base64urlJson(payload);
   const signingInput = `${encodedHeader}.${encodedPayload}`;
-  const signature = signHs256(signingInput, cfg.jwtSecret);
+  const signature = signHs256(signingInput, env.SUPABASE_JWT_SECRET);
 
   return `${signingInput}.${signature}`;
 }
 
 export function createChildSessionClient(claims: KidSessionClaims) {
-  const cfg = getKidSupabaseConfig();
-  if (!cfg.url || !cfg.anonKey) {
-    throw new Error('Kid supabase client requires NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  }
-
   const token = createChildSessionAccessToken(claims);
 
-  return createClient(cfg.url, cfg.anonKey, {
+  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     global: {
       headers: {
         Authorization: `Bearer ${token}`

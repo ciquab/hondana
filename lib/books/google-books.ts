@@ -4,6 +4,7 @@
  */
 
 import { withCache } from './cache';
+import { env } from '@/lib/env';
 
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes';
 
@@ -13,8 +14,7 @@ const ISBN_TTL = 30 * 60 * 1000;
 const TITLE_TTL = 5 * 60 * 1000;
 
 function apiKeyParam(): string {
-  const key = process.env.GOOGLE_BOOKS_API_KEY;
-  return key ? `&key=${key}` : '';
+  return env.GOOGLE_BOOKS_API_KEY ? `&key=${env.GOOGLE_BOOKS_API_KEY}` : '';
 }
 
 export type GoogleBookResult = {
