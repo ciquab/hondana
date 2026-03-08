@@ -52,14 +52,25 @@ type Props = {
 
 type BookInfo = {
   title: string;
-  author?: string;
-  cover_url?: string | null;
+  author: string | null;
+  cover_url: string | null;
 };
 
 type FinishedBookEntry = {
   recordId: string;
   book: BookInfo;
 };
+
+function toBookInfo(books: unknown): BookInfo | null {
+  if (!books || typeof books !== 'object' || Array.isArray(books)) return null;
+  const b = books as Record<string, unknown>;
+  if (typeof b.title !== 'string') return null;
+  return {
+    title: b.title,
+    author: typeof b.author === 'string' ? b.author : null,
+    cover_url: typeof b.cover_url === 'string' ? b.cover_url : null,
+  };
+}
 
 export default async function ChildRecordsPage({ params }: Props) {
   const { childId } = await params;
@@ -99,7 +110,7 @@ export default async function ChildRecordsPage({ params }: Props) {
   // Collect books for bookshelf visual
   const finishedBooks = grouped.finished
     .map((r) => {
-      const book = r.books as unknown as BookInfo | null;
+      const book = toBookInfo(r.books);
       return book ? { recordId: r.id, book } : null;
     })
     .filter((e): e is FinishedBookEntry => e !== null);
@@ -194,7 +205,7 @@ export default async function ChildRecordsPage({ params }: Props) {
                 </h2>
                 <ul className="space-y-2">
                   {items.map((record) => {
-                    const book = record.books as unknown as BookInfo | null;
+                    const book = toBookInfo(record.books);
                     return (
                       <li key={record.id}>
                         <Link

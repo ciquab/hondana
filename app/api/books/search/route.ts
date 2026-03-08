@@ -4,6 +4,10 @@ import { searchByIsbn, searchByTitle } from '@/lib/books/google-books';
 import { openBdLookup } from '@/lib/books/openbd';
 import { ndlSearchByTitle } from '@/lib/books/ndl';
 import { buildTitleQueryVariants } from '@/lib/books/search-query';
+import { checkRateLimit } from '@/lib/utils/rate-limit';
+
+// 1分間に最大30リクエスト（ユーザーごと）
+const RATE_LIMIT = { limit: 30, windowMs: 60 * 1000 };
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +81,14 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { allowed } = checkRateLimit(`books-search:${user.id}`, RATE_LIMIT);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'リクエストが多すぎます。しばらく待ってから再試行してください。' },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    );
   }
 
   const { searchParams } = request.nextUrl;

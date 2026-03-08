@@ -2,6 +2,16 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 
+interface BarcodeDetectResult {
+  rawValue: string;
+}
+interface BarcodeDetectorInstance {
+  detect: (source: HTMLVideoElement) => Promise<BarcodeDetectResult[]>;
+}
+interface WindowWithBarcodeDetector extends Window {
+  BarcodeDetector: new (opts: { formats: string[] }) => BarcodeDetectorInstance;
+}
+
 type Props = {
   onDetected: (isbn: string) => void;
   onClose: () => void;
@@ -43,7 +53,7 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
 
         // Try native BarcodeDetector first, fall back to @zxing/library
         if ('BarcodeDetector' in window) {
-          const detector = new (window as unknown as { BarcodeDetector: new (opts: { formats: string[] }) => { detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]> } }).BarcodeDetector({
+          const detector = new (window as unknown as WindowWithBarcodeDetector).BarcodeDetector({
             formats: ['ean_13'],
           });
 

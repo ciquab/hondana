@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { cookies } from 'next/headers';
 import { isUuid } from '@/lib/utils/validation';
+import { env } from '@/lib/env';
 
 const KID_SESSION_COOKIE = 'kid_session';
 const KID_SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
@@ -11,18 +12,12 @@ export type KidSessionPayload = {
   exp: number;
 };
 
-function getKidSessionSecret() {
-  return process.env.KID_SESSION_SECRET;
-}
-
 export function canUseKidSession() {
-  return Boolean(getKidSessionSecret());
+  return true; // validated at startup via lib/env
 }
 
 function sign(payloadBase64: string): string {
-  const secret = getKidSessionSecret();
-  if (!secret) throw new Error('KID_SESSION_SECRET is required for kid session signing');
-  return createHmac('sha256', secret).update(payloadBase64).digest('base64url');
+  return createHmac('sha256', env.KID_SESSION_SECRET).update(payloadBase64).digest('base64url');
 }
 
 function encodeSession(payload: KidSessionPayload): string {
@@ -54,10 +49,6 @@ function decodeSession(token: string): KidSessionPayload | null {
 }
 
 export async function setKidSession(payload: { childId: string; familyId: string }) {
-  if (!canUseKidSession()) {
-    throw new Error('KID_SESSION_SECRET is not configured');
-  }
-
   const cookieStore = await cookies();
   const exp = Math.floor(Date.now() / 1000) + KID_SESSION_MAX_AGE_SECONDS;
   const token = encodeSession({ childId: payload.childId, familyId: payload.familyId, exp });
@@ -77,8 +68,6 @@ export async function clearKidSession() {
 }
 
 export async function getKidSession() {
-  if (!canUseKidSession()) return null;
-
   const cookieStore = await cookies();
   const token = cookieStore.get(KID_SESSION_COOKIE)?.value;
   if (!token) return null;

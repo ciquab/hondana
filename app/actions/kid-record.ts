@@ -4,9 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { evaluateChildBadges } from '@/lib/kids/badges';
-import { CHILD_FEELINGS, CHILD_GENRES, CHILD_STAMPS } from '@/lib/kids/feelings';
-
-const KID_RECORD_STATUSES = ['want_to_read', 'reading', 'finished'] as const;
+import { CHILD_GENRES } from '@/lib/kids/feelings';
+import { createKidRecordSchema } from '@/lib/validations/kid-record';
 
 export type KidRecordActionResult = {
   error?: string;
@@ -16,34 +15,30 @@ export async function createKidRecord(
   _prev: KidRecordActionResult,
   formData: FormData
 ): Promise<KidRecordActionResult> {
-  const title = String(formData.get('title') ?? '').trim();
-  const author = String(formData.get('author') ?? '').trim();
-  const status = String(formData.get('status') ?? 'finished').trim();
-  const stamp = String(formData.get('stamp') ?? '').trim();
-  const isbn = String(formData.get('isbn') ?? '').trim();
-  const coverUrl = String(formData.get('coverUrl') ?? '').trim();
-  const memo = String(formData.get('memo') ?? '').trim();
-  const finishedOn = String(formData.get('finishedOn') ?? '').trim();
-  const genreRaw = String(formData.get('genre') ?? '').trim();
-  const genre = CHILD_GENRES.includes(genreRaw as (typeof CHILD_GENRES)[number])
-    ? (genreRaw as (typeof CHILD_GENRES)[number])
-    : null;
-  const selectedTags = formData
-    .getAll('feelingTags')
-    .map((v) => String(v))
-    .filter((v): v is (typeof CHILD_FEELINGS)[number] =>
-      CHILD_FEELINGS.includes(v as (typeof CHILD_FEELINGS)[number])
-    );
+  const raw = {
+    title: String(formData.get('title') ?? '').trim(),
+    author: String(formData.get('author') ?? '').trim(),
+    isbn: String(formData.get('isbn') ?? '').trim(),
+    coverUrl: String(formData.get('coverUrl') ?? '').trim(),
+    status: String(formData.get('status') ?? 'finished').trim(),
+    stamp: String(formData.get('stamp') ?? '').trim(),
+    memo: String(formData.get('memo') ?? '').trim(),
+    finishedOn: String(formData.get('finishedOn') ?? '').trim(),
+    genre: String(formData.get('genre') ?? '').trim(),
+    feelingTags: formData.getAll('feelingTags').map((v) => String(v)),
+  };
 
-  if (!title) return { error: '本のタイトルを入力してください。' };
-  if (isbn && !/^\d{13}$/.test(isbn)) return { error: 'ISBNは13桁の数字で入力してください。' };
-  if (!CHILD_STAMPS.includes(stamp as (typeof CHILD_STAMPS)[number])) return { error: 'スタンプを選択してください。' };
-  if (!KID_RECORD_STATUSES.includes(status as (typeof KID_RECORD_STATUSES)[number])) {
-    return { error: '記録ステータスが不正です。' };
+  const parsed = createKidRecordSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message };
   }
-  if (finishedOn && !/^\d{4}-\d{2}-\d{2}$/.test(finishedOn)) {
-    return { error: '読んだ日の形式が正しくありません。' };
-  }
+
+  const { title, author, isbn, coverUrl, status, stamp, memo, finishedOn, genre, feelingTags } =
+    parsed.data;
+
+  const resolvedGenre = genre && CHILD_GENRES.includes(genre as (typeof CHILD_GENRES)[number])
+    ? (genre as (typeof CHILD_GENRES)[number])
+    : null;
 
   const { childId, supabase } = await requireKidContext();
 
@@ -55,17 +50,19 @@ export async function createKidRecord(
     target_cover_url: coverUrl || null,
     target_status: status,
     target_stamp: stamp,
-    target_feeling_tags: selectedTags,
+    target_feeling_tags: feelingTags,
     target_memo: memo || null,
     target_finished_on: finishedOn || null,
-    target_genre: genre,
+    target_genre: resolvedGenre,
   });
 
   if (!recordId) return { error: '読書記録の作成に失敗しました。' };
 
   // バッジ評価前のバッジ一覧を取得
   const { data: badgesBefore } = await supabase.rpc('get_kid_badges', { target_child_id: childId });
-  const badgeIdsBefore = new Set((badgesBefore ?? []).map((b: { badge_id: string }) => b.badge_id));
+  const badgeIdsBefore = new Set(
+    (badgesBefore ?? []).map((b: { badge_id: string }) => b.badge_id)
+  );
 
   await evaluateChildBadges(recordId);
 

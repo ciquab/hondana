@@ -143,7 +143,18 @@ export async function createChild(
   });
 
   if (pinError) {
-    await supabase.from('children').delete().eq('id', newChild.id);
+    // PIN 設定失敗 → children レコードをロールバック
+    const { error: rollbackError } = await supabase
+      .from('children')
+      .delete()
+      .eq('id', newChild.id);
+    if (rollbackError) {
+      // ロールバック自体が失敗した場合は孤立レコードが残るためログに残す
+      console.error('[createChild] rollback failed: orphan child record may exist', {
+        childId: newChild.id,
+        rollbackError,
+      });
+    }
     return { error: 'PINの設定に失敗しました。もう一度お試しください。' };
   }
 
