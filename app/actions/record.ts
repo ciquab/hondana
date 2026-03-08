@@ -2,11 +2,19 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-import { createRecordSchema, updateRecordSchema } from '@/lib/validations/record';
+import {
+  createRecordSchema,
+  updateRecordSchema
+} from '@/lib/validations/record';
 import type { ActionResult } from '@/lib/actions/types';
 
 export type { ActionResult };
+
+const deleteRecordSchema = z.object({
+  recordId: z.string().uuid('記録の指定が不正です')
+});
 
 export async function createRecord(
   _prev: ActionResult,
@@ -30,7 +38,8 @@ export async function createRecord(
     return { error: parsed.error.issues[0].message };
   }
 
-  const { childId, title, author, isbn, status, genre, memo, finishedOn } = parsed.data;
+  const { childId, title, author, isbn, status, genre, memo, finishedOn } =
+    parsed.data;
 
   const supabase = await createClient();
   const {
@@ -74,7 +83,12 @@ export async function createRecord(
     } else {
       const { data: newBook, error: bookErr } = await supabase
         .from('books')
-        .insert({ isbn13: isbn, title, author: author || null, cover_url: coverUrl })
+        .insert({
+          isbn13: isbn,
+          title,
+          author: author || null,
+          cover_url: coverUrl
+        })
         .select('id')
         .single();
 
@@ -168,4 +182,67 @@ export async function updateRecordStatus(
   revalidatePath(`/records/${recordId}`);
   revalidatePath(`/children/${record.child_id}`);
   redirect(`/records/${recordId}`);
+}
+
+export async function deleteRecord(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const raw = {
+    recordId: formData.get('recordId') ?? ''
+  };
+
+  const parsed = deleteRecordSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message };
+  }
+
+  const { recordId } = parsed.data;
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data: record } = await supabase
+    .from('reading_records')
+    .select('id, child_id')
+    .eq('id', recordId)
+    .single();
+
+  if (!record) {
+    return { error: '記録が見つかりません。' };
+  }
+
+  // Delete dependents first in case FK is not cascading.
+  const { error: commentsError } = await supabase
+    .from('record_comments')
+    .delete()
+    .eq('record_id', recordId);
+  if (commentsError) {
+    return { error: 'コメントの削除に失敗しました。' };
+  }
+
+  const { error: reactionsError } = await supabase
+    .from('record_reactions')
+    .delete()
+    .eq('record_id', recordId);
+  if (reactionsError) {
+    return { error: 'リアクションの削除に失敗しました。' };
+  }
+
+  const { error: recordError } = await supabase
+    .from('reading_records')
+    .delete()
+    .eq('id', recordId);
+
+  if (recordError) {
+    return { error: '記録の削除に失敗しました。' };
+  }
+
+  revalidatePath(`/records/${recordId}`);
+  revalidatePath(`/children/${record.child_id}`);
+  redirect(`/children/${record.child_id}`);
 }
