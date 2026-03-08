@@ -2,7 +2,7 @@
 
 import { useActionState, useCallback, useState } from 'react';
 import { suggestBook, type SuggestBookResult } from '@/app/actions/suggest-book';
-import type { GoogleBookResult } from '@/lib/books/google-books';
+import type { BookSearchResult } from '@/lib/books/types';
 
 type Props = { childId: string };
 
@@ -10,9 +10,9 @@ export function SuggestBookForm({ childId }: Props) {
   const [state, formAction, pending] = useActionState<SuggestBookResult, FormData>(suggestBook, {});
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<GoogleBookResult[]>([]);
+  const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [selected, setSelected] = useState<GoogleBookResult | null>(null);
+  const [selected, setSelected] = useState<BookSearchResult | null>(null);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
@@ -28,7 +28,7 @@ export function SuggestBookForm({ childId }: Props) {
     }
   }, [searchQuery]);
 
-  const handleSelect = (book: GoogleBookResult) => {
+  const handleSelect = (book: BookSearchResult) => {
     setSelected(book);
     setSearchResults([]);
     setSearchQuery('');

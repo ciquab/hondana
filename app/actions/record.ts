@@ -4,10 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createRecordSchema, updateRecordSchema } from '@/lib/validations/record';
+import type { ActionResult } from '@/lib/actions/types';
 
-export type ActionResult = {
-  error?: string;
-};
+export type { ActionResult };
 
 export async function createRecord(
   _prev: ActionResult,

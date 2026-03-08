@@ -3,7 +3,7 @@
  * https://openbd.jp/
  */
 
-import type { GoogleBookResult } from './google-books';
+import type { BookSearchResult } from './types';
 import { withCache } from './cache';
 
 const ISBN_TTL = 30 * 60 * 1000;
@@ -30,7 +30,7 @@ type OpenBDItem = {
 } | null;
 
 /** Look up a book by ISBN via OpenBD */
-export async function openBdLookup(isbn: string): Promise<GoogleBookResult | null> {
+export async function openBdLookup(isbn: string): Promise<BookSearchResult | null> {
   return withCache(`openbd:isbn:${isbn}`, ISBN_TTL, async () => {
     try {
       const res = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);

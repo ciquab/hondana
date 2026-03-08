@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
-export type SuggestBookResult = { error?: string; success?: boolean };
+import type { ActionResult } from '@/lib/actions/types';
+
+export type SuggestBookResult = ActionResult<{ success?: boolean }>;
 
 export async function suggestBook(
   _prev: SuggestBookResult,

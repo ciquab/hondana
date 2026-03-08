@@ -6,8 +6,8 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { createRecord, type ActionResult } from '@/app/actions/record';
 import { READING_STATUSES, STATUS_LABELS } from '@/lib/validations/record';
-import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
-import type { GoogleBookResult } from '@/lib/books/google-books';
+import { CHILD_GENRES, genreDisplayName } from '@/lib/kids/feelings';
+import type { BookSearchResult } from '@/lib/books/types';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
   ssr: false,
@@ -19,7 +19,7 @@ export default function NewRecordPage() {
 
   const [showScanner, setShowScanner] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<GoogleBookResult[]>([]);
+  const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export default function NewRecordPage() {
   const [author, setAuthor] = useState('');
   const [isbn, setIsbn] = useState('');
 
-  const fillFromBook = useCallback((book: GoogleBookResult) => {
+  const fillFromBook = useCallback((book: BookSearchResult) => {
     setTitle(book.title);
     setAuthor(book.author ?? '');
     setIsbn(book.isbn13 ?? '');
@@ -236,7 +236,7 @@ export default function NewRecordPage() {
             <option value="">未分類</option>
             {CHILD_GENRES.map((g) => (
               <option key={g} value={g}>
-                {GENRE_LABELS[g]}
+                {genreDisplayName(g)}
               </option>
             ))}
           </select>

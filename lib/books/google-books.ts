@@ -3,6 +3,7 @@
  * https://developers.google.com/books/docs/v1/using
  */
 
+import type { BookSearchResult } from './types';
 import { withCache } from './cache';
 import { env } from '@/lib/env';
 
@@ -16,17 +17,6 @@ const TITLE_TTL = 5 * 60 * 1000;
 function apiKeyParam(): string {
   return env.GOOGLE_BOOKS_API_KEY ? `&key=${env.GOOGLE_BOOKS_API_KEY}` : '';
 }
-
-export type GoogleBookResult = {
-  title: string;
-  author: string | null;
-  isbn13: string | null;
-  coverUrl: string | null;
-  description: string | null;
-  publisher: string | null;
-  publishedDate: string | null;
-  pageCount: number | null;
-};
 
 type VolumeInfo = {
   title?: string;
@@ -57,7 +47,7 @@ function extractCoverUrl(imageLinks?: { thumbnail?: string; smallThumbnail?: str
   return url?.replace('http://', 'https://') ?? null;
 }
 
-function mapVolume(vol: VolumeInfo): GoogleBookResult {
+function mapVolume(vol: VolumeInfo): BookSearchResult {
   return {
     title: vol.title ?? '',
     author: vol.authors?.join(', ') ?? null,
@@ -71,7 +61,7 @@ function mapVolume(vol: VolumeInfo): GoogleBookResult {
 }
 
 /** Search by ISBN (13-digit) */
-export async function searchByIsbn(isbn: string): Promise<GoogleBookResult | null> {
+export async function searchByIsbn(isbn: string): Promise<BookSearchResult | null> {
   return withCache(`gbooks:isbn:${isbn}`, ISBN_TTL, async () => {
     const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam()}`);
 
@@ -88,7 +78,7 @@ export async function searchByIsbn(isbn: string): Promise<GoogleBookResult | nul
 }
 
 /** Search by title keyword */
-export async function searchByTitle(query: string, maxResults = 10): Promise<GoogleBookResult[]> {
+export async function searchByTitle(query: string, maxResults = 10): Promise<BookSearchResult[]> {
   return withCache(`gbooks:title:${query}:${maxResults}`, TITLE_TTL, async () => {
     const encoded = encodeURIComponent(query);
     const res = await fetch(

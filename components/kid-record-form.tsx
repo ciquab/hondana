@@ -3,8 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useActionState, useCallback, useState } from 'react';
 import { createKidRecord, type KidRecordActionResult } from '@/app/actions/kid-record';
-import { CHILD_FEELINGS, CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
-import type { GoogleBookResult } from '@/lib/books/google-books';
+import { CHILD_FEELINGS, CHILD_GENRES, genreDisplayName } from '@/lib/kids/feelings';
+import type { BookSearchResult } from '@/lib/books/types';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
   ssr: false
@@ -24,7 +24,7 @@ export function KidRecordForm() {
   );
   const [showScanner, setShowScanner] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<GoogleBookResult[]>([]);
+  const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -38,7 +38,7 @@ export function KidRecordForm() {
   const [finished, setFinished] = useState(true);
   const [finishedOn, setFinishedOn] = useState(() => new Date().toISOString().slice(0, 10));
 
-  const fillFromBook = useCallback((book: GoogleBookResult) => {
+  const fillFromBook = useCallback((book: BookSearchResult) => {
     setTitle(book.title);
     setAuthor(book.author ?? '');
     setIsbn(book.isbn13 ?? '');
@@ -242,7 +242,7 @@ export function KidRecordForm() {
                   onClick={() => setGenre(selected ? '' : g)}
                   className={`rounded-lg border px-3 py-2 text-sm transition-transform active:scale-95 ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white'}`}
                 >
-                  {GENRE_LABELS[g]}
+                  {genreDisplayName(g)}
                 </button>
               );
             })}

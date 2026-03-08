@@ -4,13 +4,13 @@
  * Returns OpenSearch RSS/XML; we parse it to extract book info.
  */
 
-import type { GoogleBookResult } from './google-books';
+import type { BookSearchResult } from './types';
 import { withCache } from './cache';
 
 const TITLE_TTL = 5 * 60 * 1000;
 
 /** Search NDL by title keyword */
-export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<GoogleBookResult[]> {
+export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<BookSearchResult[]> {
   return withCache(`ndl:title:${query}:${maxResults}`, TITLE_TTL, async () => {
     try {
       const encoded = encodeURIComponent(query);
@@ -28,8 +28,8 @@ export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<
   });
 }
 
-function parseNdlXml(xml: string): GoogleBookResult[] {
-  const results: GoogleBookResult[] = [];
+function parseNdlXml(xml: string): BookSearchResult[] {
+  const results: BookSearchResult[] = [];
 
   // Extract each <item> block (there may be attributes on item in some responses)
   const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/g;
