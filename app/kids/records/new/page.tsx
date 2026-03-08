@@ -9,8 +9,11 @@ export default async function KidsNewRecordPage() {
 
   return (
     <main className="mx-auto max-w-xl p-4">
-      <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
-        こどもホームへ戻る
+      <Link
+        href="/kids/home"
+        className="mb-3 inline-block text-sm text-blue-600 underline"
+      >
+        こどもホームへもどる
       </Link>
       <h1 className="mb-4 text-2xl font-bold">どくしょきろく</h1>
       <KidRecordForm />

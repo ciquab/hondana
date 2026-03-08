@@ -17,12 +17,21 @@ function formatMonthParam(d: Date): string {
 }
 
 function getMonthBounds(monthParam: string | undefined) {
-  const base = monthParam && /^\d{4}-\d{2}$/.test(monthParam) ? `${monthParam}-01` : undefined;
-  const monthStart = base ? new Date(base) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const nextMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1);
+  const base =
+    monthParam && /^\d{4}-\d{2}$/.test(monthParam)
+      ? `${monthParam}-01`
+      : undefined;
+  const monthStart = base
+    ? new Date(base)
+    : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const nextMonth = new Date(
+    monthStart.getFullYear(),
+    monthStart.getMonth() + 1,
+    1
+  );
 
   return {
-    monthLabel: `${monthStart.getFullYear()}年${monthStart.getMonth() + 1}月`,
+    monthLabel: `${monthStart.getFullYear()}ねん${monthStart.getMonth() + 1}がつ`,
     from: monthStart.toISOString(),
     to: nextMonth.toISOString(),
     monthStart
@@ -53,7 +62,7 @@ export default async function KidsCalendarPage({
   if (!child) redirect('/kids/login');
 
   const dayMap = new Map<number, { count: number; stamp?: string }>();
-  for (const row of ((records ?? []) as CalendarEntryRow[])) {
+  for (const row of (records ?? []) as CalendarEntryRow[]) {
     const day = new Date(row.created_at).getDate();
     const prev = dayMap.get(day) ?? { count: 0 };
     dayMap.set(day, {
@@ -62,7 +71,11 @@ export default async function KidsCalendarPage({
     });
   }
 
-  const daysInMonth = new Date(bounds.monthStart.getFullYear(), bounds.monthStart.getMonth() + 1, 0).getDate();
+  const daysInMonth = new Date(
+    bounds.monthStart.getFullYear(),
+    bounds.monthStart.getMonth() + 1,
+    0
+  ).getDate();
 
   const today = new Date();
   const isCurrentMonth =
@@ -70,37 +83,50 @@ export default async function KidsCalendarPage({
     today.getMonth() === bounds.monthStart.getMonth();
 
   const prevMonth = formatMonthParam(
-    new Date(bounds.monthStart.getFullYear(), bounds.monthStart.getMonth() - 1, 1)
+    new Date(
+      bounds.monthStart.getFullYear(),
+      bounds.monthStart.getMonth() - 1,
+      1
+    )
   );
   const nextMonthParam = formatMonthParam(
-    new Date(bounds.monthStart.getFullYear(), bounds.monthStart.getMonth() + 1, 1)
+    new Date(
+      bounds.monthStart.getFullYear(),
+      bounds.monthStart.getMonth() + 1,
+      1
+    )
   );
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
-        こどもホームへ戻る
+      <Link
+        href="/kids/home"
+        className="mb-3 inline-block text-sm text-blue-600 underline"
+      >
+        こどもホームへもどる
       </Link>
-      <h1 className="mb-1 text-2xl font-bold">{child.display_name} のどくしょカレンダー</h1>
+      <h1 className="mb-1 text-2xl font-bold">
+        {child.display_name} のどくしょカレンダー
+      </h1>
 
       <div className="mb-4 flex items-center gap-2">
         <Link
           href={`/kids/calendar?month=${prevMonth}`}
           className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
         >
-          ◀ 前の月
+          ◀ まえのつき
         </Link>
         <p className="flex-1 text-center font-semibold">{bounds.monthLabel}</p>
         <Link
           href={`/kids/calendar?month=${nextMonthParam}`}
           className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
         >
-          次の月 ▶
+          つぎのつき ▶
         </Link>
       </div>
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">今月の記録</h2>
+        <h2 className="mb-3 text-lg font-semibold">こんげつのきろく</h2>
         <div className="grid grid-cols-7 gap-1 text-center text-xs">
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
@@ -111,14 +137,22 @@ export default async function KidsCalendarPage({
                 key={day}
                 className={`rounded border p-1.5 ${isToday ? 'border-blue-400 bg-blue-50' : ''}`}
               >
-                <div className={`font-semibold ${isToday ? 'text-blue-600' : ''}`}>{day}</div>
+                <div
+                  className={`font-semibold ${isToday ? 'text-blue-600' : ''}`}
+                >
+                  {day}
+                </div>
                 {info ? (
-                  <div className="mt-0.5 text-[11px] text-slate-700">
-                    <div>{info.count}冊</div>
-                    <div>{info.stamp ? (STAMP_EMOJI[info.stamp] ?? info.stamp) : ''}</div>
+                  <div className="mt-0.5 text-xs text-slate-700">
+                    <div>{info.count}さつ</div>
+                    <div>
+                      {info.stamp
+                        ? (STAMP_EMOJI[info.stamp] ?? info.stamp)
+                        : ''}
+                    </div>
                   </div>
                 ) : (
-                  <div className="mt-0.5 text-[11px] text-slate-300">-</div>
+                  <div className="mt-0.5 text-xs text-slate-500">-</div>
                 )}
               </div>
             );
@@ -127,7 +161,7 @@ export default async function KidsCalendarPage({
       </section>
 
       <section className="rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">ゲットしたバッジ</h2>
+        <h2 className="mb-3 text-lg font-semibold">げっとしたばっじ</h2>
         {badges.length > 0 ? (
           <ul className="space-y-2">
             {badges.map((badge) => {
@@ -136,13 +170,17 @@ export default async function KidsCalendarPage({
                   <p className="font-medium">
                     {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
                   </p>
-                  <p className="text-sm text-slate-600">{badge.description ?? ''}</p>
+                  <p className="text-sm text-slate-600">
+                    {badge.description ?? ''}
+                  </p>
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p className="text-sm text-slate-600">まだバッジはありません。記録してみよう！</p>
+          <p className="text-sm text-slate-600">
+            まだばっじはありません。きろくしてみよう！
+          </p>
         )}
       </section>
     </main>
