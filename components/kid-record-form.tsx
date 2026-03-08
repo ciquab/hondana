@@ -92,7 +92,7 @@ export function KidRecordForm() {
         <button
           type="button"
           onClick={() => setShowScanner(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-blue-300 bg-blue-50 p-3 text-blue-700 transition hover:bg-blue-100"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 p-3 text-orange-700 transition hover:bg-orange-100"
         >
           バーコードでとうろく
         </button>
@@ -317,7 +317,7 @@ export function KidRecordForm() {
 
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-        <button type="submit" disabled={pending || !stamp} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">
+        <button type="submit" disabled={pending || !stamp} className="rounded-xl bg-orange-500 px-4 py-2 font-bold text-white disabled:opacity-50">
           {pending ? '保存中…' : 'ほぞんする'}
         </button>
       </form>

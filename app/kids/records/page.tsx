@@ -9,6 +9,7 @@ type BookRow = {
   title: string | null;
   cover_url: string | null;
   genre: string | null;
+  stamp: string | null;
 };
 
 export default async function KidsRecordsPage() {

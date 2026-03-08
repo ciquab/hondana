@@ -9,6 +9,7 @@ type BookRow = {
   title: string | null;
   cover_url: string | null;
   genre: string | null;
+  stamp: string | null;
 };
 
 const GENRE_TABS = [
@@ -29,6 +30,21 @@ const GENRE_EMPTY_MESSAGES: Partial<Record<GenreKey, { emoji: string; main: stri
   picture_book: { emoji: '🖼️', main: 'まだ絵本・詩は読んでいないよ', sub: 'きれいな絵の本をさがしてみよう！' },
   other: { emoji: '📚', main: 'まだ記録がないよ', sub: 'いろんな本を読んでみよう！' },
 };
+
+const NO_COVER_COLORS = [
+  { bg: '#FDE68A', text: '#92400E' }, // amber
+  { bg: '#BBF7D0', text: '#065F46' }, // emerald
+  { bg: '#BFDBFE', text: '#1E3A8A' }, // blue
+  { bg: '#DDD6FE', text: '#4C1D95' }, // violet
+  { bg: '#FBCFE8', text: '#831843' }, // pink
+  { bg: '#FED7AA', text: '#7C2D12' }, // orange
+];
+
+function pickColor(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) & 0xffff;
+  return NO_COVER_COLORS[hash % NO_COVER_COLORS.length];
+}
 
 function chunkRows<T>(items: T[], size: number): T[][] {
   const rows: T[][] = [];
@@ -97,7 +113,11 @@ export function KidsBookshelf({ records, childName }: { records: BookRow[]; chil
           </p>
           <div className="mt-4 space-y-4">
             {shelfRows.map((row, rowIndex) => (
-              <div key={rowIndex} className="relative rounded-lg bg-amber-100/70 px-3 pb-4 pt-3">
+              <div
+                key={rowIndex}
+                className="relative rounded-lg px-3 pb-4 pt-3"
+                style={{ backgroundColor: '#DEB887' }}
+              >
                 <div className="flex min-h-48 items-end gap-3 overflow-x-auto pb-1">
                   {row.map((record) => {
                     const title = record.title ?? 'ふめいな本';
@@ -109,13 +129,37 @@ export function KidsBookshelf({ records, childName }: { records: BookRow[]; chil
                         title={title}
                         className="relative w-20 flex-shrink-0 rounded-md p-1 transition hover:-translate-y-1"
                       >
+                        {record.stamp && (
+                          <span className="absolute right-0 top-0 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] shadow">
+                            {record.stamp === 'great' ? '🌟' : record.stamp === 'fun' ? '😊' : record.stamp === 'ok' ? '😐' : '😓'}
+                          </span>
+                        )}
                         {cover ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={cover} alt={title} className="h-32 w-full rounded object-cover shadow-md" />
                         ) : (
-                          <div className="flex h-32 w-full items-center justify-center rounded bg-indigo-100 p-1 text-center text-[11px] leading-tight text-indigo-700 shadow-md">
-                            {title.length > 22 ? `${title.slice(0, 22)}…` : title}
-                          </div>
+                          (() => {
+                            const { bg, text } = pickColor(record.id);
+                            return (
+                              <div
+                                className="flex h-32 w-full items-center justify-center overflow-hidden rounded shadow-md"
+                                style={{ backgroundColor: bg }}
+                              >
+                                <span
+                                  className="text-[11px] font-medium leading-tight"
+                                  style={{
+                                    writingMode: 'vertical-rl',
+                                    color: text,
+                                    maxHeight: '7.5rem',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}
+                                >
+                                  {title.length > 20 ? `${title.slice(0, 20)}…` : title}
+                                </span>
+                              </div>
+                            );
+                          })()
                         )}
                         <div className="pointer-events-none absolute -bottom-3 left-1 right-1 rounded-md bg-white/95 px-1 py-1 shadow">
                           <p className="line-clamp-2 h-8 text-center text-[10px] leading-4 text-slate-700">{title}</p>
@@ -124,7 +168,7 @@ export function KidsBookshelf({ records, childName }: { records: BookRow[]; chil
                     );
                   })}
                 </div>
-                <div className="absolute bottom-0 left-2 right-2 h-2 rounded bg-amber-800/60" />
+                <div className="absolute bottom-0 left-2 right-2 h-2 rounded" style={{ backgroundColor: '#8B4513' }} />
               </div>
             ))}
           </div>
