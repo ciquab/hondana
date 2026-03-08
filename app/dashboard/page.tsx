@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { signOut } from '@/app/actions/auth';
 import { getChildrenForCurrentUser, getFamiliesForCurrentUser } from '@/lib/db/family';
 import { getRecordCountsForChildren, getMonthlyReadCountsForChildren } from '@/lib/db/records';
+import { DashboardChildrenTabs } from '@/components/dashboard-children-tabs';
 
 export default async function DashboardPage() {
   const families = await getFamiliesForCurrentUser();
@@ -43,17 +44,17 @@ export default async function DashboardPage() {
       </div>
 
       {children.length > 0 && (
-        <section className="mb-4 rounded-xl bg-blue-50 p-4 shadow">
-          <h2 className="mb-2 text-sm font-semibold text-blue-700">
+        <section className="mb-4 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 p-4 shadow">
+          <h2 className="mb-2 text-sm font-semibold text-white/90">
             📅 今月の読書まとめ（{new Date().getMonth() + 1}月）
           </h2>
-          <p className="mb-2 text-2xl font-bold text-blue-900">{monthlyTotal} 冊</p>
+          <p className="mb-2 text-2xl font-bold text-white">{monthlyTotal} 冊</p>
           {children.length > 1 && (
             <ul className="space-y-1">
               {children.map((child) => (
                 <li key={child.id} className="flex items-center justify-between text-sm">
-                  <span className="text-blue-800">{child.display_name}</span>
-                  <span className="font-medium text-blue-700">{monthlyByChild[child.id] ?? 0} 冊</span>
+                  <span className="text-white/90">{child.display_name}</span>
+                  <span className="font-medium text-white">{monthlyByChild[child.id] ?? 0} 冊</span>
                 </li>
               ))}
             </ul>
@@ -63,32 +64,11 @@ export default async function DashboardPage() {
 
       <section className="rounded-xl bg-white p-4 shadow">
         <h2 className="mb-3 text-lg font-semibold">子ども一覧</h2>
-        {children.length === 0 ? (
-          <p className="text-slate-600">子どもプロフィールがありません。追加してください。</p>
-        ) : (
-          <ul className="space-y-2">
-            {children.map((child) => (
-              <li key={child.id}>
-                <Link
-                  href={`/children/${child.id}`}
-                  className="block rounded border p-3 transition hover:bg-slate-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{child.display_name}</p>
-                      <p className="text-sm text-slate-600">
-                        生年: {child.birth_year ?? '未設定'}
-                      </p>
-                    </div>
-                    <span className="text-sm text-slate-500">
-                      {recordCounts[child.id] ?? 0} 冊
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <DashboardChildrenTabs
+          children={children}
+          recordCounts={recordCounts}
+          monthlyByChild={monthlyByChild}
+        />
       </section>
     </main>
   );

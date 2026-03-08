@@ -358,7 +358,7 @@ export default function RecordDetailPage() {
                 key={t}
                 type="button"
                 onClick={() => setCommentBody(t)}
-                className="rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-700 hover:bg-emerald-100"
+                className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs text-orange-700 hover:bg-orange-100"
               >
                 {t}
               </button>

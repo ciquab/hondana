@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getRecordsForChild, getGenreBreakdownForChild, getCommentedRecordIds } from '@/lib/db/records';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
+import { SuggestBookForm } from '@/components/suggest-book-form';
 
 const GENRE_LABELS: Record<string, { emoji: string; label: string }> = {
   story:        { emoji: '📖', label: '物語・小説' },
@@ -112,12 +113,15 @@ export default async function ChildRecordsPage({ params }: Props) {
           </Link>
           <h1 className="mt-1 text-2xl font-bold">{child.display_name} の読書記録</h1>
         </div>
-        <Link
-          href={`/children/${childId}/records/new`}
-          className="rounded bg-emerald-600 px-4 py-2 text-white"
-        >
-          記録を追加
-        </Link>
+        <div className="flex items-center gap-2">
+          <SuggestBookForm childId={childId} />
+          <Link
+            href={`/children/${childId}/records/new`}
+            className="rounded bg-emerald-600 px-4 py-2 text-white"
+          >
+            記録を追加
+          </Link>
+        </div>
       </div>
 
       {/* Bookshelf visual */}
