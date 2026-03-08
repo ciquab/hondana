@@ -56,3 +56,6 @@ Magic Link は次PRで差し替えまたは併用可能です。
 
 ## セキュリティ運用ドキュメント
 - 監査ログ運用ランブック: `docs/security-audit-log-runbook.md`
+
+## デプロイ
+本番環境へのデプロイ手順は `docs/deployment.md` を参照してください。
