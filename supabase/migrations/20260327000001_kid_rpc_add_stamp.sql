@@ -1,6 +1,7 @@
 -- get_kid_recent_records に stamp カラムを追加
--- （record_reactions_child テーブルから LEFT JOIN して取得）
--- RETURNS TABLE の列変更のため DROP → RECREATE
+-- 前提: 20260308000001_step3_milestone_a.sql で record_reactions_child が作成済み
+--       20260326000002_kid_rpc_genre.sql で genre 列が追加済み
+-- RETURNS TABLE の列変更のため DROP → RECREATE + GRANT 付け直し
 
 drop function if exists public.get_kid_recent_records(uuid, int);
 
