@@ -54,6 +54,16 @@ $$;
 
 revoke all on function public.get_kid_suggestions(uuid) from public;
 grant execute on function public.get_kid_suggestions(uuid) to service_role;
+
+-- child_session ロールは 20260324000003 で正式に作成されるが、
+-- それ以前のマイグレーションでも GRANT が必要なため冪等に作成する
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'child_session') then
+    create role child_session nologin;
+  end if;
+end
+$$;
 grant execute on function public.get_kid_suggestions(uuid) to child_session;
 
 -- 親側 RPC: suggest_book_to_child（書籍情報を受け取り books + suggestions に insert）
