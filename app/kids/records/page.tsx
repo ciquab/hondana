@@ -16,7 +16,10 @@ export default async function KidsRecordsPage() {
   const { childId, supabase } = await requireKidContext();
   const [{ data: childRows }, { data: recordRows }] = await Promise.all([
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
-    supabase.rpc('get_kid_recent_records', { target_child_id: childId, max_rows: 120 })
+    supabase.rpc('get_kid_recent_records', {
+      target_child_id: childId,
+      max_rows: 120
+    })
   ]);
 
   const child = childRows?.[0];
@@ -27,8 +30,11 @@ export default async function KidsRecordsPage() {
 
   return (
     <main className="mx-auto max-w-4xl p-4">
-      <Link href="/kids/home" className="mb-3 inline-block text-sm text-blue-600 underline">
-        こどもホームへ戻る
+      <Link
+        href="/kids/home"
+        className="mb-3 inline-block text-sm text-blue-600 underline"
+      >
+        こどもホームへもどる
       </Link>
 
       <KidsBookshelf records={records} childName={child.display_name} />
