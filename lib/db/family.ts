@@ -1,20 +1,21 @@
+import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 
-export async function getCurrentUser() {
+/** Cached per-request: avoids redundant auth checks when called multiple times */
+export const getCurrentUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
 
   return user;
-}
+});
 
 export async function getFamiliesForCurrentUser() {
-  const supabase = await createClient();
   const user = await getCurrentUser();
-
   if (!user) return [];
 
+  const supabase = await createClient();
   const { data } = await supabase
     .from('family_members')
     .select('role, families(id, name)')
@@ -24,10 +25,10 @@ export async function getFamiliesForCurrentUser() {
 }
 
 export async function getChildrenForCurrentUser() {
-  const supabase = await createClient();
   const user = await getCurrentUser();
-
   if (!user) return [];
+
+  const supabase = await createClient();
 
   const { data: members } = await supabase
     .from('family_members')

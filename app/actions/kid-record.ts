@@ -6,10 +6,9 @@ import { requireKidContext } from '@/lib/kids/client';
 import { evaluateChildBadges } from '@/lib/kids/badges';
 import { CHILD_GENRES } from '@/lib/kids/feelings';
 import { createKidRecordSchema } from '@/lib/validations/kid-record';
+import type { ActionResult } from '@/lib/actions/types';
 
-export type KidRecordActionResult = {
-  error?: string;
-};
+export type KidRecordActionResult = ActionResult;
 
 export async function createKidRecord(
   _prev: KidRecordActionResult,

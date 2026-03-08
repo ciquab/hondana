@@ -1,221 +1,83 @@
-'use client';
-
-import { useActionState, useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { updateRecordStatus, type ActionResult } from '@/app/actions/record';
-import { createComment, type CommentActionResult } from '@/app/actions/comment';
-import { toggleReaction } from '@/app/actions/reaction';
-import { READING_STATUSES, STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
+import { notFound, redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
+import { RecordDetailInteractive } from '@/components/record-detail-interactive';
 
-type RecordDetail = {
-  id: string;
-  family_id: string;
-  child_id: string;
-  status: string;
-  memo: string | null;
-  finished_on: string | null;
-  created_at: string;
-  updated_at: string;
-  books: { id: string; title: string; author: string | null; isbn13: string | null; cover_url: string | null };
-  children: { id: string; display_name: string };
+type Props = {
+  params: Promise<{ recordId: string }>;
 };
 
-type Comment = {
-  id: string;
-  author_user_id: string;
-  body: string;
-  created_at: string;
-};
+export default async function RecordDetailPage({ params }: Props) {
+  const { recordId } = await params;
 
-type FamilyMember = {
-  user_id: string;
-  display_name: string;
-};
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-type Reaction = {
-  id: string;
-  user_id: string;
-  emoji: string;
-};
+  if (!user) redirect('/login');
 
-const EMOJI_MAP: Record<string, string> = {
-  heart: '❤️',
-  thumbsup: '👍',
-  star: '🌟',
-  clap: '👏',
-};
-
-export default function RecordDetailPage() {
-  const { recordId } = useParams<{ recordId: string }>();
-  const [record, setRecord] = useState<RecordDetail | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [memberNameMap, setMemberNameMap] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
-  const [reactingEmoji, setReactingEmoji] = useState<string | null>(null);
-  const [state, formAction, pending] = useActionState<ActionResult, FormData>(updateRecordStatus, {});
-  const [commentBody, setCommentBody] = useState('');
-  const [commentState, commentFormAction, commentPending] = useActionState<CommentActionResult, FormData>(
-    async (prev, formData) => {
-      const result = await createComment(prev, formData);
-      if (!result.error) {
-        setCommentBody('');
-        fetchComments();
-      }
-      return result;
-    },
-    {}
-  );
-
-  const COMMENT_TEMPLATES = ['よくよめたね！', 'すごい！', 'いっしょに読もうね', 'どんなお話だった？'];
-
-  const fetchMemberNames = useCallback(async (userIds: string[]) => {
-    if (userIds.length === 0) return;
-
-    const supabase = createClient();
-    const { data } = await supabase
-      .from('family_members')
-      .select('user_id, display_name')
-      .in('user_id', userIds);
-
-    const nextMap: Record<string, string> = {};
-    for (const row of (data ?? []) as FamilyMember[]) {
-      nextMap[row.user_id] = row.display_name ?? '保護者';
-    }
-
-    setMemberNameMap((prev) => ({ ...prev, ...nextMap }));
-  }, []);
-
-  const fetchComments = useCallback(() => {
-    const supabase = createClient();
-    supabase
-      .from('record_comments')
-      .select('id, author_user_id, body, created_at')
-      .eq('record_id', recordId)
-      .order('created_at', { ascending: true })
-      .then(({ data }) => {
-        const rows = (data as Comment[]) ?? [];
-        setComments(rows);
-        const userIds = Array.from(new Set(rows.map((row) => row.author_user_id)));
-        if (userIds.length > 0) {
-          fetchMemberNames(userIds);
-        }
-      });
-  }, [recordId, fetchMemberNames]);
-  const fetchReactions = useCallback(async () => {
-    const supabase = createClient();
-    const { data } = await supabase
-      .from('record_reactions')
-      .select('id, user_id, emoji')
-      .eq('record_id', recordId);
-    setReactions((data as Reaction[]) ?? []);
-  }, [recordId]);
-
-  const handleReaction = useCallback(
-    async (emoji: string) => {
-      if (!currentUserId) return;
-      setReactingEmoji(emoji);
-
-      // Optimistic update: toggle locally first
-      setReactions((prev) => {
-        const existing = prev.find((r) => r.user_id === currentUserId && r.emoji === emoji);
-        if (existing) {
-          return prev.filter((r) => r.id !== existing.id);
-        } else {
-          return [...prev, { id: `optimistic-${Date.now()}`, user_id: currentUserId, emoji }];
-        }
-      });
-
-      // Sync with server, then reconcile with actual DB state
-      try {
-        await toggleReaction(recordId, emoji);
-        await fetchReactions();
-      } catch {
-        await fetchReactions();
-      } finally {
-        setReactingEmoji(null);
-      }
-    },
-    [recordId, currentUserId, fetchReactions]
-  );
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setCurrentUserId(user?.id ?? null);
-    });
-
+  const [{ data: record }, { data: commentRows }, { data: reactionRows }] = await Promise.all([
     supabase
       .from('reading_records')
       .select(
         'id, family_id, child_id, status, memo, finished_on, created_at, updated_at, books(id, title, author, isbn13, cover_url), children(id, display_name)'
       )
       .eq('id', recordId)
-      .single()
-      .then(({ data }) => {
-        setRecord(data as RecordDetail | null);
-        setLoading(false);
-      });
+      .single(),
+    supabase
+      .from('record_comments')
+      .select('id, author_user_id, body, created_at')
+      .eq('record_id', recordId)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('record_reactions')
+      .select('id, user_id, emoji')
+      .eq('record_id', recordId),
+  ]);
 
-    fetchComments();
-    fetchReactions();
-  }, [recordId, fetchComments, fetchReactions, fetchMemberNames]);
+  if (!record) notFound();
 
-  if (loading) {
-    return (
-      <main className="mx-auto max-w-xl p-4">
-        <p className="text-slate-500">読み込み中…</p>
-      </main>
-    );
-  }
+  const comments = (commentRows ?? []) as { id: string; author_user_id: string; body: string; created_at: string }[];
+  const reactions = (reactionRows ?? []) as { id: string; user_id: string; emoji: string }[];
 
-  if (!record) {
-    return (
-      <main className="mx-auto max-w-xl p-4">
-        <p className="text-slate-600">記録が見つかりません。</p>
-        <Link href="/dashboard" className="text-blue-600 underline">
-          ダッシュボードへ戻る
-        </Link>
-      </main>
-    );
-  }
-
-  // Group reactions by emoji
-  const reactionCounts: Record<string, { count: number; mine: boolean }> = {};
-  for (const r of reactions) {
-    if (!reactionCounts[r.emoji]) {
-      reactionCounts[r.emoji] = { count: 0, mine: false };
-    }
-    reactionCounts[r.emoji].count++;
-    if (r.user_id === currentUserId) {
-      reactionCounts[r.emoji].mine = true;
+  // Build member name map for comment authors
+  const authorUserIds = Array.from(new Set(comments.map((c) => c.author_user_id)));
+  let memberNameMap: Record<string, string> = {};
+  if (authorUserIds.length > 0) {
+    const { data: members } = await supabase
+      .from('family_members')
+      .select('user_id, display_name')
+      .in('user_id', authorUserIds);
+    for (const m of (members ?? []) as { user_id: string; display_name: string }[]) {
+      memberNameMap[m.user_id] = m.display_name ?? '保護者';
     }
   }
+
+  const books = record.books as { id: string; title: string; author: string | null; isbn13: string | null; cover_url: string | null } | null;
+  const children = record.children as { id: string; display_name: string } | null;
 
   return (
     <main className="mx-auto max-w-xl p-4">
       <Link href={`/children/${record.child_id}`} className="text-sm text-blue-600 underline">
-        {record.children?.display_name ?? '子ども'} の記録一覧へ戻る
+        {children?.display_name ?? '子ども'} の記録一覧へ戻る
       </Link>
 
       <div className="mt-3 rounded-xl bg-white p-5 shadow">
         <div className="flex gap-4">
-          {record.books?.cover_url && (
+          {books?.cover_url && (
             <img
-              src={record.books.cover_url}
-              alt={`${record.books.title} の表紙`}
+              src={books.cover_url}
+              alt={`${books.title} の表紙`}
               className="h-28 flex-shrink-0 rounded shadow"
             />
           )}
           <div>
-            <h1 className="text-xl font-bold">{record.books?.title}</h1>
+            <h1 className="text-xl font-bold">{books?.title}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {record.books?.author ?? '著者不明'}
-              {record.books?.isbn13 && ` ・ ISBN: ${record.books.isbn13}`}
+              {books?.author ?? '著者不明'}
+              {books?.isbn13 && ` ・ ISBN: ${books.isbn13}`}
             </p>
 
             <div className="mt-3 inline-block rounded bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700">
@@ -241,153 +103,18 @@ export default function RecordDetailPage() {
             ` ・ 更新: ${new Date(record.updated_at).toLocaleDateString('ja-JP')}`}
         </p>
 
-        {/* Reactions */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {Object.entries(EMOJI_MAP).map(([key, emoji]) => {
-            const info = reactionCounts[key];
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => handleReaction(key)}
-                disabled={reactingEmoji !== null}
-                className={`flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition ${
-                  info?.mine
-                    ? 'border-blue-300 bg-blue-50 text-blue-700'
-                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
-                } disabled:opacity-50`}
-              >
-                <span>{emoji}</span>
-                {info && <span className="text-xs font-medium">{info.count}</span>}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
-      <form action={formAction} className="mt-6 space-y-4 rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">記録を更新</h2>
-        <input type="hidden" name="recordId" value={record.id} />
-
-        <div>
-          <label htmlFor="status" className="mb-1 block text-sm font-medium">
-            ステータス
-          </label>
-          <select
-            id="status"
-            name="status"
-            className="w-full rounded border p-2"
-            defaultValue={record.status}
-          >
-            {READING_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_LABELS[s]}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="memo" className="mb-1 block text-sm font-medium">
-            メモ
-          </label>
-          <textarea
-            id="memo"
-            name="memo"
-            className="w-full rounded border p-2"
-            rows={3}
-            defaultValue={record.memo ?? ''}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="finishedOn" className="mb-1 block text-sm font-medium">
-            読了日
-          </label>
-          <input
-            id="finishedOn"
-            name="finishedOn"
-            type="date"
-            className="w-full rounded border p-2"
-            defaultValue={record.finished_on ?? ''}
-          />
-        </div>
-
-        {state.error && (
-          <p className="text-sm text-red-600" role="alert">
-            {state.error}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {pending ? '更新中…' : '更新する'}
-        </button>
-      </form>
-
-      {/* コメントセクション */}
-      <section className="mt-6 rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">コメント（{comments.length}件）</h2>
-
-        {comments.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">まだコメントはありません。</p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {comments.map((c) => (
-              <li key={c.id} className="rounded-lg bg-slate-50 p-3">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <span className="rounded bg-slate-200 px-1.5 py-0.5 text-slate-700">
-                    {c.author_user_id === currentUserId ? '自分' : (memberNameMap[c.author_user_id] ?? '保護者')}
-                  </span>
-                  <time>{new Date(c.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{c.body}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <form action={commentFormAction} className="mt-4">
-          <input type="hidden" name="recordId" value={record.id} />
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {COMMENT_TEMPLATES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setCommentBody(t)}
-                className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs text-orange-700 hover:bg-orange-100"
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-          <textarea
-            name="body"
-            className="w-full rounded border p-2 text-sm"
-            rows={2}
-            placeholder="コメントを入力…"
-            maxLength={500}
-            required
-            value={commentBody}
-            onChange={(e) => setCommentBody(e.target.value)}
-          />
-          {commentState.error && (
-            <p className="mt-1 text-sm text-red-600" role="alert">
-              {commentState.error}
-            </p>
-          )}
-          <button
-            type="submit"
-            disabled={commentPending}
-            className="mt-2 rounded bg-emerald-600 px-4 py-1.5 text-sm text-white disabled:opacity-50"
-          >
-            {commentPending ? '送信中…' : '送信'}
-          </button>
-        </form>
-      </section>
+      <RecordDetailInteractive
+        recordId={record.id}
+        currentUserId={user.id}
+        currentStatus={record.status}
+        currentMemo={record.memo}
+        currentFinishedOn={record.finished_on}
+        initialComments={comments}
+        initialReactions={reactions}
+        initialMemberNameMap={memberNameMap}
+      />
     </main>
   );
 }

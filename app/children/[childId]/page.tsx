@@ -4,24 +4,15 @@ import { createClient } from '@/lib/supabase/server';
 import { getRecordsForChild, getGenreBreakdownForChild, getCommentedRecordIds } from '@/lib/db/records';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 import { SuggestBookForm } from '@/components/suggest-book-form';
-
-const GENRE_LABELS: Record<string, { emoji: string; label: string }> = {
-  story:        { emoji: '📖', label: '物語・小説' },
-  zukan:        { emoji: '🔬', label: '図鑑・科学' },
-  manga:        { emoji: '🎭', label: 'マンガ' },
-  picture_book: { emoji: '🖼️', label: '絵本・詩' },
-  other:        { emoji: '📚', label: 'その他' },
-};
-
-const GENRE_ORDER = ['story', 'zukan', 'manga', 'picture_book', 'other'];
+import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
 
 function GenreBreakdownChart({ breakdown }: { breakdown: Record<string, number> }) {
   const maxCount = Math.max(...Object.values(breakdown), 1);
   return (
     <div className="max-w-xs space-y-2">
-      {GENRE_ORDER.map((key) => {
+      {CHILD_GENRES.map((key) => {
         const count = breakdown[key] ?? 0;
-        const { emoji, label } = GENRE_LABELS[key] ?? { emoji: '📚', label: key };
+        const { emoji, label } = GENRE_LABELS[key];
         const pct = Math.round((count / maxCount) * 100);
         return (
           <div key={key} className="flex items-center gap-2 text-sm">

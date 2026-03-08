@@ -7,12 +7,9 @@ import { createClient } from '@/lib/supabase/server';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { hashPin } from '@/lib/kids/pin';
 import { sanitizeHeaderValue, getClientIpFromForwardedFor } from '@/lib/utils/request';
+import type { ActionResult as BaseActionResult } from '@/lib/actions/types';
 
-export type ActionResult = {
-  error?: string;
-  inviteCode?: string;
-  ok?: string;
-};
+export type ActionResult = BaseActionResult<{ inviteCode?: string; ok?: string }>;
 
 
 async function logInviteAuditEvent(

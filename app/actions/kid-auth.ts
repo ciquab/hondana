@@ -10,10 +10,9 @@ import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { canCreateKidClient } from '@/lib/supabase/child';
 import { isUuid } from '@/lib/utils/validation';
 import { sanitizeHeaderValue, getClientIpFromForwardedFor } from '@/lib/utils/request';
+import type { ActionResult } from '@/lib/actions/types';
 
-export type KidAuthResult = {
-  error?: string;
-};
+export type KidAuthResult = ActionResult;
 
 async function logKidAuthEvent(
   supabase: SupabaseClient,

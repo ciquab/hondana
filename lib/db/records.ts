@@ -40,14 +40,13 @@ export async function getRecordCountsForChildren(childIds: string[]) {
 
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from('reading_records')
-    .select('child_id')
-    .in('child_id', childIds);
+  const { data } = await supabase.rpc('get_record_counts_for_children', {
+    target_child_ids: childIds,
+  });
 
   const counts: Record<string, number> = {};
-  for (const row of data ?? []) {
-    counts[row.child_id] = (counts[row.child_id] ?? 0) + 1;
+  for (const row of (data ?? []) as { child_id: string; count: number }[]) {
+    counts[row.child_id] = row.count;
   }
   return counts;
 }
@@ -58,17 +57,13 @@ export async function getGenreBreakdownForChild(childId: string) {
 
   if (!user) return {};
 
-  const { data } = await supabase
-    .from('reading_records')
-    .select('genre')
-    .eq('child_id', childId)
-    .not('genre', 'is', null);
+  const { data } = await supabase.rpc('get_genre_breakdown_for_child', {
+    target_child_id: childId,
+  });
 
   const counts: Record<string, number> = {};
-  for (const row of data ?? []) {
-    if (row.genre) {
-      counts[row.genre] = (counts[row.genre] ?? 0) + 1;
-    }
+  for (const row of (data ?? []) as { genre: string; count: number }[]) {
+    counts[row.genre] = row.count;
   }
   return counts;
 }
@@ -93,16 +88,14 @@ export async function getMonthlyReadCountsForChildren(childIds: string[]) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
-  const { data } = await supabase
-    .from('reading_records')
-    .select('child_id')
-    .in('child_id', childIds)
-    .eq('status', 'finished')
-    .gte('finished_on', monthStart);
+  const { data } = await supabase.rpc('get_monthly_read_counts_for_children', {
+    target_child_ids: childIds,
+    month_start: monthStart,
+  });
 
   const byChild: Record<string, number> = {};
-  for (const row of data ?? []) {
-    byChild[row.child_id] = (byChild[row.child_id] ?? 0) + 1;
+  for (const row of (data ?? []) as { child_id: string; count: number }[]) {
+    byChild[row.child_id] = row.count;
   }
   const total = Object.values(byChild).reduce((sum, n) => sum + n, 0);
   return { total, byChild };

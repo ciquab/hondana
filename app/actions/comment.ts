@@ -4,10 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createCommentSchema } from '@/lib/validations/comment';
+import type { ActionResult } from '@/lib/actions/types';
 
-export type CommentActionResult = {
-  error?: string;
-};
+export type CommentActionResult = ActionResult;
 
 export async function createComment(
   _prev: CommentActionResult,
