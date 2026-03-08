@@ -174,7 +174,7 @@ export function KidsBookshelf({
                         className="relative w-20 flex-shrink-0 rounded-md p-1 transition hover:-translate-y-1"
                       >
                         {record.stamp && (
-                          <span className="absolute right-0 top-0 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] shadow">
+                          <span className="absolute right-0 top-0 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs shadow">
                             {record.stamp === 'great'
                               ? '🌟'
                               : record.stamp === 'fun'
@@ -200,7 +200,7 @@ export function KidsBookshelf({
                                 style={{ backgroundColor: bg }}
                               >
                                 <span
-                                  className="text-[11px] font-medium leading-tight"
+                                  className="text-xs font-medium leading-tight"
                                   style={{
                                     writingMode: 'vertical-rl',
                                     color: text,
@@ -218,7 +218,7 @@ export function KidsBookshelf({
                           })()
                         )}
                         <div className="pointer-events-none absolute -bottom-3 left-1 right-1 rounded-md bg-white/95 px-1 py-1 shadow">
-                          <p className="line-clamp-2 h-8 text-center text-[10px] leading-4 text-slate-700">
+                          <p className="line-clamp-2 h-8 text-center text-xs leading-4 text-slate-800">
                             {title}
                           </p>
                         </div>

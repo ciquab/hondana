@@ -67,7 +67,7 @@ export default async function KidsMessagesPage() {
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-600">
                     リアクションはまだありません
                   </span>
                 )}

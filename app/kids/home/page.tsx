@@ -162,7 +162,7 @@ export default async function KidsHomePage({
                       style={{ backgroundColor: bg }}
                     >
                       <span
-                        className="text-[10px] font-medium leading-tight"
+                        className="text-xs font-medium leading-tight"
                         style={{
                           writingMode: 'vertical-rl',
                           color: text,
@@ -174,7 +174,7 @@ export default async function KidsHomePage({
                       </span>
                     </div>
                   )}
-                  <p className="mt-1 w-14 truncate text-center text-[10px] text-orange-800">
+                  <p className="mt-1 w-14 truncate text-center text-xs text-orange-900">
                     {title}
                   </p>
                 </li>
@@ -200,7 +200,7 @@ export default async function KidsHomePage({
           <p className="text-sm text-rose-900 line-clamp-2">
             {latestMessage.body}
           </p>
-          <p className="mt-1 text-xs text-rose-400">
+          <p className="mt-1 text-xs text-rose-700">
             {latestMessage.bookTitle}
           </p>
         </section>
@@ -262,7 +262,7 @@ export default async function KidsHomePage({
                             style={{ backgroundColor: bg }}
                           >
                             <span
-                              className="text-[10px] font-medium leading-tight"
+                              className="text-xs font-medium leading-tight"
                               style={{
                                 writingMode: 'vertical-rl',
                                 color: text,
@@ -294,8 +294,11 @@ export default async function KidsHomePage({
       {/* とうろく FAB */}
       <Link
         href="/kids/records/new"
-        className="fixed bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600 active:scale-95"
-        style={{ maxWidth: 'calc(100vw - 2rem)' }}
+        className="fixed left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600 active:scale-95"
+        style={{
+          bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+          maxWidth: 'calc(100vw - 2rem)'
+        }}
       >
         <span>📷</span>
         <span>ほんを とうろくする</span>

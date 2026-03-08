@@ -171,7 +171,7 @@ export function KidRecordForm() {
                       className="h-14 w-10 flex-shrink-0 rounded object-cover"
                     />
                   ) : (
-                    <div className="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-400">
+                    <div className="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-600">
                       No img
                     </div>
                   )}
@@ -290,7 +290,7 @@ export function KidRecordForm() {
         <fieldset>
           <legend className="mb-2 text-sm font-medium">
             ジャンルをえらぶ{' '}
-            <span className="text-xs font-normal text-slate-400">
+            <span className="text-xs font-normal text-slate-600">
               （かかなくてもOK）
             </span>
           </legend>
@@ -374,7 +374,7 @@ export function KidRecordForm() {
         <div>
           <label htmlFor="memo" className="mb-1 block text-sm font-medium">
             ひとことかんそう{' '}
-            <span className="text-xs font-normal text-slate-400">
+            <span className="text-xs font-normal text-slate-600">
               （かかなくてもOK）
             </span>
           </label>

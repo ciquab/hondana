@@ -143,7 +143,7 @@ export default async function KidsCalendarPage({
                   {day}
                 </div>
                 {info ? (
-                  <div className="mt-0.5 text-[11px] text-slate-700">
+                  <div className="mt-0.5 text-xs text-slate-700">
                     <div>{info.count}さつ</div>
                     <div>
                       {info.stamp
@@ -152,7 +152,7 @@ export default async function KidsCalendarPage({
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-0.5 text-[11px] text-slate-300">-</div>
+                  <div className="mt-0.5 text-xs text-slate-500">-</div>
                 )}
               </div>
             );
