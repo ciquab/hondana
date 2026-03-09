@@ -35,8 +35,22 @@ export default async function KidsMessagesPage() {
       <p className="mb-4 text-sm text-slate-600">みどく {unreadCount} けん</p>
 
       {messages.length === 0 ? (
-        <div className="rounded-xl bg-white p-4 text-sm text-slate-600 shadow">
-          まだメッセージはありません。おうちのひとのこめんとやリアクションがでます。
+        <div className="flex flex-col items-center rounded-xl bg-white py-8 text-center shadow">
+          <span className="text-4xl">💬</span>
+          <p className="mt-2 font-semibold text-slate-700">
+            まだ メッセージは ないよ
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            ほんをよんで きろくすると、おうちのひとから
+            <br />
+            メッセージが とどくかも！
+          </p>
+          <Link
+            href="/kids/records/new"
+            className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
+          >
+            📖 きろくをつける
+          </Link>
         </div>
       ) : (
         <ul className="space-y-3">

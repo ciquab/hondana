@@ -178,9 +178,15 @@ export default async function KidsCalendarPage({
             })}
           </ul>
         ) : (
-          <p className="text-sm text-slate-600">
-            まだばっじはありません。きろくしてみよう！
-          </p>
+          <div className="flex flex-col items-center py-4 text-center">
+            <span className="text-3xl">🏅</span>
+            <p className="mt-2 text-sm text-slate-600">
+              まだ バッジは ないよ
+            </p>
+            <p className="mt-1 text-xs text-slate-400">
+              きろくすると バッジが もらえるよ！
+            </p>
+          </div>
         )}
       </section>
     </main>

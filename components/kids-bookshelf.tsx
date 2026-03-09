@@ -126,12 +126,23 @@ export function KidsBookshelf({
       </div>
 
       {records.length === 0 ? (
-        <div className="mt-4 rounded-xl bg-white/80 p-5 text-sm text-slate-700">
-          まだ どくしょきろくが ありません。まずは「きょうのきろくをつける」から
-          はじめよう！
+        <div className="mt-4 flex flex-col items-center rounded-xl bg-white/80 py-8 text-center shadow">
+          <span className="text-5xl">📚</span>
+          <p className="mt-3 text-lg font-bold text-slate-700">
+            ほんだなは まだ からっぽ
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            ほんをよんだら きろくして、ほんだなを いっぱいにしよう！
+          </p>
+          <Link
+            href="/kids/records/new"
+            className="mt-4 inline-flex items-center gap-1 rounded-full bg-orange-500 px-5 py-2.5 text-base font-bold text-white shadow hover:bg-orange-600"
+          >
+            📖 さいしょの1さつを きろくする
+          </Link>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="mt-4 rounded-xl bg-white/80 p-5 text-center text-sm text-slate-700">
+        <div className="mt-4 flex flex-col items-center rounded-xl bg-white/80 py-6 text-center text-sm text-slate-700">
           {GENRE_EMPTY_MESSAGES[activeTab] ? (
             <>
               <p className="text-3xl">
@@ -147,6 +158,12 @@ export function KidsBookshelf({
           ) : (
             <p>このジャンルの きろくは まだありません。</p>
           )}
+          <Link
+            href="/kids/records/new"
+            className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
+          >
+            📖 きろくをつける
+          </Link>
         </div>
       ) : (
         <>
