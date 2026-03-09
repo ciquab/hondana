@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getRecordsForChild, getGenreBreakdownForChild, getCommentedRecordIds } from '@/lib/db/records';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 import { SuggestBookForm } from '@/components/suggest-book-form';
+import { MissionSetup } from '@/components/mission-setup';
 import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
 
 function GenreBreakdownChart({ breakdown }: { breakdown: Record<string, number> }) {
@@ -77,15 +78,17 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   const { data: child } = await supabase
     .from('children')
-    .select('id, display_name')
+    .select('id, display_name, family_id')
     .eq('id', childId)
     .single();
 
   if (!child) notFound();
 
-  const [records, genreBreakdown] = await Promise.all([
+  const [records, genreBreakdown, { data: missionTemplates }, { data: activeMissionRows }] = await Promise.all([
     getRecordsForChild(childId),
     getGenreBreakdownForChild(childId),
+    supabase.from('mission_templates').select('*').order('sort_order'),
+    supabase.rpc('get_kid_active_mission', { target_child_id: childId }),
   ]);
 
   const commentedRecordIds = await getCommentedRecordIds(records.map((r) => r.id));
@@ -125,6 +128,20 @@ export default async function ChildRecordsPage({ params }: Props) {
             記録を追加
           </Link>
         </div>
+      </div>
+
+      {/* Mission setup */}
+      <div className="mb-6">
+        <MissionSetup
+          childId={childId}
+          familyId={child.family_id}
+          templates={(missionTemplates ?? []) as { id: string; title: string; description: string | null; icon: string; difficulty: string; target_value: number }[]}
+          activeMission={
+            activeMissionRows && activeMissionRows.length > 0
+              ? (activeMissionRows[0] as { mission_id: string; template_id: string; title: string; icon: string; target_value: number; current_progress: number; status: string; ends_at: string })
+              : null
+          }
+        />
       </div>
 
       {/* Bookshelf visual */}
