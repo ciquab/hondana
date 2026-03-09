@@ -1,15 +1,24 @@
 export const CHILD_STAMPS = ['great', 'fun', 'ok', 'hard'] as const;
 
-export const CHILD_GENRES = ['story', 'zukan', 'manga', 'picture_book', 'other'] as const;
+export const CHILD_GENRES = [
+  'story',
+  'zukan',
+  'manga',
+  'picture_book',
+  'other'
+] as const;
 
 export type ChildGenre = (typeof CHILD_GENRES)[number];
 
-export const GENRE_LABELS: Record<ChildGenre, { emoji: string; label: string }> = {
-  story:        { emoji: '📖', label: '物語・小説' },
-  zukan:        { emoji: '🔬', label: '図鑑・科学' },
-  manga:        { emoji: '🎭', label: 'マンガ' },
-  picture_book: { emoji: '🖼️', label: '絵本・詩' },
-  other:        { emoji: '📚', label: 'その他' },
+export const GENRE_LABELS: Record<
+  ChildGenre,
+  { emoji: string; label: string }
+> = {
+  story: { emoji: '📖', label: 'ものがたり・しょうせつ' },
+  zukan: { emoji: '🔬', label: 'ずかん・かがく' },
+  manga: { emoji: '🎭', label: 'まんが' },
+  picture_book: { emoji: '🖼️', label: 'えほん・し' },
+  other: { emoji: '📚', label: 'そのほか' }
 };
 
 export function genreDisplayName(genre: ChildGenre): string {
@@ -19,7 +28,7 @@ export function genreDisplayName(genre: ChildGenre): string {
 
 export const CHILD_FEELINGS = [
   'ドキドキ',
-  '笑った',
+  'わらった',
   'びっくり',
   'かなしかった',
   'ためになった',
@@ -29,5 +38,5 @@ export const CHILD_FEELINGS = [
   'なみだがでた',
   'ふしぎだった',
   'しゅうちゅうした',
-  'もう一回よみたい'
+  'もういっかいよみたい'
 ] as const;
