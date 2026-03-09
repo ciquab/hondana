@@ -5,7 +5,8 @@ import { requireKidContext } from '@/lib/kids/client';
 const STATUS_LABELS: Record<string, string> = {
   want_to_read: 'よみたい',
   reading: 'よんでる',
-  finished: 'よみおわった'
+  finished: 'よみおわった',
+  read_aloud: 'よんでもらった'
 };
 
 const STAMP_LABELS: Record<string, string> = {

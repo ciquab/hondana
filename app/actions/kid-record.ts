@@ -65,6 +65,9 @@ export async function createKidRecord(
 
   await evaluateChildBadges(recordId);
 
+  // ミッション進捗更新
+  await supabase.rpc('update_mission_progress', { target_child_id: childId });
+
   // 新規獲得バッジを検出
   const { data: badgesAfter } = await supabase.rpc('get_kid_badges', { target_child_id: childId });
   const newBadge = (badgesAfter ?? []).find(

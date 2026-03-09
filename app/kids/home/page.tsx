@@ -5,6 +5,7 @@ import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
 import { getKidMessages } from '@/lib/kids/messages';
 import { BadgeCelebration } from '@/components/badge-celebration';
+import { MissionProgress } from '@/components/mission-progress';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 type SuggestionRow = {
@@ -45,7 +46,8 @@ export default async function KidsHomePage({
     { data: recentRows },
     badges,
     { messages, unreadCount },
-    { data: suggestionRows }
+    { data: suggestionRows },
+    { data: missionRows }
   ] = await Promise.all([
     supabase.rpc('get_kid_child_profile', { target_child_id: childId }),
     supabase.rpc('get_kid_recent_records', {
@@ -54,9 +56,13 @@ export default async function KidsHomePage({
     }),
     getChildBadges(),
     getKidMessages(),
-    supabase.rpc('get_kid_suggestions', { target_child_id: childId })
+    supabase.rpc('get_kid_suggestions', { target_child_id: childId }),
+    supabase.rpc('get_kid_active_mission', { target_child_id: childId })
   ]);
   const suggestions = (suggestionRows ?? []) as SuggestionRow[];
+  const activeMission = (missionRows && missionRows.length > 0)
+    ? (missionRows[0] as { title: string; icon: string; target_value: number; current_progress: number; status: string; ends_at: string })
+    : null;
 
   const latestMessage = messages[0] ?? null;
 
@@ -137,6 +143,17 @@ export default async function KidsHomePage({
           </span>
         </Link>
       </div>
+
+      {activeMission && (
+        <MissionProgress
+          title={activeMission.title}
+          icon={activeMission.icon}
+          targetValue={activeMission.target_value}
+          currentProgress={activeMission.current_progress}
+          status={activeMission.status}
+          endsAt={activeMission.ends_at}
+        />
+      )}
 
       {suggestions.length > 0 && (
         <section className="mb-6 rounded-xl border border-orange-200 bg-orange-50 p-4">
