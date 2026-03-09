@@ -15,8 +15,9 @@ const ISBN_TTL = 30 * 60 * 1000;
 // Title search results may vary slightly; cache for 5 minutes.
 const TITLE_TTL = 5 * 60 * 1000;
 
-function apiKeyParam(): string {
-  return env.GOOGLE_BOOKS_API_KEY ? `&key=${env.GOOGLE_BOOKS_API_KEY}` : '';
+function apiKeyParam(useKey: boolean): string {
+  if (!useKey || !env.GOOGLE_BOOKS_API_KEY) return '';
+  return `&key=${env.GOOGLE_BOOKS_API_KEY}`;
 }
 
 type VolumeInfo = {
@@ -61,10 +62,20 @@ function mapVolume(vol: VolumeInfo): BookSearchResult {
   };
 }
 
+async function fetchWithQuotaFallback(urlWithKey: string): Promise<Response> {
+  const withKey = await fetch(urlWithKey);
+  if (withKey.status !== 429 || !env.GOOGLE_BOOKS_API_KEY) return withKey;
+
+  const urlWithoutKey = urlWithKey.replace(/&key=[^&]+/, '');
+  bookSearchDebug('google-retry-without-key', { fromStatus: withKey.status });
+  return fetch(urlWithoutKey);
+}
+
 /** Search by ISBN (13-digit) */
 export async function searchByIsbn(isbn: string): Promise<BookSearchResult | null> {
   return withCache(`gbooks:isbn:${isbn}`, ISBN_TTL, async () => {
-    const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam()}`);
+    const url = `${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam(true)}`;
+    const res = await fetchWithQuotaFallback(url);
 
     if (!res.ok) {
       console.error('Google Books API error (ISBN):', res.status, await res.text().catch(() => ''));
@@ -84,8 +95,8 @@ export async function searchByTitle(query: string, maxResults = 10): Promise<Boo
     try {
       const encoded = encodeURIComponent(query);
 
-      const strictUrl = `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`;
-      const strictRes = await fetch(strictUrl);
+      const strictUrl = `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam(true)}`;
+      const strictRes = await fetchWithQuotaFallback(strictUrl);
 
       if (!strictRes.ok) {
         const body = await strictRes.text().catch(() => '');
@@ -109,8 +120,8 @@ export async function searchByTitle(query: string, maxResults = 10): Promise<Boo
       }
 
       // Fallback: broader query without intitle/lang restriction to avoid missing valid hits.
-      const fallbackUrl = `${BASE_URL}?q=${encoded}&maxResults=${maxResults}&printType=books${apiKeyParam()}`;
-      const fallbackRes = await fetch(fallbackUrl);
+      const fallbackUrl = `${BASE_URL}?q=${encoded}&maxResults=${maxResults}&printType=books${apiKeyParam(true)}`;
+      const fallbackRes = await fetchWithQuotaFallback(fallbackUrl);
 
       if (!fallbackRes.ok) {
         const body = await fallbackRes.text().catch(() => '');
