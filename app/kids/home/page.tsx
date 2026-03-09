@@ -222,7 +222,15 @@ export default async function KidsHomePage({
             })}
           </div>
         ) : (
-          <p className="text-sm text-slate-600">まだバッジはありません。</p>
+          <div className="flex flex-col items-center py-4 text-center">
+            <span className="text-4xl">🏅</span>
+            <p className="mt-2 font-semibold text-slate-700">
+              まだ バッジは ないよ
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              1さつ きろくすると はじめてのバッジが もらえるよ！
+            </p>
+          </div>
         )}
       </section>
 
@@ -287,7 +295,21 @@ export default async function KidsHomePage({
             })}
           </ul>
         ) : (
-          <p className="text-sm text-slate-600">まだきろくがありません。</p>
+          <div className="flex flex-col items-center py-6 text-center">
+            <span className="text-4xl">📚</span>
+            <p className="mt-2 font-semibold text-slate-700">
+              まだ きろくが ないよ
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              ほんをよんだら きろくしてみよう！
+            </p>
+            <Link
+              href="/kids/records/new"
+              className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
+            >
+              📖 きろくをつける
+            </Link>
+          </div>
         )}
       </section>
 
