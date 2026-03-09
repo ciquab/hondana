@@ -142,14 +142,60 @@ COMMENT ON COLUMN public.children.age_mode_override IS
   '年齢適応UIモードの親オーバーライド。auto=生年から自動判定, junior=低学年固定, standard=標準固定';
 ```
 
+#### 子ども編集ページの新設（Sprint A 前提作業）
+
+現状、子どもの生年は **登録時のみ入力可能** で、登録後に編集する画面がない。
+年齢適応 UI は `birth_year` を読み取って動作するため、**登録時に生年を入力し忘れると年齢適応が効かない**（`standard` モードにフォールバック）という問題がある。
+
+Sprint A の着手前に以下を対応する：
+
+| # | 対応内容 | 詳細 |
+|---|----------|------|
+| A-0a | 登録フォームの「生年」を推奨入力に変更 | `/settings/children` の `placeholder` と説明文を更新。「年齢適応 UI のために入力を推奨」と明記 |
+| A-0b | 子ども編集ページの新設 | `/settings/children/[id]/edit` を新設し、表示名・生年・`age_mode_override` を変更可能にする |
+| A-0c | `updateChild` Server Action の追加 | `app/actions/family.ts` に `updateChild` を追加（RLS: 自分のファミリーの子どものみ更新可） |
+
+**編集ページの入力項目:**
+
+```
+表示名         [たろう          ]
+生まれた年     [2018            ] ← 年齢適応UIに使用
+年齢モード     ( ) 自動（生年から判定）
+               ( ) 低学年モード固定（ひらがな中心）
+               ( ) 標準モード固定
+```
+
+**`updateChild` アクションのスキーマ（概略）:**
+
+```typescript
+// app/actions/family.ts に追加
+export async function updateChild(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
+  const childId = formData.get('childId') as string;
+  const displayName = (formData.get('displayName') as string)?.trim();
+  const birthYearRaw = formData.get('birthYear') as string;
+  const ageModeOverride = (formData.get('ageModeOverride') as string) ?? 'auto';
+
+  // 権限チェック: 自分のファミリーの子どもか確認
+  // ...
+
+  await supabase.from('children').update({
+    display_name: displayName,
+    birth_year: birthYearRaw ? Number(birthYearRaw) : null,
+    age_mode_override: ageModeOverride,
+  }).eq('id', childId);
+}
+```
+
 #### 実装ファイル一覧
 
 ```
-lib/kids/age-mode.ts              ← 年齢算出ロジック
-lib/kids/age-mode-context.tsx     ← React Context
-lib/kids/age-text.ts              ← 文言ヘルパー
-app/kids/layout.tsx               ← AgeModeProvider をラップ
-app/settings/children/[id]/page.tsx ← オーバーライド設定UI
+lib/kids/age-mode.ts                   ← 年齢算出ロジック
+lib/kids/age-mode-context.tsx          ← React Context
+lib/kids/age-text.ts                   ← 文言ヘルパー
+app/kids/layout.tsx                    ← AgeModeProvider をラップ
+app/settings/children/page.tsx         ← 登録フォーム（生年を推奨入力に更新）
+app/settings/children/[id]/edit/page.tsx ← 子ども編集ページ（新設）
+app/actions/family.ts                  ← updateChild アクション追加
 supabase/migrations/..._age_mode.sql
 ```
 
