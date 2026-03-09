@@ -81,20 +81,42 @@ export async function searchByIsbn(isbn: string): Promise<BookSearchResult | nul
 export async function searchByTitle(query: string, maxResults = 10): Promise<BookSearchResult[]> {
   return withCache(`gbooks:title:${query}:${maxResults}`, TITLE_TTL, async () => {
     const encoded = encodeURIComponent(query);
-    const res = await fetch(
+
+    const strictRes = await fetch(
       `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`
     );
 
-    if (!res.ok) {
-      if (res.status !== 429) {
-        console.error('Google Books API error (title):', res.status, await res.text().catch(() => ''));
+    if (!strictRes.ok) {
+      if (strictRes.status !== 429) {
+        console.error('Google Books API error (title):', strictRes.status, await strictRes.text().catch(() => ''));
       }
       return [];
     }
 
-    const data: GoogleBooksResponse = await res.json();
-    if (!data.items) return [];
+    const strictData: GoogleBooksResponse = await strictRes.json();
+    if (strictData.items?.length) {
+      return strictData.items.map((item) => mapVolume(item.volumeInfo));
+    }
 
-    return data.items.map((item) => mapVolume(item.volumeInfo));
+    // Fallback: broader query without intitle/lang restriction to avoid missing valid hits.
+    const fallbackRes = await fetch(
+      `${BASE_URL}?q=${encoded}&maxResults=${maxResults}&printType=books${apiKeyParam()}`
+    );
+
+    if (!fallbackRes.ok) {
+      if (fallbackRes.status !== 429) {
+        console.error(
+          'Google Books API error (title fallback):',
+          fallbackRes.status,
+          await fallbackRes.text().catch(() => '')
+        );
+      }
+      return [];
+    }
+
+    const fallbackData: GoogleBooksResponse = await fallbackRes.json();
+    if (!fallbackData.items) return [];
+
+    return fallbackData.items.map((item) => mapVolume(item.volumeInfo));
   });
 }
