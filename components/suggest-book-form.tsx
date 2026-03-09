@@ -43,7 +43,7 @@ export function SuggestBookForm({ childId }: Props) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
+        className="w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600 sm:w-auto"
       >
         📚 おすすめの本を送る
       </button>
@@ -63,7 +63,7 @@ export function SuggestBookForm({ childId }: Props) {
       </div>
 
       {/* 検索 */}
-      <div className="mb-3 flex gap-2">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row">
         <input
           type="text"
           value={searchQuery}
@@ -76,7 +76,7 @@ export function SuggestBookForm({ childId }: Props) {
           type="button"
           onClick={handleSearch}
           disabled={searching}
-          className="rounded bg-orange-500 px-3 py-2 text-sm text-white disabled:opacity-50"
+          className="rounded bg-orange-500 px-3 py-2 text-sm text-white disabled:opacity-50 sm:w-auto"
         >
           {searching ? '検索中…' : '検索'}
         </button>
