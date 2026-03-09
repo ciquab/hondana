@@ -6,6 +6,7 @@ import { getChildBadges } from '@/lib/kids/badges';
 import { getKidMessages } from '@/lib/kids/messages';
 import { BadgeCelebration } from '@/components/badge-celebration';
 import { MissionProgress } from '@/components/mission-progress';
+import { KidSuggestionsSection } from '@/components/kid-suggestions-section';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 type SuggestionRow = {
@@ -13,6 +14,7 @@ type SuggestionRow = {
   created_at: string;
   title: string | null;
   author: string | null;
+  isbn13: string | null;
   cover_url: string | null;
   status: string;
 };
@@ -156,49 +158,7 @@ export default async function KidsHomePage({
       )}
 
       {suggestions.length > 0 && (
-        <section className="mb-6 rounded-xl border border-orange-200 bg-orange-50 p-4">
-          <p className="mb-2 text-xs font-semibold text-orange-700">
-            📚 おとなからのおすすめ
-          </p>
-          <ul className="flex gap-3 overflow-x-auto pb-1">
-            {suggestions.map((s) => {
-              const title = s.title ?? 'ほん';
-              const { bg, text } = pickColor(s.id);
-              return (
-                <li key={s.id} className="flex-shrink-0">
-                  {s.cover_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.cover_url}
-                      alt={title}
-                      className="h-20 w-14 rounded object-cover shadow"
-                    />
-                  ) : (
-                    <div
-                      className="flex h-20 w-14 items-center justify-center overflow-hidden rounded shadow"
-                      style={{ backgroundColor: bg }}
-                    >
-                      <span
-                        className="text-xs font-medium leading-tight"
-                        style={{
-                          writingMode: 'vertical-rl',
-                          color: text,
-                          maxHeight: '4.5rem',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {title.length > 14 ? `${title.slice(0, 14)}…` : title}
-                      </span>
-                    </div>
-                  )}
-                  <p className="mt-1 w-14 truncate text-center text-xs text-orange-900">
-                    {title}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+        <KidSuggestionsSection suggestions={suggestions} />
       )}
 
       {latestMessage && (
