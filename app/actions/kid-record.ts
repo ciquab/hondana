@@ -76,5 +76,8 @@ export async function createKidRecord(
 
   revalidatePath('/kids/home');
   revalidatePath('/kids/calendar');
-  redirect(newBadge ? `/kids/home?badge=${newBadge.badge_id}` : '/kids/home');
+
+  const completeParams = new URLSearchParams({ recordId });
+  if (newBadge) completeParams.set('badge', newBadge.badge_id);
+  redirect(`/kids/records/complete?${completeParams.toString()}`);
 }
