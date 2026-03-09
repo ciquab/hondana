@@ -64,6 +64,7 @@ export function KidRecordForm() {
   const [feelingTags, setFeelingTags] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const [mode, setMode] = useState<'simple' | 'detailed'>('simple');
 
   const [finished, setFinished] = useState(true);
   const [finishedOn, setFinishedOn] = useState(() =>
@@ -232,21 +233,61 @@ export function KidRecordForm() {
         )}
       </div>
 
+      <div className="mb-4 flex gap-1 rounded-lg bg-slate-100 p-1">
+        <button
+          type="button"
+          onClick={() => setMode('simple')}
+          className={`flex-1 rounded-md px-3 py-2 text-sm font-bold transition-colors ${
+            mode === 'simple'
+              ? 'bg-white text-orange-600 shadow'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          ✨ かんたん
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('detailed')}
+          className={`flex-1 rounded-md px-3 py-2 text-sm font-bold transition-colors ${
+            mode === 'detailed'
+              ? 'bg-white text-orange-600 shadow'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          📝 くわしく
+        </button>
+      </div>
+
       <form
         action={formAction}
         className="space-y-4 rounded-xl bg-white p-4 shadow"
       >
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
-        <input
-          type="hidden"
-          name="status"
-          value={finished ? 'finished' : 'reading'}
-        />
         <input type="hidden" name="stamp" value={stamp} />
-        <input type="hidden" name="genre" value={genre} />
-        {feelingTags.map((tag) => (
-          <input key={tag} type="hidden" name="feelingTags" value={tag} />
-        ))}
+        {mode === 'simple' ? (
+          <>
+            <input type="hidden" name="status" value="finished" />
+            <input
+              type="hidden"
+              name="finishedOn"
+              value={new Date().toISOString().slice(0, 10)}
+            />
+            <input type="hidden" name="author" value={author} />
+            <input type="hidden" name="isbn" value={isbn} />
+          </>
+        ) : (
+          <>
+            <input
+              type="hidden"
+              name="status"
+              value={finished ? 'finished' : 'reading'}
+            />
+            <input type="hidden" name="genre" value={genre} />
+            {feelingTags.map((tag) => (
+              <input key={tag} type="hidden" name="feelingTags" value={tag} />
+            ))}
+          </>
+        )}
 
         {coverUrl && (
           <div className="flex justify-center">
@@ -274,32 +315,36 @@ export function KidRecordForm() {
           />
         </div>
 
-        <div>
-          <label htmlFor="author" className="mb-1 block text-sm font-medium">
-            かいたひと（にゅうりょくはじゆう）
-          </label>
-          <input
-            id="author"
-            name="author"
-            className="w-full rounded border p-2"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-          />
-        </div>
+        {mode === 'detailed' && (
+          <>
+            <div>
+              <label htmlFor="author" className="mb-1 block text-sm font-medium">
+                かいたひと（にゅうりょくはじゆう）
+              </label>
+              <input
+                id="author"
+                name="author"
+                className="w-full rounded border p-2"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label htmlFor="isbn" className="mb-1 block text-sm font-medium">
-            ISBN（13けた・にゅうりょくはじゆう）
-          </label>
-          <input
-            id="isbn"
-            name="isbn"
-            className="w-full rounded border p-2"
-            maxLength={13}
-            value={isbn}
-            onChange={(e) => setIsbn(e.target.value)}
-          />
-        </div>
+            <div>
+              <label htmlFor="isbn" className="mb-1 block text-sm font-medium">
+                ISBN（13けた・にゅうりょくはじゆう）
+              </label>
+              <input
+                id="isbn"
+                name="isbn"
+                className="w-full rounded border p-2"
+                maxLength={13}
+                value={isbn}
+                onChange={(e) => setIsbn(e.target.value)}
+              />
+            </div>
+          </>
+        )}
 
         <fieldset>
           <legend className="mb-2 text-sm font-medium">スタンプをえらぶ</legend>
@@ -325,105 +370,109 @@ export function KidRecordForm() {
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium">
-            ジャンルをえらぶ{' '}
-            <span className="text-xs font-normal text-slate-600">
-              （かかなくてもOK）
-            </span>
-          </legend>
-          <div className="grid grid-cols-2 gap-2">
-            {CHILD_GENRES.map((g) => {
-              const selected = genre === g;
-              return (
+        {mode === 'detailed' && (
+          <>
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">
+                ジャンルをえらぶ{' '}
+                <span className="text-xs font-normal text-slate-600">
+                  （かかなくてもOK）
+                </span>
+              </legend>
+              <div className="grid grid-cols-2 gap-2">
+                {CHILD_GENRES.map((g) => {
+                  const selected = genre === g;
+                  return (
+                    <button
+                      type="button"
+                      key={g}
+                      onClick={() => setGenre(selected ? '' : g)}
+                      className={`rounded-lg border px-3 py-2 text-sm transition-transform active:scale-95 ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white'}`}
+                    >
+                      {genreDisplayName(g)}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">
+                きもちタグ（ふくすうえらべる）
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {CHILD_FEELINGS.map((tag) => {
+                  const selected = feelingTags.includes(tag);
+                  return (
+                    <button
+                      type="button"
+                      key={tag}
+                      onClick={() => toggleFeeling(tag)}
+                      className={`rounded-full border px-3 py-1 text-sm ${selected ? 'border-amber-400 bg-amber-100 text-amber-900' : 'border-slate-300 bg-white text-slate-700'}`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">
+                さいごまでよんだ？
+              </legend>
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  key={g}
-                  onClick={() => setGenre(selected ? '' : g)}
-                  className={`rounded-lg border px-3 py-2 text-sm transition-transform active:scale-95 ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white'}`}
+                  onClick={() => setFinished(true)}
+                  className={`rounded-lg border px-3 py-2 text-sm ${finished ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
                 >
-                  {genreDisplayName(g)}
+                  📖 さいごまでよんだ！
                 </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium">
-            きもちタグ（ふくすうえらべる）
-          </legend>
-          <div className="flex flex-wrap gap-2">
-            {CHILD_FEELINGS.map((tag) => {
-              const selected = feelingTags.includes(tag);
-              return (
                 <button
                   type="button"
-                  key={tag}
-                  onClick={() => toggleFeeling(tag)}
-                  className={`rounded-full border px-3 py-1 text-sm ${selected ? 'border-amber-400 bg-amber-100 text-amber-900' : 'border-slate-300 bg-white text-slate-700'}`}
+                  onClick={() => setFinished(false)}
+                  className={`rounded-lg border px-3 py-2 text-sm ${!finished ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
                 >
-                  {tag}
+                  🔖 とちゅうまでよんだ
                 </button>
-              );
-            })}
-          </div>
-        </fieldset>
+              </div>
+            </fieldset>
 
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium">
-            さいごまでよんだ？
-          </legend>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setFinished(true)}
-              className={`rounded-lg border px-3 py-2 text-sm ${finished ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
-            >
-              📖 さいごまでよんだ！
-            </button>
-            <button
-              type="button"
-              onClick={() => setFinished(false)}
-              className={`rounded-lg border px-3 py-2 text-sm ${!finished ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
-            >
-              🔖 とちゅうまでよんだ
-            </button>
-          </div>
-        </fieldset>
+            <div>
+              <label
+                htmlFor="finishedOn"
+                className="mb-1 block text-sm font-medium"
+              >
+                よんだひ
+              </label>
+              <input
+                id="finishedOn"
+                name="finishedOn"
+                type="date"
+                className="w-full rounded border p-2"
+                value={finishedOn}
+                onChange={(e) => setFinishedOn(e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label
-            htmlFor="finishedOn"
-            className="mb-1 block text-sm font-medium"
-          >
-            よんだひ
-          </label>
-          <input
-            id="finishedOn"
-            name="finishedOn"
-            type="date"
-            className="w-full rounded border p-2"
-            value={finishedOn}
-            onChange={(e) => setFinishedOn(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="memo" className="mb-1 block text-sm font-medium">
-            ひとことかんそう{' '}
-            <span className="text-xs font-normal text-slate-600">
-              （かかなくてもOK）
-            </span>
-          </label>
-          <textarea
-            id="memo"
-            name="memo"
-            className="w-full rounded border p-2 text-sm"
-            rows={3}
-            placeholder="おもしろかった！　つぎは〇〇をよみたい…など"
-          />
-        </div>
+            <div>
+              <label htmlFor="memo" className="mb-1 block text-sm font-medium">
+                ひとことかんそう{' '}
+                <span className="text-xs font-normal text-slate-600">
+                  （かかなくてもOK）
+                </span>
+              </label>
+              <textarea
+                id="memo"
+                name="memo"
+                className="w-full rounded border p-2 text-sm"
+                rows={3}
+                placeholder="おもしろかった！　つぎは〇〇をよみたい…など"
+              />
+            </div>
+          </>
+        )}
 
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
