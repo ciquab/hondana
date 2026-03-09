@@ -44,7 +44,13 @@ const STAMPS = [
   }
 ] as const;
 
-export function KidRecordForm() {
+type KidRecordFormProps = {
+  initialTitle?: string;
+  initialAuthor?: string;
+  initialIsbn?: string;
+};
+
+export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidRecordFormProps = {}) {
   const [state, formAction, pending] = useActionState<
     KidRecordActionResult,
     FormData
@@ -55,9 +61,9 @@ export function KidRecordForm() {
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [isbn, setIsbn] = useState('');
+  const [title, setTitle] = useState(initialTitle ?? '');
+  const [author, setAuthor] = useState(initialAuthor ?? '');
+  const [isbn, setIsbn] = useState(initialIsbn ?? '');
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [stamp, setStamp] = useState<(typeof STAMPS)[number]['value'] | ''>('');
   const [genre, setGenre] = useState<(typeof CHILD_GENRES)[number] | ''>('');

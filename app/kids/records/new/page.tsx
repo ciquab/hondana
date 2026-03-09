@@ -3,9 +3,15 @@ import { redirect } from 'next/navigation';
 import { KidRecordForm } from '@/components/kid-record-form';
 import { getKidSessionChildId } from '@/lib/kids/session';
 
-export default async function KidsNewRecordPage() {
+export default async function KidsNewRecordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ title?: string; author?: string; isbn?: string }>;
+}) {
   const childId = await getKidSessionChildId();
   if (!childId) redirect('/kids/login');
+
+  const params = await searchParams;
 
   return (
     <main className="mx-auto max-w-xl p-4">
@@ -16,7 +22,11 @@ export default async function KidsNewRecordPage() {
         こどもホームへもどる
       </Link>
       <h1 className="mb-4 text-2xl font-bold">どくしょきろく</h1>
-      <KidRecordForm />
+      <KidRecordForm
+        initialTitle={params.title}
+        initialAuthor={params.author}
+        initialIsbn={params.isbn}
+      />
     </main>
   );
 }

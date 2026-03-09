@@ -9,13 +9,28 @@ type Child = {
   birth_year: number | null;
 };
 
+type WeeklyHighlight = {
+  recordId: string;
+  bookTitle: string;
+  coverUrl: string | null;
+  stamp: string;
+} | null;
+
 type Props = {
   children: Child[];
   recordCounts: Record<string, number>;
   monthlyByChild: Record<string, number>;
+  weeklyHighlights?: Record<string, WeeklyHighlight>;
 };
 
-export function DashboardChildrenTabs({ children, recordCounts, monthlyByChild }: Props) {
+const STAMP_LABELS: Record<string, string> = {
+  great: '🌟 すごくよかった',
+  fun: '😊 たのしかった',
+  ok: '😐 ふつう',
+  hard: '😓 むずかしかった',
+};
+
+export function DashboardChildrenTabs({ children, recordCounts, monthlyByChild, weeklyHighlights }: Props) {
   const [activeId, setActiveId] = useState<string>(children[0]?.id ?? '');
 
   if (children.length === 0) {
@@ -69,6 +84,34 @@ export function DashboardChildrenTabs({ children, recordCounts, monthlyByChild }
               <p className="text-xl font-bold text-orange-700">{monthlyByChild[active.id] ?? 0} 冊</p>
             </div>
           </div>
+
+          {/* 今週のハイライト */}
+          {weeklyHighlights?.[active.id] && (() => {
+            const hl = weeklyHighlights[active.id]!;
+            return (
+              <Link
+                href={`/records/${hl.recordId}`}
+                className="mt-3 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 transition hover:bg-amber-100"
+              >
+                {hl.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={hl.coverUrl}
+                    alt=""
+                    className="h-12 w-9 flex-shrink-0 rounded object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="flex h-12 w-9 flex-shrink-0 items-center justify-center rounded bg-amber-200 text-xs">📖</div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-amber-700">🌟 今週のハイライト</p>
+                  <p className="truncate text-sm font-medium text-slate-800">{hl.bookTitle}</p>
+                  <p className="text-xs text-slate-500">{STAMP_LABELS[hl.stamp] ?? hl.stamp}</p>
+                </div>
+                <span className="text-slate-400">→</span>
+              </Link>
+            );
+          })()}
         </div>
       )}
     </div>
