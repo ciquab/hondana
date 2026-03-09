@@ -6,6 +6,7 @@
 
 import type { BookSearchResult } from './types';
 import { withCache } from './cache';
+import { bookSearchDebug } from './debug';
 
 const TITLE_TTL = 5 * 60 * 1000;
 
@@ -14,15 +15,44 @@ export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<
   return withCache(`ndl:title:${query}:${maxResults}`, TITLE_TTL, async () => {
     try {
       const encoded = encodeURIComponent(query);
-      const res = await fetch(
-        `https://ndlsearch.ndl.go.jp/api/opensearch?title=${encoded}&cnt=${maxResults}&mediatype=1`
-      );
+      const titleUrl = `https://ndlsearch.ndl.go.jp/api/opensearch?title=${encoded}&cnt=${maxResults}&mediatype=1`;
+      const res = await fetch(titleUrl);
 
-      if (!res.ok) return [];
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        bookSearchDebug('ndl-http-error', { query, maxResults, status: res.status, body: body.slice(0, 200) });
+        return [];
+      }
 
       const xml = await res.text();
-      return parseNdlXml(xml);
-    } catch {
+      const parsed = parseNdlXml(xml);
+      bookSearchDebug('ndl-success', { query, maxResults, status: res.status, itemCount: parsed.length });
+      if (parsed.length > 0) return parsed;
+
+      // Fallback: widen NDL query scope from title-only to any field.
+      const anyUrl = `https://ndlsearch.ndl.go.jp/api/opensearch?any=${encoded}&cnt=${maxResults}&mediatype=1`;
+      const anyRes = await fetch(anyUrl);
+      if (!anyRes.ok) {
+        const anyBody = await anyRes.text().catch(() => '');
+        bookSearchDebug('ndl-any-http-error', {
+          query,
+          maxResults,
+          status: anyRes.status,
+          body: anyBody.slice(0, 200),
+        });
+        return [];
+      }
+
+      const anyXml = await anyRes.text();
+      const anyParsed = parseNdlXml(anyXml);
+      bookSearchDebug('ndl-any-success', { query, maxResults, status: anyRes.status, itemCount: anyParsed.length });
+      return anyParsed;
+    } catch (error) {
+      bookSearchDebug('ndl-exception', {
+        query,
+        maxResults,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
   });

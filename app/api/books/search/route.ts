@@ -5,6 +5,9 @@ import { openBdLookup } from '@/lib/books/openbd';
 import { ndlSearchByTitle } from '@/lib/books/ndl';
 import { buildTitleQueryVariants } from '@/lib/books/search-query';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
+import { getKidSession } from '@/lib/kids/session';
+import { searchCatalogByTitle } from '@/lib/books/catalog';
+import { bookSearchDebug } from '@/lib/books/debug';
 
 // 1分間に最大30リクエスト（ユーザーごと）
 const RATE_LIMIT = { limit: 30, windowMs: 60 * 1000 };
@@ -74,16 +77,25 @@ function dedupeResults(items: Awaited<ReturnType<typeof searchByTitle>>) {
 }
 
 export async function GET(request: NextRequest) {
-  // Auth check
+  // Auth check: allow either signed-in parent user or active kid session.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
+
+  const kidSession = user ? null : await getKidSession();
+  const requesterId = user?.id ?? kidSession?.childId;
+
+  bookSearchDebug('auth', {
+    hasUser: Boolean(user),
+    hasKidSession: Boolean(kidSession),
+    requesterId,
+  });
+  if (!requesterId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { allowed } = checkRateLimit(`books-search:${user.id}`, RATE_LIMIT);
+  const { allowed } = checkRateLimit(`books-search:${requesterId}`, RATE_LIMIT);
   if (!allowed) {
     return NextResponse.json(
       { error: 'リクエストが多すぎます。しばらく待ってから再試行してください。' },
@@ -98,11 +110,18 @@ export async function GET(request: NextRequest) {
   if (isbn) {
     // Try OpenBD first (free, no key, good for Japanese books), then Google Books
     const result = (await openBdLookup(isbn)) ?? (await searchByIsbn(isbn));
+    bookSearchDebug('isbn', {
+      requesterId,
+      isbn,
+      resultCount: result ? 1 : 0,
+      source: result ? (result.isbn13 ? 'openbd-or-google' : 'unknown') : 'none',
+    });
     return NextResponse.json({ results: result ? [result] : [] });
   }
 
   if (q && q.trim().length > 0) {
     const variants = buildTitleQueryVariants(q);
+    bookSearchDebug('query', { requesterId, q, variants });
 
     // Google Books first (rich metadata, cover images). Cached, so 429 risk is low.
     const googleMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
@@ -119,12 +138,33 @@ export async function GET(request: NextRequest) {
     }
     const ndlUnique = dedupeResults(ndlMerged).slice(0, 10);
 
+    bookSearchDebug('provider-counts', {
+      requesterId,
+      googleCount: googleUnique.length,
+      ndlCount: ndlUnique.length,
+    });
+
     if (googleUnique.length > 0) {
-      return NextResponse.json({ results: mergePreferIsbn(googleUnique, ndlUnique) });
+      const merged = mergePreferIsbn(googleUnique, ndlUnique);
+      bookSearchDebug('response', { requesterId, source: 'google+ndl-merge', resultCount: merged.length });
+      return NextResponse.json({ results: merged });
     }
 
-    // Fallback to NDL when Google Books returns nothing.
-    return NextResponse.json({ results: ndlUnique });
+    if (ndlUnique.length > 0) {
+      bookSearchDebug('response', { requesterId, source: 'ndl', resultCount: ndlUnique.length });
+      return NextResponse.json({ results: ndlUnique });
+    }
+
+    // Final fallback: return books already known in our own catalog.
+    const catalogMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
+    for (const queryVariant of variants) {
+      const catalogResults = await searchCatalogByTitle(queryVariant);
+      catalogMerged.push(...catalogResults);
+    }
+
+    const catalogUnique = dedupeResults(catalogMerged).slice(0, 10);
+    bookSearchDebug('response', { requesterId, source: 'catalog', resultCount: catalogUnique.length });
+    return NextResponse.json({ results: catalogUnique });
   }
 
   return NextResponse.json({ error: 'isbn or q parameter required' }, { status: 400 });
