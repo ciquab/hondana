@@ -40,13 +40,26 @@ export async function getRecordCountsForChildren(childIds: string[]) {
 
   const supabase = await createClient();
 
-  const { data } = await supabase.rpc('get_record_counts_for_children', {
+  const { data, error } = await supabase.rpc('get_record_counts_for_children', {
     target_child_ids: childIds,
   });
 
+  if (error) {
+    const { data: fallbackRows } = await supabase
+      .from('reading_records')
+      .select('child_id')
+      .in('child_id', childIds);
+
+    const fallbackCounts: Record<string, number> = {};
+    for (const row of fallbackRows ?? []) {
+      fallbackCounts[row.child_id] = (fallbackCounts[row.child_id] ?? 0) + 1;
+    }
+    return fallbackCounts;
+  }
+
   const counts: Record<string, number> = {};
-  for (const row of (data ?? []) as { child_id: string; count: number }[]) {
-    counts[row.child_id] = row.count;
+  for (const row of (data ?? []) as { child_id: string; count: number | string }[]) {
+    counts[row.child_id] = Number(row.count);
   }
   return counts;
 }
@@ -88,14 +101,30 @@ export async function getMonthlyReadCountsForChildren(childIds: string[]) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
-  const { data } = await supabase.rpc('get_monthly_read_counts_for_children', {
+  const { data, error } = await supabase.rpc('get_monthly_read_counts_for_children', {
     target_child_ids: childIds,
     month_start: monthStart,
   });
 
+  if (error) {
+    const { data: fallbackRows } = await supabase
+      .from('reading_records')
+      .select('child_id')
+      .in('child_id', childIds)
+      .eq('status', 'finished')
+      .gte('finished_on', monthStart);
+
+    const fallbackByChild: Record<string, number> = {};
+    for (const row of fallbackRows ?? []) {
+      fallbackByChild[row.child_id] = (fallbackByChild[row.child_id] ?? 0) + 1;
+    }
+    const fallbackTotal = Object.values(fallbackByChild).reduce((sum, n) => sum + n, 0);
+    return { total: fallbackTotal, byChild: fallbackByChild };
+  }
+
   const byChild: Record<string, number> = {};
-  for (const row of (data ?? []) as { child_id: string; count: number }[]) {
-    byChild[row.child_id] = row.count;
+  for (const row of (data ?? []) as { child_id: string; count: number | string }[]) {
+    byChild[row.child_id] = Number(row.count);
   }
   const total = Object.values(byChild).reduce((sum, n) => sum + n, 0);
   return { total, byChild };
