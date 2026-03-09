@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useActionState, useCallback, useState } from 'react';
+import { useActionState, useCallback, useRef, useState } from 'react';
 import {
   createKidRecord,
   type KidRecordActionResult
@@ -62,6 +62,9 @@ export function KidRecordForm() {
   const [stamp, setStamp] = useState<(typeof STAMPS)[number]['value'] | ''>('');
   const [genre, setGenre] = useState<(typeof CHILD_GENRES)[number] | ''>('');
   const [feelingTags, setFeelingTags] = useState<string[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
   const [finished, setFinished] = useState(true);
   const [finishedOn, setFinishedOn] = useState(() =>
     new Date().toISOString().slice(0, 10)
@@ -132,6 +135,7 @@ export function KidRecordForm() {
 
         <div className="flex gap-2">
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -188,9 +192,42 @@ export function KidRecordForm() {
         ) : (
           hasSearched &&
           !searching && (
-            <p className="text-sm text-slate-500">
-              みつかりませんでした。したのフォームでにゅうりょくできます。
-            </p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center">
+              <p className="mb-3 text-sm text-slate-600">
+                みつかりませんでした
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setHasSearched(false);
+                    searchInputRef.current?.focus();
+                  }}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
+                >
+                  べつのことばでけんさくする
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowScanner(true)}
+                  className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-700 transition hover:bg-orange-100"
+                >
+                  バーコードでさがす
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHasSearched(false);
+                    setSearchQuery('');
+                    titleInputRef.current?.focus();
+                  }}
+                  className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 transition hover:bg-emerald-100"
+                >
+                  じぶんでにゅうりょくする
+                </button>
+              </div>
+            </div>
           )
         )}
       </div>
@@ -227,6 +264,7 @@ export function KidRecordForm() {
             ほんのタイトル
           </label>
           <input
+            ref={titleInputRef}
             id="title"
             name="title"
             required
