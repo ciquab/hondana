@@ -1,5 +1,8 @@
 -- 3.8-4: get_kid_suggestions に isbn13 を追加
-create or replace function public.get_kid_suggestions(target_child_id uuid)
+-- 返却型が変わるため DROP が必要
+drop function if exists public.get_kid_suggestions(uuid);
+
+create function public.get_kid_suggestions(target_child_id uuid)
 returns table (
   id uuid,
   created_at timestamptz,
@@ -28,3 +31,8 @@ as $$
   order by rs.created_at desc
   limit 20;
 $$;
+
+-- 権限を再付与（DROP で失われるため）
+revoke all on function public.get_kid_suggestions(uuid) from public;
+grant execute on function public.get_kid_suggestions(uuid) to service_role;
+grant execute on function public.get_kid_suggestions(uuid) to child_session;
