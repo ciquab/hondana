@@ -32,20 +32,39 @@ export default async function DashboardPage() {
         </form>
       </header>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Link className="rounded bg-blue-600 px-3 py-2 text-white" href="/settings/family">
-          家族設定
-        </Link>
-        <Link className="rounded bg-emerald-600 px-3 py-2 text-white" href="/settings/children">
-          子ども追加
-        </Link>
-        <Link className="rounded bg-purple-600 px-3 py-2 text-white" href="/invite">
-          招待コードで参加
-        </Link>
-        <Link className="rounded bg-amber-600 px-3 py-2 text-white" href="/kids/login">
-          こどもモード
-        </Link>
-      </div>
+      <section className="mb-4 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-3 text-base font-semibold text-slate-800">よく使うメニュー</h2>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Link
+            className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 transition hover:bg-blue-100"
+            href="/settings/family"
+          >
+            <p className="text-sm font-semibold text-blue-900">🏠 家族設定</p>
+            <p className="mt-1 text-xs text-blue-800/80">家族情報の確認・編集</p>
+          </Link>
+          <Link
+            className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 transition hover:bg-emerald-100"
+            href="/settings/children"
+          >
+            <p className="text-sm font-semibold text-emerald-900">👦 子ども追加</p>
+            <p className="mt-1 text-xs text-emerald-800/80">プロフィールを登録</p>
+          </Link>
+          <Link
+            className="rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 transition hover:bg-purple-100"
+            href="/invite"
+          >
+            <p className="text-sm font-semibold text-purple-900">🤝 招待コードで参加</p>
+            <p className="mt-1 text-xs text-purple-800/80">他の保護者を招待する</p>
+          </Link>
+          <Link
+            className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 transition hover:bg-amber-100"
+            href="/kids/login"
+          >
+            <p className="text-sm font-semibold text-amber-900">🧒 こどもモード</p>
+            <p className="mt-1 text-xs text-amber-800/80">お子さま向け画面へ移動</p>
+          </Link>
+        </div>
+      </section>
 
       {children.length > 0 && (
         <section className="mb-4 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 p-4 shadow">
