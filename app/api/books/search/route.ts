@@ -5,6 +5,7 @@ import { openBdLookup } from '@/lib/books/openbd';
 import { ndlSearchByTitle } from '@/lib/books/ndl';
 import { buildTitleQueryVariants } from '@/lib/books/search-query';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
+import { getKidSession } from '@/lib/kids/session';
 
 // 1分間に最大30リクエスト（ユーザーごと）
 const RATE_LIMIT = { limit: 30, windowMs: 60 * 1000 };
@@ -74,16 +75,19 @@ function dedupeResults(items: Awaited<ReturnType<typeof searchByTitle>>) {
 }
 
 export async function GET(request: NextRequest) {
-  // Auth check
+  // Auth check: allow either signed-in parent user or active kid session.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
+
+  const kidSession = user ? null : await getKidSession();
+  const requesterId = user?.id ?? kidSession?.childId;
+  if (!requesterId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { allowed } = checkRateLimit(`books-search:${user.id}`, RATE_LIMIT);
+  const { allowed } = checkRateLimit(`books-search:${requesterId}`, RATE_LIMIT);
   if (!allowed) {
     return NextResponse.json(
       { error: 'リクエストが多すぎます。しばらく待ってから再試行してください。' },
