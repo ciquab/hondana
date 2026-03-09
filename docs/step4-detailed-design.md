@@ -104,8 +104,9 @@ export function useAgeMode(): AgeMode {
 
 ```typescript
 // lib/kids/age-text.ts
+import type { AgeMode } from './age-mode';
+
 export function t(
-  key: string,
   mode: AgeMode,
   texts: { junior: string; standard: string }
 ): string {
@@ -113,7 +114,7 @@ export function t(
 }
 
 // 使用例
-const label = t('record.stamp', mode, {
+const label = t(mode, {
   junior: 'きもちをえらんでね',
   standard: 'スタンプを選択',
 });
@@ -475,9 +476,12 @@ export async function fetchBridgeRecommendations(childId: string) {
   }
 
   const storyCount = genreCounts['story'] ?? 0;
+  const zukanCount = genreCounts['zukan'] ?? 0;
+  const mangaCount = genreCounts['manga'] ?? 0;
   const totalCount = records.length;
 
   // 発火条件チェック
+  if (zukanCount + mangaCount < 3) return []; // 図鑑/マンガの蓄積が少ない場合は提案しない
   if (storyCount / totalCount >= 0.2) return []; // 物語が 20% 以上なら橋渡し不要
 
   const topGenres = Object.entries(genreCounts)
@@ -491,8 +495,17 @@ export async function fetchBridgeRecommendations(childId: string) {
     .map(([t]) => t);
 
   // キャッシュキー生成
+  const childAge = new Date().getFullYear() - (child.birth_year ?? 2015);
+  const ageMode = child.age_mode_override === 'junior'
+    ? ('junior' as const)
+    : child.age_mode_override === 'standard'
+      ? ('standard' as const)
+      : childAge <= 8
+        ? ('junior' as const)
+        : ('standard' as const);
+
   const inputHash = createHash('sha256')
-    .update(JSON.stringify({ topGenres, topThemeTags }))
+    .update(JSON.stringify({ topGenres, topThemeTags, ageMode }))
     .digest('hex')
     .slice(0, 16);
 
@@ -506,11 +519,9 @@ export async function fetchBridgeRecommendations(childId: string) {
     .gt('expires_at', new Date().toISOString())
     .maybeSingle();
 
-  if (cached) return cached.payload as typeof recs;
+  if (cached) return cached.payload as BridgeRecommendation[];
 
   // AI 呼び出し
-  const childAge = new Date().getFullYear() - (child.birth_year ?? 2015);
-  const ageMode = childAge <= 8 ? ('junior' as const) : ('standard' as const);
 
   const recs = await getBridgeRecommendations({
     childAge,
