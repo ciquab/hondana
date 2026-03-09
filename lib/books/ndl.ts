@@ -15,7 +15,7 @@ export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<
   return withCache(`ndl:title:${query}:${maxResults}`, TITLE_TTL, async () => {
     try {
       const encoded = encodeURIComponent(query);
-      const titleUrl = `https://ndlsearch.ndl.go.jp/api/opensearch?title=${encoded}&cnt=${maxResults}&mediatype=1`;
+      const titleUrl = `https://ndlsearch.ndl.go.jp/api/opensearch?title=${encoded}&cnt=${maxResults}&mediatype=books`;
       const res = await fetch(titleUrl);
 
       if (!res.ok) {
@@ -30,7 +30,7 @@ export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<
       if (parsed.length > 0) return parsed;
 
       // Fallback: widen NDL query scope from title-only to any field.
-      const anyUrl = `https://ndlsearch.ndl.go.jp/api/opensearch?any=${encoded}&cnt=${maxResults}&mediatype=1`;
+      const anyUrl = `https://ndlsearch.ndl.go.jp/api/opensearch?any=${encoded}&cnt=${maxResults}&mediatype=books`;
       const anyRes = await fetch(anyUrl);
       if (!anyRes.ok) {
         const anyBody = await anyRes.text().catch(() => '');
