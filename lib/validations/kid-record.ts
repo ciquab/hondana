@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CHILD_STAMPS, CHILD_GENRES, CHILD_FEELINGS } from '@/lib/kids/feelings';
 
-const KID_RECORD_STATUSES = ['want_to_read', 'reading', 'finished'] as const;
+const KID_RECORD_STATUSES = ['want_to_read', 'reading', 'finished', 'read_aloud'] as const;
 
 export const createKidRecordSchema = z.object({
   title: z.string().trim().min(1, '本のタイトルを入力してください').max(200, 'タイトルは200文字以内です'),

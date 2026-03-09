@@ -66,7 +66,7 @@ export function KidRecordForm() {
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<'simple' | 'detailed'>('simple');
 
-  const [finished, setFinished] = useState(true);
+  const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>('finished');
   const [finishedOn, setFinishedOn] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
@@ -280,7 +280,7 @@ export function KidRecordForm() {
             <input
               type="hidden"
               name="status"
-              value={finished ? 'finished' : 'reading'}
+              value={readStatus}
             />
             <input type="hidden" name="genre" value={genre} />
             {feelingTags.map((tag) => (
@@ -421,20 +421,27 @@ export function KidRecordForm() {
               <legend className="mb-2 text-sm font-medium">
                 さいごまでよんだ？
               </legend>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
-                  onClick={() => setFinished(true)}
-                  className={`rounded-lg border px-3 py-2 text-sm ${finished ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
+                  onClick={() => setReadStatus('finished')}
+                  className={`rounded-lg border px-2 py-2 text-sm ${readStatus === 'finished' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
                 >
                   📖 さいごまでよんだ！
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFinished(false)}
-                  className={`rounded-lg border px-3 py-2 text-sm ${!finished ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
+                  onClick={() => setReadStatus('reading')}
+                  className={`rounded-lg border px-2 py-2 text-sm ${readStatus === 'reading' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
                 >
-                  🔖 とちゅうまでよんだ
+                  🔖 とちゅうまで
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReadStatus('read_aloud')}
+                  className={`rounded-lg border px-2 py-2 text-sm ${readStatus === 'read_aloud' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white'}`}
+                >
+                  👂 よんでもらった
                 </button>
               </div>
             </fieldset>

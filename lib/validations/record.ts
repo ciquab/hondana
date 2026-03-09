@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
-export const READING_STATUSES = ['want_to_read', 'reading', 'finished'] as const;
+export const READING_STATUSES = ['want_to_read', 'reading', 'finished', 'read_aloud'] as const;
 export type ReadingStatus = (typeof READING_STATUSES)[number];
 
 export const STATUS_LABELS: Record<ReadingStatus, string> = {
   want_to_read: '読みたい',
   reading: '読書中',
-  finished: '読了'
+  finished: '読了',
+  read_aloud: '読み聞かせ',
 };
 
 export const RECORD_GENRES = ['story', 'zukan', 'manga', 'picture_book', 'other'] as const;

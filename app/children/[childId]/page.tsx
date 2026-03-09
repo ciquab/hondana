@@ -93,13 +93,14 @@ export default async function ChildRecordsPage({ params }: Props) {
   const grouped = {
     reading: records.filter((r) => r.status === 'reading'),
     want_to_read: records.filter((r) => r.status === 'want_to_read'),
-    finished: records.filter((r) => r.status === 'finished')
+    finished: records.filter((r) => r.status === 'finished'),
+    read_aloud: records.filter((r) => r.status === 'read_aloud'),
   };
 
-  const sectionOrder: ReadingStatus[] = ['reading', 'want_to_read', 'finished'];
+  const sectionOrder: ReadingStatus[] = ['reading', 'want_to_read', 'finished', 'read_aloud'];
 
   // Collect books for bookshelf visual
-  const finishedBooks = grouped.finished
+  const finishedBooks = [...grouped.finished, ...grouped.read_aloud]
     .map((r) => {
       const book = toBookInfo(r.books);
       return book ? { recordId: r.id, book } : null;
