@@ -6,6 +6,7 @@
 import type { BookSearchResult } from './types';
 import { withCache } from './cache';
 import { env } from '@/lib/env';
+import { bookSearchDebug } from './debug';
 
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes';
 
@@ -82,9 +83,8 @@ export async function searchByTitle(query: string, maxResults = 10): Promise<Boo
   return withCache(`gbooks:title:${query}:${maxResults}`, TITLE_TTL, async () => {
     const encoded = encodeURIComponent(query);
 
-    const strictRes = await fetch(
-      `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`
-    );
+    const strictUrl = `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`;
+    const strictRes = await fetch(strictUrl);
 
     if (!strictRes.ok) {
       if (strictRes.status !== 429) {
@@ -94,14 +94,15 @@ export async function searchByTitle(query: string, maxResults = 10): Promise<Boo
     }
 
     const strictData: GoogleBooksResponse = await strictRes.json();
+    const strictCount = strictData.items?.length ?? 0;
+    bookSearchDebug('google-strict', { query, maxResults, status: strictRes.status, itemCount: strictCount });
     if (strictData.items?.length) {
       return strictData.items.map((item) => mapVolume(item.volumeInfo));
     }
 
     // Fallback: broader query without intitle/lang restriction to avoid missing valid hits.
-    const fallbackRes = await fetch(
-      `${BASE_URL}?q=${encoded}&maxResults=${maxResults}&printType=books${apiKeyParam()}`
-    );
+    const fallbackUrl = `${BASE_URL}?q=${encoded}&maxResults=${maxResults}&printType=books${apiKeyParam()}`;
+    const fallbackRes = await fetch(fallbackUrl);
 
     if (!fallbackRes.ok) {
       if (fallbackRes.status !== 429) {
@@ -115,6 +116,8 @@ export async function searchByTitle(query: string, maxResults = 10): Promise<Boo
     }
 
     const fallbackData: GoogleBooksResponse = await fallbackRes.json();
+    const fallbackCount = fallbackData.items?.length ?? 0;
+    bookSearchDebug('google-fallback', { query, maxResults, status: fallbackRes.status, itemCount: fallbackCount });
     if (!fallbackData.items) return [];
 
     return fallbackData.items.map((item) => mapVolume(item.volumeInfo));

@@ -6,6 +6,7 @@
 
 import type { BookSearchResult } from './types';
 import { withCache } from './cache';
+import { bookSearchDebug } from './debug';
 
 const TITLE_TTL = 5 * 60 * 1000;
 
@@ -18,11 +19,22 @@ export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<
         `https://ndlsearch.ndl.go.jp/api/opensearch?title=${encoded}&cnt=${maxResults}&mediatype=1`
       );
 
-      if (!res.ok) return [];
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        bookSearchDebug('ndl-http-error', { query, maxResults, status: res.status, body: body.slice(0, 200) });
+        return [];
+      }
 
       const xml = await res.text();
-      return parseNdlXml(xml);
-    } catch {
+      const parsed = parseNdlXml(xml);
+      bookSearchDebug('ndl-success', { query, maxResults, status: res.status, itemCount: parsed.length });
+      return parsed;
+    } catch (error) {
+      bookSearchDebug('ndl-exception', {
+        query,
+        maxResults,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
   });
