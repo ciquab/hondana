@@ -17,6 +17,9 @@ const envSchema = z.object({
     .string()
     .min(1, 'SUPABASE_JWT_SECRET が設定されていません'),
   GOOGLE_BOOKS_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z
+    .string()
+    .min(1, 'ANTHROPIC_API_KEY が設定されていません'),
 });
 
 export type Env = z.infer<typeof envSchema>;
