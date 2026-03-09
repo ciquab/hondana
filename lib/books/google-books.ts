@@ -6,6 +6,7 @@
 import type { BookSearchResult } from './types';
 import { withCache } from './cache';
 import { env } from '@/lib/env';
+import { bookSearchDebug } from './debug';
 
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes';
 
@@ -14,8 +15,9 @@ const ISBN_TTL = 30 * 60 * 1000;
 // Title search results may vary slightly; cache for 5 minutes.
 const TITLE_TTL = 5 * 60 * 1000;
 
-function apiKeyParam(): string {
-  return env.GOOGLE_BOOKS_API_KEY ? `&key=${env.GOOGLE_BOOKS_API_KEY}` : '';
+function apiKeyParam(useKey: boolean): string {
+  if (!useKey || !env.GOOGLE_BOOKS_API_KEY) return '';
+  return `&key=${env.GOOGLE_BOOKS_API_KEY}`;
 }
 
 type VolumeInfo = {
@@ -60,10 +62,20 @@ function mapVolume(vol: VolumeInfo): BookSearchResult {
   };
 }
 
+async function fetchWithQuotaFallback(urlWithKey: string): Promise<Response> {
+  const withKey = await fetch(urlWithKey);
+  if (withKey.status !== 429 || !env.GOOGLE_BOOKS_API_KEY) return withKey;
+
+  const urlWithoutKey = urlWithKey.replace(/&key=[^&]+/, '');
+  bookSearchDebug('google-retry-without-key', { fromStatus: withKey.status });
+  return fetch(urlWithoutKey);
+}
+
 /** Search by ISBN (13-digit) */
 export async function searchByIsbn(isbn: string): Promise<BookSearchResult | null> {
   return withCache(`gbooks:isbn:${isbn}`, ISBN_TTL, async () => {
-    const res = await fetch(`${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam()}`);
+    const url = `${BASE_URL}?q=isbn:${isbn}&maxResults=1${apiKeyParam(true)}`;
+    const res = await fetchWithQuotaFallback(url);
 
     if (!res.ok) {
       console.error('Google Books API error (ISBN):', res.status, await res.text().catch(() => ''));
@@ -80,21 +92,64 @@ export async function searchByIsbn(isbn: string): Promise<BookSearchResult | nul
 /** Search by title keyword */
 export async function searchByTitle(query: string, maxResults = 10): Promise<BookSearchResult[]> {
   return withCache(`gbooks:title:${query}:${maxResults}`, TITLE_TTL, async () => {
-    const encoded = encodeURIComponent(query);
-    const res = await fetch(
-      `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam()}`
-    );
+    try {
+      const encoded = encodeURIComponent(query);
 
-    if (!res.ok) {
-      if (res.status !== 429) {
-        console.error('Google Books API error (title):', res.status, await res.text().catch(() => ''));
+      const strictUrl = `${BASE_URL}?q=intitle:${encoded}&langRestrict=ja&maxResults=${maxResults}&printType=books${apiKeyParam(true)}`;
+      const strictRes = await fetchWithQuotaFallback(strictUrl);
+
+      if (!strictRes.ok) {
+        const body = await strictRes.text().catch(() => '');
+        bookSearchDebug('google-strict-http-error', {
+          query,
+          maxResults,
+          status: strictRes.status,
+          body: body.slice(0, 200),
+        });
+        if (strictRes.status !== 429) {
+          console.error('Google Books API error (title):', strictRes.status, body);
+        }
+        return [];
       }
+
+      const strictData: GoogleBooksResponse = await strictRes.json();
+      const strictCount = strictData.items?.length ?? 0;
+      bookSearchDebug('google-strict', { query, maxResults, status: strictRes.status, itemCount: strictCount });
+      if (strictData.items?.length) {
+        return strictData.items.map((item) => mapVolume(item.volumeInfo));
+      }
+
+      // Fallback: broader query without intitle/lang restriction to avoid missing valid hits.
+      const fallbackUrl = `${BASE_URL}?q=${encoded}&maxResults=${maxResults}&printType=books${apiKeyParam(true)}`;
+      const fallbackRes = await fetchWithQuotaFallback(fallbackUrl);
+
+      if (!fallbackRes.ok) {
+        const body = await fallbackRes.text().catch(() => '');
+        bookSearchDebug('google-fallback-http-error', {
+          query,
+          maxResults,
+          status: fallbackRes.status,
+          body: body.slice(0, 200),
+        });
+        if (fallbackRes.status !== 429) {
+          console.error('Google Books API error (title fallback):', fallbackRes.status, body);
+        }
+        return [];
+      }
+
+      const fallbackData: GoogleBooksResponse = await fallbackRes.json();
+      const fallbackCount = fallbackData.items?.length ?? 0;
+      bookSearchDebug('google-fallback', { query, maxResults, status: fallbackRes.status, itemCount: fallbackCount });
+      if (!fallbackData.items) return [];
+
+      return fallbackData.items.map((item) => mapVolume(item.volumeInfo));
+    } catch (error) {
+      bookSearchDebug('google-exception', {
+        query,
+        maxResults,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
-
-    const data: GoogleBooksResponse = await res.json();
-    if (!data.items) return [];
-
-    return data.items.map((item) => mapVolume(item.volumeInfo));
   });
 }
