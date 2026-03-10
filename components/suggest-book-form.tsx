@@ -3,6 +3,7 @@
 import { useActionState, useCallback, useState } from 'react';
 import { suggestBook, type SuggestBookResult } from '@/app/actions/suggest-book';
 import type { BookSearchResult } from '@/lib/books/types';
+import { BookCoverImg } from '@/components/book-cover-img';
 
 type Props = { childId: string };
 
@@ -91,14 +92,7 @@ export function SuggestBookForm({ childId }: Props) {
                 onClick={() => handleSelect(book)}
                 className="flex w-full items-start gap-2 rounded p-2 text-left hover:bg-slate-50"
               >
-                {book.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={book.coverUrl} alt="" className="h-14 w-10 flex-shrink-0 rounded object-cover" />
-                ) : (
-                  <div className="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-400">
-                    No img
-                  </div>
-                )}
+                <BookCoverImg src={book.coverUrl} />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{book.title}</p>
                   <p className="truncate text-xs text-slate-500">{book.author ?? '著者不明'}</p>
@@ -111,12 +105,11 @@ export function SuggestBookForm({ childId }: Props) {
 
       {selected && (
         <div className="mb-3 flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm">
-          {selected.coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={selected.coverUrl} alt="" className="h-16 w-12 flex-shrink-0 rounded object-cover shadow" />
-          ) : (
-            <div className="flex h-16 w-12 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-400">No img</div>
-          )}
+          <BookCoverImg
+            src={selected.coverUrl}
+            className="h-16 w-12 flex-shrink-0 rounded object-cover shadow"
+            placeholderClassName="flex h-16 w-12 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-400"
+          />
           <div className="min-w-0 flex-1">
             <p className="font-medium">{selected.title}</p>
             <p className="text-sm text-slate-500">{selected.author ?? '著者不明'}</p>
