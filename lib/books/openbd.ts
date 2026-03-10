@@ -60,6 +60,7 @@ export async function openBdLookup(isbn: string): Promise<BookSearchResult | nul
         publisher: s.publisher ?? null,
         publishedDate: s.pubdate ?? null,
         pageCount,
+        sources: ['openbd'],
       };
     } catch {
       return null;
