@@ -56,6 +56,7 @@ describe('ndlSearchByTitle', () => {
     expect(result[0].publisher).toBe('岩波書店');
     expect(result[0].description).toBe('猫の視点から人間を描く');
     expect(result[0].coverUrl).toBe('https://cover.openbd.jp/9784003101018.jpg');
+    expect(result[0].sources).toEqual(['ndl']);
   });
 
   it('skips items without title', async () => {
