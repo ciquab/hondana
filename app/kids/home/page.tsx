@@ -71,7 +71,7 @@ export default async function KidsHomePage({
   const missionDaysLeft = calcDaysLeft(activeMission?.ends_at);
 
   return (
-    <main className="relative mx-auto max-w-xl p-4 pb-28">
+    <main className="relative mx-auto max-w-xl p-4 pb-8">
       {newBadge && <BadgeCelebration badge={newBadge} />}
 
       <header className="mb-4 flex items-center justify-between rounded-2xl bg-amber-100 px-4 py-3">
@@ -303,18 +303,6 @@ export default async function KidsHomePage({
         </section>
       )}
 
-      {/* とうろく FAB */}
-      <Link
-        href="/kids/records/new"
-        className="fixed left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600 active:scale-95"
-        style={{
-          bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
-          maxWidth: 'calc(100vw - 2rem)'
-        }}
-      >
-        <span>📷</span>
-        <span>ほんを とうろくする</span>
-      </Link>
     </main>
   );
 }
