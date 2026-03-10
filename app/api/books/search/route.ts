@@ -8,6 +8,7 @@ import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { getKidSession } from '@/lib/kids/session';
 import { searchCatalogByTitle } from '@/lib/books/catalog';
 import { bookSearchDebug } from '@/lib/books/debug';
+import type { BookResultSource } from '@/lib/books/types';
 
 // 1分間に最大30リクエスト（ユーザーごと）
 const RATE_LIMIT = { limit: 30, windowMs: 60 * 1000 };
@@ -54,23 +55,42 @@ function mergePreferIsbn(
     const candidate = secondaryByTitleAuthor.get(titleAuthorKey) ?? secondaryByTitle.get(titleKey);
     if (!candidate?.isbn13) return item;
 
+    const mergedSources = Array.from(new Set<BookResultSource>([...item.sources, ...candidate.sources]));
+
     return {
       ...item,
       isbn13: candidate.isbn13,
       coverUrl: item.coverUrl ?? candidate.coverUrl,
+      sources: mergedSources,
     };
   });
 }
 
 function dedupeResults(items: Awaited<ReturnType<typeof searchByTitle>>) {
   const merged: Awaited<ReturnType<typeof searchByTitle>> = [];
-  const seen = new Set<string>();
+  const indexByKey = new Map<string, number>();
 
   for (const item of items) {
     const key = `${item.isbn13 ?? ''}:${normalizeText(item.title)}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    merged.push(item);
+    const existingIndex = indexByKey.get(key);
+    if (existingIndex === undefined) {
+      indexByKey.set(key, merged.length);
+      merged.push(item);
+      continue;
+    }
+
+    const existing = merged[existingIndex];
+    merged[existingIndex] = {
+      ...existing,
+      author: existing.author ?? item.author,
+      isbn13: existing.isbn13 ?? item.isbn13,
+      coverUrl: existing.coverUrl ?? item.coverUrl,
+      description: existing.description ?? item.description,
+      publisher: existing.publisher ?? item.publisher,
+      publishedDate: existing.publishedDate ?? item.publishedDate,
+      pageCount: existing.pageCount ?? item.pageCount,
+      sources: Array.from(new Set<BookResultSource>([...existing.sources, ...item.sources])),
+    };
   }
 
   return merged;
@@ -109,12 +129,13 @@ export async function GET(request: NextRequest) {
 
   if (isbn) {
     // Try OpenBD first (free, no key, good for Japanese books), then Google Books
-    const result = (await openBdLookup(isbn)) ?? (await searchByIsbn(isbn));
+    const openBdResult = await openBdLookup(isbn);
+    const result = openBdResult ?? (await searchByIsbn(isbn));
     bookSearchDebug('isbn', {
       requesterId,
       isbn,
       resultCount: result ? 1 : 0,
-      source: result ? (result.isbn13 ? 'openbd-or-google' : 'unknown') : 'none',
+      source: result?.sources.join('+') ?? 'none',
     });
     return NextResponse.json({ results: result ? [result] : [] });
   }

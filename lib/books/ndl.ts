@@ -84,6 +84,7 @@ function parseNdlXml(xml: string): BookSearchResult[] {
       publisher,
       publishedDate: extractTag(item, 'dc:date') ?? null,
       pageCount: null,
+      sources: ['ndl'],
     });
   }
 
