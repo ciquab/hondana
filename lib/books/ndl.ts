@@ -25,7 +25,7 @@ export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<
       }
 
       const xml = await res.text();
-      const parsed = parseNdlXml(xml);
+      const parsed = sortByQueryRelevance(parseNdlXml(xml), query);
       bookSearchDebug('ndl-success', { query, maxResults, status: res.status, itemCount: parsed.length });
       if (parsed.length > 0) return parsed;
 
@@ -44,7 +44,7 @@ export async function ndlSearchByTitle(query: string, maxResults = 10): Promise<
       }
 
       const anyXml = await anyRes.text();
-      const anyParsed = parseNdlXml(anyXml);
+      const anyParsed = sortByQueryRelevance(parseNdlXml(anyXml), query);
       bookSearchDebug('ndl-any-success', { query, maxResults, status: anyRes.status, itemCount: anyParsed.length });
       return anyParsed;
     } catch (error) {
@@ -79,7 +79,9 @@ function parseNdlXml(xml: string): BookSearchResult[] {
       title,
       author,
       isbn13: isbn,
-      coverUrl: isbn ? `https://cover.openbd.jp/${isbn}.jpg` : null,
+      // Do not build OpenBD cover URL blindly here. Some ISBNs return 404 image responses.
+      // Cover enrichment should happen via explicit OpenBD lookup in the API route.
+      coverUrl: null,
       description: extractTag(item, 'description') ?? null,
       publisher,
       publishedDate: extractTag(item, 'dc:date') ?? null,
@@ -89,6 +91,31 @@ function parseNdlXml(xml: string): BookSearchResult[] {
   }
 
   return results;
+}
+
+function sortByQueryRelevance(items: BookSearchResult[], query: string): BookSearchResult[] {
+  const q = normalizeForMatch(query);
+  if (!q) return items;
+
+  return [...items].sort((a, b) => scoreResult(b, q) - scoreResult(a, q));
+}
+
+function scoreResult(item: BookSearchResult, normalizedQuery: string): number {
+  const title = normalizeForMatch(item.title);
+  const author = normalizeForMatch(item.author);
+
+  if (title === normalizedQuery) return 1000;
+  if (title.startsWith(normalizedQuery)) return 700;
+  if (title.includes(normalizedQuery)) return 500;
+  if (author.includes(normalizedQuery)) return 300;
+  return 0;
+}
+
+function normalizeForMatch(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFKC')
+    .replace(/[\s　・:：\-‐‑‒–—―ｰ]/g, '')
+    .toLowerCase();
 }
 
 function extractTag(xml: string, tag: string): string | null {

@@ -8,7 +8,7 @@ import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { getKidSession } from '@/lib/kids/session';
 import { searchCatalogByTitle } from '@/lib/books/catalog';
 import { bookSearchDebug } from '@/lib/books/debug';
-import type { BookResultSource } from '@/lib/books/types';
+import type { BookResultSource, BookSearchResult } from '@/lib/books/types';
 
 // 1分間に最大30リクエスト（ユーザーごと）
 const RATE_LIMIT = { limit: 30, windowMs: 60 * 1000 };
@@ -96,6 +96,31 @@ function dedupeResults(items: Awaited<ReturnType<typeof searchByTitle>>) {
   return merged;
 }
 
+async function enrichNdlWithOpenBd(items: BookSearchResult[]): Promise<BookSearchResult[]> {
+  const limited = items.slice(0, 10);
+  const enriched = await Promise.all(
+    limited.map(async (item) => {
+      if (!item.sources.includes('ndl') || !item.isbn13) return item;
+
+      const openbd = await openBdLookup(item.isbn13);
+      if (!openbd) return item;
+
+      return {
+        ...item,
+        author: item.author ?? openbd.author,
+        coverUrl: openbd.coverUrl ?? item.coverUrl,
+        description: item.description ?? openbd.description,
+        publisher: item.publisher ?? openbd.publisher,
+        publishedDate: item.publishedDate ?? openbd.publishedDate,
+        pageCount: item.pageCount ?? openbd.pageCount,
+        sources: Array.from(new Set<BookResultSource>([...item.sources, ...openbd.sources])),
+      };
+    })
+  );
+
+  return enriched;
+}
+
 export async function GET(request: NextRequest) {
   // Auth check: allow either signed-in parent user or active kid session.
   const supabase = await createClient();
@@ -157,7 +182,7 @@ export async function GET(request: NextRequest) {
       const ndlResults = await ndlSearchByTitle(queryVariant);
       ndlMerged.push(...ndlResults);
     }
-    const ndlUnique = dedupeResults(ndlMerged).slice(0, 10);
+    const ndlUnique = await enrichNdlWithOpenBd(dedupeResults(ndlMerged).slice(0, 10));
 
     bookSearchDebug('provider-counts', {
       requesterId,

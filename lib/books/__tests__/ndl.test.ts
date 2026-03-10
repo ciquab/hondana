@@ -55,8 +55,25 @@ describe('ndlSearchByTitle', () => {
     expect(result[0].isbn13).toBe('9784003101018');
     expect(result[0].publisher).toBe('岩波書店');
     expect(result[0].description).toBe('猫の視点から人間を描く');
-    expect(result[0].coverUrl).toBe('https://cover.openbd.jp/9784003101018.jpg');
+    expect(result[0].coverUrl).toBeNull();
     expect(result[0].sources).toEqual(['ndl']);
+  });
+
+  it('ranks exact title match higher than partial matches', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel>
+      <item><title>吾輩は猫</title></item>
+      <item><title>吾輩は猫である</title></item>
+      <item><title>吾輩は猫である 完全版</title></item>
+    </channel></rss>`;
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => xml,
+    } as Response);
+
+    const result = await ndlSearchByTitle('吾輩は猫である');
+    expect(result[0].title).toBe('吾輩は猫である');
   });
 
   it('skips items without title', async () => {

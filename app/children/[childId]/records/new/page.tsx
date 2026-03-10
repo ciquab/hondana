@@ -8,6 +8,7 @@ import { createRecord, type ActionResult } from '@/app/actions/record';
 import { READING_STATUSES, STATUS_LABELS } from '@/lib/validations/record';
 import { CHILD_GENRES, genreDisplayName } from '@/lib/kids/feelings';
 import type { BookSearchResult } from '@/lib/books/types';
+import { BookCoverImage } from '@/components/book-cover-image';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
   ssr: false,
@@ -129,17 +130,12 @@ export default function NewRecordPage() {
                   onClick={() => fillFromBook(book)}
                   className="flex w-full items-start gap-2 rounded p-2 text-left hover:bg-slate-50"
                 >
-                  {book.coverUrl ? (
-                    <img
-                      src={book.coverUrl}
-                      alt=""
-                      className="h-14 w-10 flex-shrink-0 rounded object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-400">
-                      No img
-                    </div>
-                  )}
+                  <BookCoverImage
+                    src={book.coverUrl}
+                    alt=""
+                    className="h-14 w-10 flex-shrink-0 rounded object-cover"
+                    fallbackClassName="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-400"
+                  />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{book.title}</p>
                     <p className="truncate text-xs text-slate-500">{book.author ?? '著者不明'}</p>
@@ -163,10 +159,11 @@ export default function NewRecordPage() {
         {/* Cover preview */}
         {coverUrl && (
           <div className="flex justify-center">
-            <img
+            <BookCoverImage
               src={coverUrl}
               alt="表紙"
               className="h-32 rounded shadow"
+              fallbackClassName="flex h-32 w-24 items-center justify-center rounded bg-slate-200 text-xs text-slate-400"
             />
           </div>
         )}
