@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { AppTopNav } from '@/components/app-top-nav';
+import { EmptyStateCard } from '@/components/empty-state-card';
 import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
@@ -89,6 +91,8 @@ export default async function KidsCalendarPage({
       1
     )
   );
+  const hasEntries = dayMap.size > 0;
+
   const nextMonthParam = formatMonthParam(
     new Date(
       bounds.monthStart.getFullYear(),
@@ -99,15 +103,11 @@ export default async function KidsCalendarPage({
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <Link
-        href="/kids/home"
-        className="mb-3 inline-block text-sm text-blue-600 underline"
-      >
-        こどもホームへもどる
-      </Link>
-      <h1 className="mb-1 text-2xl font-bold">
-        {child.display_name} のどくしょカレンダー
-      </h1>
+      <AppTopNav
+        title={`${child.display_name} のどくしょカレンダー`}
+        backHref="/kids/home"
+        backLabel="ホーム"
+      />
 
       <div className="mb-4 flex items-center gap-2">
         <Link
@@ -127,37 +127,53 @@ export default async function KidsCalendarPage({
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
         <h2 className="mb-3 text-lg font-semibold">こんげつのきろく</h2>
-        <div className="grid grid-cols-7 gap-1 text-center text-xs">
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const info = dayMap.get(day);
-            const isToday = isCurrentMonth && day === today.getDate();
-            return (
-              <div
-                key={day}
-                className={`rounded border p-1.5 ${isToday ? 'border-blue-400 bg-blue-50' : ''}`}
-              >
+        {hasEntries ? (
+          <div className="grid grid-cols-7 gap-1 text-center text-xs">
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const info = dayMap.get(day);
+              const isToday = isCurrentMonth && day === today.getDate();
+              return (
                 <div
-                  className={`font-semibold ${isToday ? 'text-blue-600' : ''}`}
+                  key={day}
+                  className={`rounded border p-1.5 ${isToday ? 'border-blue-400 bg-blue-50' : ''}`}
                 >
-                  {day}
-                </div>
-                {info ? (
-                  <div className="mt-0.5 text-xs text-slate-700">
-                    <div>{info.count}さつ</div>
-                    <div>
-                      {info.stamp
-                        ? (STAMP_EMOJI[info.stamp] ?? info.stamp)
-                        : ''}
-                    </div>
+                  <div
+                    className={`font-semibold ${isToday ? 'text-blue-600' : ''}`}
+                  >
+                    {day}
                   </div>
-                ) : (
-                  <div className="mt-0.5 text-xs text-slate-500">-</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  {info ? (
+                    <div className="mt-0.5 text-xs text-slate-700">
+                      <div>{info.count}さつ</div>
+                      <div>
+                        {info.stamp
+                          ? (STAMP_EMOJI[info.stamp] ?? info.stamp)
+                          : ''}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-0.5 text-xs text-slate-500">-</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyStateCard
+            icon="📅"
+            title="こんげつの きろくは まだないよ"
+            description="きょう よんだほんを とうろくしてみよう。"
+            primaryAction={
+              <Link
+                href="/kids/records/new"
+                className="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700"
+              >
+                きろくをつける
+              </Link>
+            }
+          />
+        )}
       </section>
 
       <section className="rounded-xl bg-white p-4 shadow">

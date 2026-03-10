@@ -1,5 +1,7 @@
-import Link from 'next/link';
+'use client';
+
 import type { DashboardAction } from '@/lib/db/dashboard-actions';
+import { TrackedLink } from '@/components/tracked-link';
 
 type Props = {
   actions: DashboardAction[];
@@ -24,8 +26,11 @@ export function DashboardActions({ actions }: Props) {
       <ul className="space-y-2">
         {actions.map((action, i) => (
           <li key={i}>
-            <Link
+            <TrackedLink
               href={action.href}
+              eventName="dashboard_action_click"
+              target={action.href}
+              meta={{ icon: action.icon, childName: action.childName }}
               className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 transition hover:bg-slate-50"
             >
               <span className="text-xl">{action.icon}</span>
@@ -38,7 +43,7 @@ export function DashboardActions({ actions }: Props) {
                 </p>
               </div>
               <span className="text-slate-400">→</span>
-            </Link>
+            </TrackedLink>
           </li>
         ))}
       </ul>
