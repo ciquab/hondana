@@ -40,5 +40,6 @@ export async function searchCatalogByTitle(query: string, limit = 10): Promise<B
       publisher: null,
       publishedDate: null,
       pageCount: null,
+      sources: ['catalog'],
     }));
 }
