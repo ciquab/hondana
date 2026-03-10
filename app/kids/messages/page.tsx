@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import { AppTopNav } from '@/components/app-top-nav';
+import { EmptyStateCard } from '@/components/empty-state-card';
 import { redirect } from 'next/navigation';
 import { markKidMessageRead } from '@/app/actions/kid-message';
 import { requireKidContext } from '@/lib/kids/client';
 import { getKidMessages } from '@/lib/kids/messages';
+import { TrackedSubmitButton } from '@/components/tracked-submit-button';
 
 const EMOJI_MAP: Record<string, string> = {
   heart: '❤️',
@@ -10,6 +13,11 @@ const EMOJI_MAP: Record<string, string> = {
   star: '🌟',
   clap: '👏'
 };
+
+const PRIMARY_BTN =
+  'inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700';
+const SECONDARY_BTN =
+  'inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50';
 
 export default async function KidsMessagesPage() {
   const { childId, supabase } = await requireKidContext();
@@ -23,35 +31,35 @@ export default async function KidsMessagesPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <Link
-        href="/kids/home"
-        className="mb-3 inline-block text-sm text-blue-600 underline"
-      >
-        こどもホームへもどる
-      </Link>
-      <h1 className="text-2xl font-bold">
-        {child.display_name} へのメッセージ
-      </h1>
+      <AppTopNav
+        title={`${child.display_name} へのメッセージ`}
+        backHref="/kids/home"
+        backLabel="ホーム"
+      />
       <p className="mb-4 text-sm text-slate-600">みどく {unreadCount} けん</p>
 
       {messages.length === 0 ? (
-        <div className="flex flex-col items-center rounded-xl bg-white py-8 text-center shadow">
-          <span className="text-4xl">💬</span>
-          <p className="mt-2 font-semibold text-slate-700">
-            まだ メッセージは ないよ
-          </p>
-          <p className="mt-1 text-sm text-slate-500">
-            ほんをよんで きろくすると、おうちのひとから
-            <br />
-            メッセージが とどくかも！
-          </p>
-          <Link
-            href="/kids/records/new"
-            className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
-          >
-            📖 きろくをつける
-          </Link>
-        </div>
+        <EmptyStateCard
+          icon="💬"
+          title="まだ メッセージは ないよ"
+          description={
+            <>
+              ほんをよんで きろくすると、おうちのひとから
+              <br />
+              メッセージが とどくかも！
+            </>
+          }
+          primaryAction={
+            <Link href="/kids/records/new" className={PRIMARY_BTN}>
+              📖 きろくをつける
+            </Link>
+          }
+          secondaryAction={
+            <Link href="/kids/home" className={SECONDARY_BTN}>
+              ホームにもどる
+            </Link>
+          }
+        />
       ) : (
         <ul className="space-y-3">
           {messages.map((message) => (
@@ -90,12 +98,14 @@ export default async function KidsMessagesPage() {
               {message.unread ? (
                 <form action={markKidMessageRead} className="mt-3">
                   <input type="hidden" name="commentId" value={message.id} />
-                  <button
-                    type="submit"
-                    className="rounded bg-blue-600 px-3 py-1 text-sm text-white"
+                  <TrackedSubmitButton
+                    eventName="kid_message_mark_read"
+                    childId={childId}
+                    target="mark_read"
+                    className="rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-orange-700"
                   >
                     よんだ！
-                  </button>
+                  </TrackedSubmitButton>
                 </form>
               ) : (
                 <p className="mt-3 text-xs text-green-700">よんだよ</p>

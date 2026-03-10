@@ -8,6 +8,7 @@ import { BadgeCelebration } from '@/components/badge-celebration';
 import { MissionProgress } from '@/components/mission-progress';
 import { KidSuggestionsSection } from '@/components/kid-suggestions-section';
 import { BookCoverImage } from '@/components/book-cover-image';
+import { TrackedLink } from '@/components/tracked-link';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 type SuggestionRow = {
@@ -20,6 +21,12 @@ type SuggestionRow = {
   status: string;
 };
 
+function calcDaysLeft(endsAt: string | null | undefined): number | null {
+  if (!endsAt) return null;
+  const ms = new Date(endsAt).getTime() - Date.now();
+  if (Number.isNaN(ms)) return null;
+  return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+}
 
 export default async function KidsHomePage({
   searchParams
@@ -61,8 +68,10 @@ export default async function KidsHomePage({
     ? (badges.find((b) => b.badge_id === params.badge) ?? null)
     : null;
 
+  const missionDaysLeft = calcDaysLeft(activeMission?.ends_at);
+
   return (
-    <main className="relative mx-auto max-w-xl p-4 pb-28">
+    <main className="relative mx-auto max-w-xl p-4 pb-8">
       {newBadge && <BadgeCelebration badge={newBadge} />}
 
       <header className="mb-4 flex items-center justify-between rounded-2xl bg-amber-100 px-4 py-3">
@@ -81,41 +90,85 @@ export default async function KidsHomePage({
         </form>
       </header>
 
+      {(unreadCount > 0 || activeMission) && (
+        <section className="mb-4 space-y-2">
+          {unreadCount > 0 && (
+            <TrackedLink
+              href="/kids/messages"
+              eventName="kid_home_notice_click"
+              childId={childId}
+              target="unread_messages"
+              className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-4 py-3"
+            >
+              <div>
+                <p className="text-xs font-semibold text-rose-600">💌 しらせ</p>
+                <p className="text-sm font-semibold text-rose-900">
+                  みどくメッセージが {unreadCount} けんあるよ
+                </p>
+              </div>
+              <span className="rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white">よみにいく</span>
+            </TrackedLink>
+          )}
+
+          {activeMission && (
+            <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
+              <p className="text-xs font-semibold text-sky-600">🎯 いまのミッション</p>
+              <p className="text-sm font-semibold text-sky-900">{activeMission.title}</p>
+              {missionDaysLeft !== null && (
+                <p className="text-xs text-sky-700">あと {missionDaysLeft} にち</p>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ナビゲーション: 2×2 カードグリッド */}
       <div className="mb-6 grid grid-cols-2 gap-3">
-        <Link
+        <TrackedLink
           href="/kids/records/new"
-          className="relative flex flex-col items-center gap-2 rounded-2xl bg-emerald-50 p-4 shadow-sm transition hover:bg-emerald-100 border border-emerald-200"
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="record_new"
+          className="relative flex flex-col items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm transition hover:bg-emerald-100"
         >
           <span className="text-4xl">✏️</span>
-          <span className="text-sm font-medium text-emerald-800 text-center">
+          <span className="text-center text-sm font-medium text-emerald-800">
             きょうのきろくをつける
           </span>
-        </Link>
-        <Link
+        </TrackedLink>
+        <TrackedLink
           href="/kids/records"
-          className="relative flex flex-col items-center gap-2 rounded-2xl bg-indigo-50 p-4 shadow-sm transition hover:bg-indigo-100 border border-indigo-200"
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="records"
+          className="relative flex flex-col items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm transition hover:bg-indigo-100"
         >
           <span className="text-4xl">📚</span>
-          <span className="text-sm font-medium text-indigo-800 text-center">
+          <span className="text-center text-sm font-medium text-indigo-800">
             ほんだなをみる
           </span>
-        </Link>
-        <Link
+        </TrackedLink>
+        <TrackedLink
           href="/kids/calendar"
-          className="relative flex flex-col items-center gap-2 rounded-2xl bg-violet-50 p-4 shadow-sm transition hover:bg-violet-100 border border-violet-200"
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="calendar"
+          className="relative flex flex-col items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm transition hover:bg-violet-100"
         >
           <span className="text-4xl">📅</span>
-          <span className="text-sm font-medium text-violet-800 text-center">
+          <span className="text-center text-sm font-medium text-violet-800">
             カレンダーをみる
           </span>
-        </Link>
-        <Link
+        </TrackedLink>
+        <TrackedLink
           href="/kids/messages"
-          className={`relative flex flex-col items-center gap-2 rounded-2xl p-4 shadow-sm transition border ${
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="messages"
+          className={`relative flex flex-col items-center gap-2 rounded-2xl border p-4 shadow-sm transition ${
             unreadCount > 0
-              ? 'bg-rose-50 border-rose-200 hover:bg-rose-100'
-              : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+              ? 'border-rose-200 bg-rose-50 hover:bg-rose-100'
+              : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
           }`}
         >
           {unreadCount > 0 && (
@@ -125,79 +178,14 @@ export default async function KidsHomePage({
           )}
           <span className="text-4xl">💌</span>
           <span
-            className={`text-sm font-medium text-center ${unreadCount > 0 ? 'text-rose-800' : 'text-slate-700'}`}
+            className={`text-center text-sm font-medium ${unreadCount > 0 ? 'text-rose-800' : 'text-slate-700'}`}
           >
             メッセージ
           </span>
-        </Link>
+        </TrackedLink>
       </div>
 
-      {activeMission && (
-        <MissionProgress
-          title={activeMission.title}
-          icon={activeMission.icon}
-          targetValue={activeMission.target_value}
-          currentProgress={activeMission.current_progress}
-          status={activeMission.status}
-          endsAt={activeMission.ends_at}
-        />
-      )}
-
-      {suggestions.length > 0 && (
-        <KidSuggestionsSection suggestions={suggestions} />
-      )}
-
-      {latestMessage && (
-        <section className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4">
-          <div className="mb-1 flex items-center justify-between">
-            <p className="text-xs font-semibold text-rose-600">
-              💌 おとなからのメッセージ
-            </p>
-            <Link
-              href="/kids/messages"
-              className="text-xs text-rose-500 underline"
-            >
-              ぜんぶみる
-            </Link>
-          </div>
-          <p className="text-sm text-rose-900 line-clamp-2">
-            {latestMessage.body}
-          </p>
-          <p className="mt-1 text-xs text-rose-700">
-            {latestMessage.bookTitle}
-          </p>
-        </section>
-      )}
-
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-2 text-lg font-semibold">バッジ</h2>
-        {badges.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {badges.map((badge) => {
-              return (
-                <span
-                  key={badge.badge_id}
-                  className="rounded-full bg-amber-100 px-3 py-1 text-sm"
-                >
-                  {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
-                </span>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center py-4 text-center">
-            <span className="text-4xl">🏅</span>
-            <p className="mt-2 font-semibold text-slate-700">
-              まだ バッジは ないよ
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              1さつ きろくすると はじめてのバッジが もらえるよ！
-            </p>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-xl bg-white p-4 shadow">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-lg font-semibold">さいきんよんだほん</h2>
           <Link
@@ -250,18 +238,71 @@ export default async function KidsHomePage({
         )}
       </section>
 
-      {/* とうろく FAB */}
-      <Link
-        href="/kids/records/new"
-        className="fixed left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600 active:scale-95"
-        style={{
-          bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
-          maxWidth: 'calc(100vw - 2rem)'
-        }}
-      >
-        <span>📷</span>
-        <span>ほんを とうろくする</span>
-      </Link>
+      {activeMission && (
+        <MissionProgress
+          title={activeMission.title}
+          icon={activeMission.icon}
+          targetValue={activeMission.target_value}
+          currentProgress={activeMission.current_progress}
+          status={activeMission.status}
+          endsAt={activeMission.ends_at}
+        />
+      )}
+
+      <section className="mb-6 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-2 text-lg font-semibold">バッジ</h2>
+        {badges.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {badges.map((badge) => {
+              return (
+                <span
+                  key={badge.badge_id}
+                  className="rounded-full bg-amber-100 px-3 py-1 text-sm"
+                >
+                  {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
+                </span>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center py-4 text-center">
+            <span className="text-4xl">🏅</span>
+            <p className="mt-2 font-semibold text-slate-700">
+              まだ バッジは ないよ
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              1さつ きろくすると はじめてのバッジが もらえるよ！
+            </p>
+          </div>
+        )}
+      </section>
+
+      {suggestions.length > 0 && (
+        <KidSuggestionsSection suggestions={suggestions} />
+      )}
+
+      {latestMessage && (
+        <section className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-xs font-semibold text-rose-600">
+              💌 おとなからのメッセージ
+            </p>
+            <Link
+              href="/kids/messages"
+              className="text-xs text-rose-500 underline"
+            >
+              ぜんぶみる
+            </Link>
+          </div>
+          <p className="line-clamp-2 text-sm text-rose-900">
+            {latestMessage.body}
+          </p>
+          <p className="mt-1 text-xs text-rose-700">
+            {latestMessage.bookTitle}
+          </p>
+        </section>
+      )}
+
     </main>
   );
 }

@@ -6,6 +6,8 @@ import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 import { SuggestBookForm } from '@/components/suggest-book-form';
 import { MissionSetup } from '@/components/mission-setup';
 import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
+import { AppTopNav } from '@/components/app-top-nav';
+import { EmptyStateCard } from '@/components/empty-state-card';
 
 function GenreBreakdownChart({ breakdown }: { breakdown: Record<string, number> }) {
   const maxCount = Math.max(...Object.values(breakdown), 1);
@@ -112,19 +114,26 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <header className="mb-4 rounded-xl bg-white p-4 shadow">
-        <Link href="/dashboard" className="text-sm text-blue-600 underline">
-          ダッシュボードへ戻る
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold">{child.display_name} の読書記録</h1>
-      </header>
+      <AppTopNav
+        title={`${child.display_name} の読書記録`}
+        backHref="/dashboard"
+        backLabel="ダッシュボード"
+        primaryAction={
+          <Link
+            href={`/children/${childId}/records/new`}
+            className="inline-flex min-h-11 items-center rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            ＋記録
+          </Link>
+        }
+      />
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">保護者メニュー</h2>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start">
           <Link
             href={`/children/${childId}/records/new`}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white sm:w-auto"
+            className="inline-flex w-full items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 sm:w-auto"
           >
             ➕ 記録を追加
           </Link>
@@ -195,15 +204,27 @@ export default async function ChildRecordsPage({ params }: Props) {
       )}
 
       {records.length === 0 ? (
-        <div className="rounded-xl bg-white p-6 text-center shadow">
-          <p className="text-slate-600">まだ読書記録がありません。</p>
-          <Link
-            href={`/children/${childId}/records/new`}
-            className="mt-3 inline-block text-blue-600 underline"
-          >
-            最初の記録を追加する
-          </Link>
-        </div>
+        <EmptyStateCard
+          icon="📚"
+          title="まだ読書記録がありません。"
+          description="まずは1冊登録して、コメント・見守りを始めましょう。"
+          primaryAction={
+            <Link
+              href={`/children/${childId}/records/new`}
+              className="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+            >
+              最初の記録を追加する
+            </Link>
+          }
+          secondaryAction={
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              ダッシュボードへ戻る
+            </Link>
+          }
+        />
       ) : (
         <div className="space-y-6">
           {sectionOrder.map((status) => {
