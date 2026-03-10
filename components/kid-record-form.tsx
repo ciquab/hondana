@@ -45,6 +45,14 @@ const STAMPS = [
   }
 ] as const;
 
+
+const PRIMARY_BTN =
+  'rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-50';
+const SECONDARY_BTN =
+  'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50';
+const TERTIARY_BTN =
+  'rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100';
+
 type KidRecordFormProps = {
   initialTitle?: string;
   initialAuthor?: string;
@@ -160,7 +168,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
             type="button"
             onClick={handleTitleSearch}
             disabled={searching}
-            className="rounded bg-slate-600 px-3 py-2 text-sm text-white disabled:opacity-50"
+            className={SECONDARY_BTN}
           >
             {searching ? 'けんさくちゅう…' : 'けんさく'}
           </button>
@@ -204,14 +212,14 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                     setHasSearched(false);
                     searchInputRef.current?.focus();
                   }}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
+                  className={SECONDARY_BTN}
                 >
                   べつのことばでけんさくする
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowScanner(true)}
-                  className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-700 transition hover:bg-orange-100"
+                  className={TERTIARY_BTN}
                 >
                   バーコードでさがす
                 </button>
@@ -222,7 +230,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                     setSearchQuery('');
                     titleInputRef.current?.focus();
                   }}
-                  className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 transition hover:bg-emerald-100"
+                  className={SECONDARY_BTN}
                 >
                   じぶんでにゅうりょくする
                 </button>
@@ -485,7 +493,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
         <button
           type="submit"
           disabled={pending || !stamp}
-          className="rounded-xl bg-orange-500 px-4 py-2 font-bold text-white disabled:opacity-50"
+          className={PRIMARY_BTN}
         >
           {pending ? 'ほぞんちゅう…' : 'ほぞんする'}
         </button>

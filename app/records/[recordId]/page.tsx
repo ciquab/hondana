@@ -1,9 +1,9 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 import { RecordDetailInteractive } from '@/components/record-detail-interactive';
 import { RecordDeleteButton } from '@/components/record-delete-button';
+import { AppTopNav } from '@/components/app-top-nav';
 
 type Props = {
   params: Promise<{ recordId: string }>;
@@ -85,12 +85,11 @@ export default async function RecordDetailPage({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-xl p-4">
-      <Link
-        href={`/children/${record.child_id}`}
-        className="text-sm text-blue-600 underline"
-      >
-        {children?.display_name ?? '子ども'} の記録一覧へ戻る
-      </Link>
+      <AppTopNav
+        title="きろくの詳細"
+        backHref={`/children/${record.child_id}`}
+        backLabel={`${children?.display_name ?? '子ども'}の一覧`}
+      />
 
       <div className="mt-3 rounded-xl bg-white p-5 shadow">
         <div className="flex gap-4">
