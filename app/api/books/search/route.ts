@@ -121,6 +121,73 @@ async function enrichNdlWithOpenBd(items: BookSearchResult[]): Promise<BookSearc
   return enriched;
 }
 
+function rerankNdlFallback(items: BookSearchResult[], queries: string[]): BookSearchResult[] {
+  if (items.length <= 1) return items;
+
+  const normalizedQueries = queries.map(normalizeText).filter((q) => q.length >= 2);
+  const tokenFreq = buildAsciiTokenFrequency(items);
+
+  const scored = items.map((item, index) => {
+    const direct = scoreDirectRelevance(item, normalizedQueries);
+    const consensus = scoreConsensus(item, tokenFreq);
+    return { item, direct, consensus, index };
+  });
+
+  const hasDirect = scored.some((x) => x.direct > 0);
+
+  return scored
+    .sort((a, b) => {
+      if (hasDirect && b.direct !== a.direct) return b.direct - a.direct;
+      if (b.consensus !== a.consensus) return b.consensus - a.consensus;
+      return a.index - b.index;
+    })
+    .map((x) => x.item);
+}
+
+function scoreDirectRelevance(item: BookSearchResult, normalizedQueries: string[]): number {
+  const title = normalizeText(item.title);
+  const author = normalizeText(item.author);
+
+  let best = 0;
+  for (const q of normalizedQueries) {
+    if (!q) continue;
+    if (title === q) best = Math.max(best, 1000);
+    else if (title.startsWith(q)) best = Math.max(best, 700);
+    else if (title.includes(q)) best = Math.max(best, 500);
+    else if (author.includes(q)) best = Math.max(best, 300);
+  }
+  return best;
+}
+
+function buildAsciiTokenFrequency(items: BookSearchResult[]): Map<string, number> {
+  const freq = new Map<string, number>();
+
+  for (const item of items) {
+    const seen = new Set<string>();
+    for (const token of extractAsciiTokens(item.title)) {
+      if (token.length < 3 || seen.has(token)) continue;
+      seen.add(token);
+      freq.set(token, (freq.get(token) ?? 0) + 1);
+    }
+  }
+
+  return freq;
+}
+
+function scoreConsensus(item: BookSearchResult, tokenFreq: Map<string, number>): number {
+  let score = 0;
+  for (const token of extractAsciiTokens(item.title)) {
+    const count = tokenFreq.get(token) ?? 0;
+    if (count > 1) score += count;
+  }
+  return score;
+}
+
+function extractAsciiTokens(value: string | null | undefined): string[] {
+  const matches = (value ?? '').toLowerCase().match(/[a-z0-9]+/g);
+  return matches ?? [];
+}
+
 export async function GET(request: NextRequest) {
   // Auth check: allow either signed-in parent user or active kid session.
   const supabase = await createClient();
@@ -182,12 +249,16 @@ export async function GET(request: NextRequest) {
       const ndlResults = await ndlSearchByTitle(queryVariant);
       ndlMerged.push(...ndlResults);
     }
-    const ndlUnique = await enrichNdlWithOpenBd(dedupeResults(ndlMerged).slice(0, 10));
+    const ndlUnique = rerankNdlFallback(
+      await enrichNdlWithOpenBd(dedupeResults(ndlMerged).slice(0, 10)),
+      variants
+    );
 
     bookSearchDebug('provider-counts', {
       requesterId,
       googleCount: googleUnique.length,
       ndlCount: ndlUnique.length,
+      ndlTopTitles: ndlUnique.slice(0, 3).map((x) => x.title),
     });
 
     if (googleUnique.length > 0) {
