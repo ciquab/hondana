@@ -112,23 +112,25 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <Link href="/dashboard" className="text-sm text-blue-600 underline">
-            ダッシュボードへ戻る
-          </Link>
-          <h1 className="mt-1 text-2xl font-bold">{child.display_name} の読書記録</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <SuggestBookForm childId={childId} />
+      <header className="mb-4 rounded-xl bg-white p-4 shadow">
+        <Link href="/dashboard" className="text-sm text-blue-600 underline">
+          ダッシュボードへ戻る
+        </Link>
+        <h1 className="mt-2 text-2xl font-bold">{child.display_name} の読書記録</h1>
+      </header>
+
+      <section className="mb-6 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">保護者メニュー</h2>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start">
           <Link
             href={`/children/${childId}/records/new`}
-            className="rounded bg-emerald-600 px-4 py-2 text-white"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white sm:w-auto"
           >
-            記録を追加
+            ➕ 記録を追加
           </Link>
+          <SuggestBookForm childId={childId} />
         </div>
-      </div>
+      </section>
 
       {/* Mission setup */}
       <div className="mb-6">
