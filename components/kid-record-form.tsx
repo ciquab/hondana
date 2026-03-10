@@ -12,6 +12,7 @@ import {
   genreDisplayName
 } from '@/lib/kids/feelings';
 import type { BookSearchResult } from '@/lib/books/types';
+import { BookCoverImg } from '@/components/book-cover-img';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
   ssr: false
@@ -174,18 +175,10 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                   onClick={() => fillFromBook(book)}
                   className="flex w-full items-start gap-2 rounded p-2 text-left hover:bg-slate-50"
                 >
-                  {book.coverUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={book.coverUrl}
-                      alt=""
-                      className="h-14 w-10 flex-shrink-0 rounded object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-600">
-                      No img
-                    </div>
-                  )}
+                  <BookCoverImg
+                    src={book.coverUrl}
+                    placeholderClassName="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-600"
+                  />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{book.title}</p>
                     <p className="truncate text-xs text-slate-500">
@@ -297,11 +290,11 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
 
         {coverUrl && (
           <div className="flex justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <BookCoverImg
               src={coverUrl}
               alt="ひょうし"
               className="h-32 rounded shadow"
+              placeholderClassName="flex h-32 w-24 items-center justify-center rounded bg-slate-200 text-xs text-slate-400 shadow"
             />
           </div>
         )}
