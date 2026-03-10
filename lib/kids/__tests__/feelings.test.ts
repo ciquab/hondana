@@ -3,11 +3,11 @@ import { genreDisplayName, GENRE_LABELS, CHILD_GENRES } from '../feelings';
 
 describe('genreDisplayName', () => {
   it('returns emoji + label for each genre', () => {
-    expect(genreDisplayName('story')).toBe('📖 物語・小説');
-    expect(genreDisplayName('zukan')).toBe('🔬 図鑑・科学');
-    expect(genreDisplayName('manga')).toBe('🎭 マンガ');
-    expect(genreDisplayName('picture_book')).toBe('🖼️ 絵本・詩');
-    expect(genreDisplayName('other')).toBe('📚 その他');
+    expect(genreDisplayName('story')).toBe('📖 ものがたり・しょうせつ');
+    expect(genreDisplayName('zukan')).toBe('🔬 ずかん・かがく');
+    expect(genreDisplayName('manga')).toBe('🎭 まんが');
+    expect(genreDisplayName('picture_book')).toBe('🖼️ えほん・し');
+    expect(genreDisplayName('other')).toBe('📚 そのほか');
   });
 });
 
