@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { MissionProgress } from '@/components/mission-progress';
+import { BookCoverImage } from '@/components/book-cover-image';
 
 const STAMP_LABELS: Record<string, { emoji: string; label: string }> = {
   great: { emoji: '🌟', label: 'すごくよかった' },
@@ -82,11 +83,12 @@ export default async function RecordCompletePage({
       {/* 記録した本の情報 */}
       <div className="mb-6 w-full max-w-xs rounded-2xl bg-white p-5 shadow">
         {record.cover_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <BookCoverImage
             src={record.cover_url}
             alt={record.title ?? ''}
             className="mx-auto h-36 rounded shadow"
+            fallbackClassName="mx-auto flex h-36 w-24 items-center justify-center rounded bg-amber-100 text-2xl text-slate-500 shadow"
+            fallbackText="No img"
           />
         ) : (
           <div className="mx-auto flex h-36 w-24 items-center justify-center rounded bg-amber-100 text-4xl shadow">

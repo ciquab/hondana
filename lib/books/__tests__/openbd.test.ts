@@ -72,6 +72,7 @@ describe('openBdLookup', () => {
     expect(result!.pageCount).toBe(320);
     expect(result!.description).toBe('猫の視点から人間を風刺');
     expect(result!.publisher).toBe('岩波書店');
+    expect(result!.sources).toEqual(['openbd']);
   });
 
   it('handles missing onix fields', async () => {

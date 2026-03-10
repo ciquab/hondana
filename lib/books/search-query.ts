@@ -16,7 +16,17 @@ export function buildTitleQueryVariants(rawQuery: string): string[] {
   if (!query) return [];
 
   const normalized = query.normalize('NFKC');
-  const variants = [normalized, toKatakana(normalized), toHiragana(normalized)];
+  const hasHiragana = /[ぁ-ゖ]/.test(normalized);
+  const hasKatakana = /[ァ-ヶ]/.test(normalized);
+
+  const variants = [normalized];
+
+  // Keep variants conservative to avoid recall-heavy noisy matches from NDL.
+  // If input is mainly hiragana, katakana variant helps; if input is katakana,
+  // prefer original only to reduce unrelated results from overly-broad expansions.
+  if (hasHiragana && !hasKatakana) {
+    variants.push(toKatakana(normalized));
+  }
 
   return variants.filter((value, index, self) => value.length > 0 && self.indexOf(value) === index);
 }

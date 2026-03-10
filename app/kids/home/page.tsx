@@ -7,6 +7,7 @@ import { getKidMessages } from '@/lib/kids/messages';
 import { BadgeCelebration } from '@/components/badge-celebration';
 import { MissionProgress } from '@/components/mission-progress';
 import { KidSuggestionsSection } from '@/components/kid-suggestions-section';
+import { BookCoverImage } from '@/components/book-cover-image';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 type SuggestionRow = {
@@ -19,21 +20,6 @@ type SuggestionRow = {
   status: string;
 };
 
-const NO_COVER_COLORS = [
-  { bg: '#FDE68A', text: '#92400E' },
-  { bg: '#BBF7D0', text: '#065F46' },
-  { bg: '#BFDBFE', text: '#1E3A8A' },
-  { bg: '#DDD6FE', text: '#4C1D95' },
-  { bg: '#FBCFE8', text: '#831843' },
-  { bg: '#FED7AA', text: '#7C2D12' }
-];
-
-function pickColor(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++)
-    hash = (hash * 31 + id.charCodeAt(i)) & 0xffff;
-  return NO_COVER_COLORS[hash % NO_COVER_COLORS.length];
-}
 
 export default async function KidsHomePage({
   searchParams
@@ -231,38 +217,12 @@ export default async function KidsHomePage({
                     href={`/kids/records/${row.id}`}
                     className="block rounded border p-1"
                   >
-                    {row.cover_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={row.cover_url}
-                        alt={title}
-                        className="h-24 w-full rounded object-cover"
-                      />
-                    ) : (
-                      (() => {
-                        const { bg, text } = pickColor(row.id);
-                        return (
-                          <div
-                            className="flex h-24 w-full items-center justify-center overflow-hidden rounded"
-                            style={{ backgroundColor: bg }}
-                          >
-                            <span
-                              className="text-xs font-medium leading-tight"
-                              style={{
-                                writingMode: 'vertical-rl',
-                                color: text,
-                                maxHeight: '5.5rem',
-                                overflow: 'hidden'
-                              }}
-                            >
-                              {title.length > 16
-                                ? `${title.slice(0, 16)}…`
-                                : title}
-                            </span>
-                          </div>
-                        );
-                      })()
-                    )}
+                    <BookCoverImage
+                      src={row.cover_url}
+                      alt={title}
+                      className="h-24 w-full rounded object-cover"
+                      fallbackClassName="flex h-24 w-full items-center justify-center rounded bg-slate-200 text-xs text-slate-500"
+                    />
                     <p className="mt-1 line-clamp-2 text-xs text-slate-700">
                       {title}
                     </p>
