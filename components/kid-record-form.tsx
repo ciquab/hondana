@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useActionState, useCallback, useRef, useState } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import {
   createKidRecord,
   type KidRecordActionResult
@@ -13,6 +13,7 @@ import {
 } from '@/lib/kids/feelings';
 import type { BookSearchResult } from '@/lib/books/types';
 import { BookCoverImg } from '@/components/book-cover-img';
+import { trackNavigationEvent } from '@/lib/analytics/navigation-events';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
   ssr: false
@@ -80,6 +81,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
   const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<'simple' | 'detailed'>('simple');
+  const recordCreateTrackedRef = useRef(false);
 
   const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>('finished');
   const [finishedOn, setFinishedOn] = useState(() =>
@@ -131,6 +133,13 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
       setSearching(false);
     }
   }, [searchQuery]);
+
+
+  useEffect(() => {
+    if (recordCreateTrackedRef.current) return;
+    recordCreateTrackedRef.current = true;
+    trackNavigationEvent({ event: 'record_create_start', target: 'kid_record_form' });
+  }, []);
 
   const toggleFeeling = (tag: string) => {
     setFeelingTags((prev) =>
@@ -494,6 +503,13 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
           type="submit"
           disabled={pending || !stamp}
           className={PRIMARY_BTN}
+          onClick={() =>
+            trackNavigationEvent({
+              event: 'record_create_submit',
+              target: mode,
+              meta: { hasStamp: Boolean(stamp), hasGenre: Boolean(genre) }
+            })
+          }
         >
           {pending ? 'ほぞんちゅう…' : 'ほぞんする'}
         </button>

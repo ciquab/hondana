@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { markKidMessageRead } from '@/app/actions/kid-message';
 import { requireKidContext } from '@/lib/kids/client';
 import { getKidMessages } from '@/lib/kids/messages';
+import { TrackedSubmitButton } from '@/components/tracked-submit-button';
 
 const EMOJI_MAP: Record<string, string> = {
   heart: '❤️',
@@ -97,12 +98,14 @@ export default async function KidsMessagesPage() {
               {message.unread ? (
                 <form action={markKidMessageRead} className="mt-3">
                   <input type="hidden" name="commentId" value={message.id} />
-                  <button
-                    type="submit"
+                  <TrackedSubmitButton
+                    eventName="kid_message_mark_read"
+                    childId={childId}
+                    target="mark_read"
                     className="rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-orange-700"
                   >
                     よんだ！
-                  </button>
+                  </TrackedSubmitButton>
                 </form>
               ) : (
                 <p className="mt-3 text-xs text-green-700">よんだよ</p>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { TrackedLink } from '@/components/tracked-link';
 import { useState } from 'react';
 
 type Child = {
@@ -75,12 +76,15 @@ export function DashboardChildrenTabs({ childProfiles, recordCounts, monthlyByCh
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <Link
+            <TrackedLink
               href={`/children/${active.id}/records/new`}
+              eventName="dashboard_child_quick_add_click"
+              childId={active.id}
+              target="child_record_new"
               className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
             >
               ＋記録を追加
-            </Link>
+            </TrackedLink>
             <Link
               href={`/children/${active.id}`}
               className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"

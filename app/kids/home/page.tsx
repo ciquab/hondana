@@ -8,6 +8,7 @@ import { BadgeCelebration } from '@/components/badge-celebration';
 import { MissionProgress } from '@/components/mission-progress';
 import { KidSuggestionsSection } from '@/components/kid-suggestions-section';
 import { BookCoverImage } from '@/components/book-cover-image';
+import { TrackedLink } from '@/components/tracked-link';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 type SuggestionRow = {
@@ -92,8 +93,11 @@ export default async function KidsHomePage({
       {(unreadCount > 0 || activeMission) && (
         <section className="mb-4 space-y-2">
           {unreadCount > 0 && (
-            <Link
+            <TrackedLink
               href="/kids/messages"
+              eventName="kid_home_notice_click"
+              childId={childId}
+              target="unread_messages"
               className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-4 py-3"
             >
               <div>
@@ -103,7 +107,7 @@ export default async function KidsHomePage({
                 </p>
               </div>
               <span className="rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white">よみにいく</span>
-            </Link>
+            </TrackedLink>
           )}
 
           {activeMission && (
@@ -120,35 +124,47 @@ export default async function KidsHomePage({
 
       {/* ナビゲーション: 2×2 カードグリッド */}
       <div className="mb-6 grid grid-cols-2 gap-3">
-        <Link
+        <TrackedLink
           href="/kids/records/new"
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="record_new"
           className="relative flex flex-col items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm transition hover:bg-emerald-100"
         >
           <span className="text-4xl">✏️</span>
           <span className="text-center text-sm font-medium text-emerald-800">
             きょうのきろくをつける
           </span>
-        </Link>
-        <Link
+        </TrackedLink>
+        <TrackedLink
           href="/kids/records"
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="records"
           className="relative flex flex-col items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm transition hover:bg-indigo-100"
         >
           <span className="text-4xl">📚</span>
           <span className="text-center text-sm font-medium text-indigo-800">
             ほんだなをみる
           </span>
-        </Link>
-        <Link
+        </TrackedLink>
+        <TrackedLink
           href="/kids/calendar"
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="calendar"
           className="relative flex flex-col items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm transition hover:bg-violet-100"
         >
           <span className="text-4xl">📅</span>
           <span className="text-center text-sm font-medium text-violet-800">
             カレンダーをみる
           </span>
-        </Link>
-        <Link
+        </TrackedLink>
+        <TrackedLink
           href="/kids/messages"
+          eventName="kid_home_nav_click"
+          childId={childId}
+          target="messages"
           className={`relative flex flex-col items-center gap-2 rounded-2xl border p-4 shadow-sm transition ${
             unreadCount > 0
               ? 'border-rose-200 bg-rose-50 hover:bg-rose-100'
@@ -166,7 +182,7 @@ export default async function KidsHomePage({
           >
             メッセージ
           </span>
-        </Link>
+        </TrackedLink>
       </div>
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
