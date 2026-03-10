@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
+import { BookCoverImage } from '@/components/book-cover-image';
 
 const STATUS_LABELS: Record<string, string> = {
   want_to_read: 'よみたい',
@@ -129,11 +130,12 @@ export default async function KidRecordDetailPage({
 
         {record.cover_url ? (
           <div className="mt-4 flex justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <BookCoverImage
               src={record.cover_url}
               alt={record.title ?? 'ひょうし'}
               className="h-48 w-32 rounded-lg object-cover shadow"
+              fallbackClassName="flex h-48 w-32 items-center justify-center rounded-lg bg-white/80 text-sm text-slate-500"
+              fallbackText="ひょうしがぞうはありません"
             />
           </div>
         ) : (

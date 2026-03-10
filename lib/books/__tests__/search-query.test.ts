@@ -19,11 +19,9 @@ describe('buildTitleQueryVariants', () => {
     expect(result.length).toBe(2); // deduped: hiragana original + katakana
   });
 
-  it('generates hiragana variant from katakana input', () => {
+  it('keeps katakana input conservative (no hiragana expansion)', () => {
     const result = buildTitleQueryVariants('ドラえもん');
-    expect(result).toContain('ドラえもん'); // original (mixed)
-    expect(result).toContain('ドラエモン'); // katakana variant
-    expect(result).toContain('どらえもん'); // hiragana variant
+    expect(result).toEqual(['ドラえもん']);
   });
 
   it('deduplicates identical variants', () => {

@@ -59,6 +59,7 @@ function mapVolume(vol: VolumeInfo): BookSearchResult {
     publisher: vol.publisher ?? null,
     publishedDate: vol.publishedDate ?? null,
     pageCount: vol.pageCount ?? null,
+    sources: ['google_books'],
   };
 }
 
