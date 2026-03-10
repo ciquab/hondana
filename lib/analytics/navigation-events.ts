@@ -5,7 +5,8 @@ export type NavigationEventName =
   | 'kid_home_nav_click'
   | 'record_create_start'
   | 'record_create_submit'
-  | 'kid_message_mark_read';
+  | 'kid_message_mark_read'
+  | 'mission_set';
 
 type EventPayload = {
   event: NavigationEventName;

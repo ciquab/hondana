@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getRecordsForChild, getGenreBreakdownForChild, getCommentedRecordIds } from '@/lib/db/records';
+import {
+  getRecordsForChild,
+  getGenreBreakdownForChild,
+  getCommentedRecordIds
+} from '@/lib/db/records';
 import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 import { SuggestBookForm } from '@/components/suggest-book-form';
 import { MissionSetup } from '@/components/mission-setup';
@@ -9,7 +13,11 @@ import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
 import { AppTopNav } from '@/components/app-top-nav';
 import { EmptyStateCard } from '@/components/empty-state-card';
 
-function GenreBreakdownChart({ breakdown }: { breakdown: Record<string, number> }) {
+function GenreBreakdownChart({
+  breakdown
+}: {
+  breakdown: Record<string, number>;
+}) {
   const maxCount = Math.max(...Object.values(breakdown), 1);
   return (
     <div className="max-w-xs space-y-2">
@@ -29,7 +37,9 @@ function GenreBreakdownChart({ breakdown }: { breakdown: Record<string, number> 
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className={`w-10 text-right font-medium ${count === 0 ? 'text-amber-600' : 'text-slate-700'}`}>
+              <span
+                className={`w-10 text-right font-medium ${count === 0 ? 'text-amber-600' : 'text-slate-700'}`}
+              >
                 {count} 冊
               </span>
             </div>
@@ -62,7 +72,7 @@ function toBookInfo(books: unknown): BookInfo | null {
   return {
     title: b.title,
     author: typeof b.author === 'string' ? b.author : null,
-    cover_url: typeof b.cover_url === 'string' ? b.cover_url : null,
+    cover_url: typeof b.cover_url === 'string' ? b.cover_url : null
   };
 }
 
@@ -86,23 +96,35 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   if (!child) notFound();
 
-  const [records, genreBreakdown, { data: missionTemplates }, { data: activeMissionRows }] = await Promise.all([
+  const [
+    records,
+    genreBreakdown,
+    { data: missionTemplates },
+    { data: activeMissionRows }
+  ] = await Promise.all([
     getRecordsForChild(childId),
     getGenreBreakdownForChild(childId),
     supabase.from('mission_templates').select('*').order('sort_order'),
-    supabase.rpc('get_kid_active_mission', { target_child_id: childId }),
+    supabase.rpc('get_kid_active_mission', { target_child_id: childId })
   ]);
 
-  const commentedRecordIds = await getCommentedRecordIds(records.map((r) => r.id));
+  const commentedRecordIds = await getCommentedRecordIds(
+    records.map((r) => r.id)
+  );
 
   const grouped = {
     reading: records.filter((r) => r.status === 'reading'),
     want_to_read: records.filter((r) => r.status === 'want_to_read'),
     finished: records.filter((r) => r.status === 'finished'),
-    read_aloud: records.filter((r) => r.status === 'read_aloud'),
+    read_aloud: records.filter((r) => r.status === 'read_aloud')
   };
 
-  const sectionOrder: ReadingStatus[] = ['reading', 'want_to_read', 'finished', 'read_aloud'];
+  const sectionOrder: ReadingStatus[] = [
+    'reading',
+    'want_to_read',
+    'finished',
+    'read_aloud'
+  ];
 
   // Collect books for bookshelf visual
   const finishedBooks = [...grouped.finished, ...grouped.read_aloud]
@@ -129,7 +151,9 @@ export default async function ChildRecordsPage({ params }: Props) {
       />
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">保護者メニュー</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">
+          保護者メニュー
+        </h2>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start">
           <Link
             href={`/children/${childId}/records/new`}
@@ -146,10 +170,30 @@ export default async function ChildRecordsPage({ params }: Props) {
         <MissionSetup
           childId={childId}
           familyId={child.family_id}
-          templates={(missionTemplates ?? []) as { id: string; title: string; description: string | null; icon: string; difficulty: string; target_value: number }[]}
+          templates={
+            (missionTemplates ?? []) as {
+              id: string;
+              title: string;
+              description: string | null;
+              icon: string;
+              difficulty: string;
+              target_type: string;
+              target_value: number;
+              sort_order: number;
+            }[]
+          }
           activeMission={
             activeMissionRows && activeMissionRows.length > 0
-              ? (activeMissionRows[0] as { mission_id: string; template_id: string; title: string; icon: string; target_value: number; current_progress: number; status: string; ends_at: string })
+              ? (activeMissionRows[0] as {
+                  mission_id: string;
+                  template_id: string;
+                  title: string;
+                  icon: string;
+                  target_value: number;
+                  current_progress: number;
+                  status: string;
+                  ends_at: string;
+                })
               : null
           }
         />
@@ -184,7 +228,9 @@ export default async function ChildRecordsPage({ params }: Props) {
                   className="flex h-24 w-16 items-center justify-center rounded bg-slate-200 p-1 text-center shadow transition hover:scale-105"
                 >
                   <span className="text-[10px] leading-tight text-slate-600">
-                    {book.title.length > 12 ? book.title.slice(0, 12) + '…' : book.title}
+                    {book.title.length > 12
+                      ? book.title.slice(0, 12) + '…'
+                      : book.title}
                   </span>
                 </Link>
               )
@@ -198,7 +244,9 @@ export default async function ChildRecordsPage({ params }: Props) {
       {/* Genre breakdown chart */}
       {Object.keys(genreBreakdown).length > 0 && (
         <section className="mb-6 rounded-xl bg-white p-4 shadow">
-          <h2 className="mb-3 text-sm font-semibold text-slate-700">ジャンル内訳</h2>
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">
+            ジャンル内訳
+          </h2>
           <GenreBreakdownChart breakdown={genreBreakdown} />
         </section>
       )}
@@ -256,10 +304,13 @@ export default async function ChildRecordsPage({ params }: Props) {
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium">{book?.title ?? '不明な本'}</p>
+                            <p className="font-medium">
+                              {book?.title ?? '不明な本'}
+                            </p>
                             <p className="text-sm text-slate-500">
                               {book?.author ?? '著者不明'}
-                              {record.finished_on && ` ・ 読了: ${record.finished_on}`}
+                              {record.finished_on &&
+                                ` ・ 読了: ${record.finished_on}`}
                             </p>
                           </div>
                           {commentedRecordIds.has(record.id) ? (
