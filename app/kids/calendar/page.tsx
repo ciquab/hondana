@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AppTopNav } from '@/components/app-top-nav';
 import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
@@ -99,15 +100,11 @@ export default async function KidsCalendarPage({
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <Link
-        href="/kids/home"
-        className="mb-3 inline-block text-sm text-blue-600 underline"
-      >
-        こどもホームへもどる
-      </Link>
-      <h1 className="mb-1 text-2xl font-bold">
-        {child.display_name} のどくしょカレンダー
-      </h1>
+      <AppTopNav
+        title={`${child.display_name} のどくしょカレンダー`}
+        backHref="/kids/home"
+        backLabel="ホーム"
+      />
 
       <div className="mb-4 flex items-center gap-2">
         <Link

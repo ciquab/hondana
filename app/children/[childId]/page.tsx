@@ -6,6 +6,7 @@ import { STATUS_LABELS, type ReadingStatus } from '@/lib/validations/record';
 import { SuggestBookForm } from '@/components/suggest-book-form';
 import { MissionSetup } from '@/components/mission-setup';
 import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
+import { AppTopNav } from '@/components/app-top-nav';
 
 function GenreBreakdownChart({ breakdown }: { breakdown: Record<string, number> }) {
   const maxCount = Math.max(...Object.values(breakdown), 1);
@@ -112,12 +113,19 @@ export default async function ChildRecordsPage({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <header className="mb-4 rounded-xl bg-white p-4 shadow">
-        <Link href="/dashboard" className="text-sm text-blue-600 underline">
-          ダッシュボードへ戻る
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold">{child.display_name} の読書記録</h1>
-      </header>
+      <AppTopNav
+        title={`${child.display_name} の読書記録`}
+        backHref="/dashboard"
+        backLabel="ダッシュボード"
+        primaryAction={
+          <Link
+            href={`/children/${childId}/records/new`}
+            className="inline-flex min-h-11 items-center rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            ＋記録
+          </Link>
+        }
+      />
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">保護者メニュー</h2>

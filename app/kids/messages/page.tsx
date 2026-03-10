@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AppTopNav } from '@/components/app-top-nav';
 import { redirect } from 'next/navigation';
 import { markKidMessageRead } from '@/app/actions/kid-message';
 import { requireKidContext } from '@/lib/kids/client';
@@ -23,15 +24,11 @@ export default async function KidsMessagesPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <Link
-        href="/kids/home"
-        className="mb-3 inline-block text-sm text-blue-600 underline"
-      >
-        こどもホームへもどる
-      </Link>
-      <h1 className="text-2xl font-bold">
-        {child.display_name} へのメッセージ
-      </h1>
+      <AppTopNav
+        title={`${child.display_name} へのメッセージ`}
+        backHref="/kids/home"
+        backLabel="ホーム"
+      />
       <p className="mb-4 text-sm text-slate-600">みどく {unreadCount} けん</p>
 
       {messages.length === 0 ? (
