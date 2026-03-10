@@ -6,3 +6,18 @@ body {
   @apply bg-slate-50 text-slate-900;
   font-family: 'Zen Maru Gothic', sans-serif;
 }
+
+@keyframes shelfPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bookshelf-row {
+  animation: shelfPopIn 260ms ease-out both;
+}
