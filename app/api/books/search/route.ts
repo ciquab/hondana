@@ -124,13 +124,15 @@ async function enrichNdlWithOpenBd(items: BookSearchResult[]): Promise<BookSearc
 function rerankNdlFallback(items: BookSearchResult[], queries: string[]): BookSearchResult[] {
   if (items.length <= 1) return items;
 
+  const queryHasJapanese = queries.some(containsJapaneseText);
   const normalizedQueries = queries.map(normalizeText).filter((q) => q.length >= 2);
   const tokenFreq = buildAsciiTokenFrequency(items);
 
   const scored = items.map((item, index) => {
     const direct = scoreDirectRelevance(item, normalizedQueries);
+    const language = scoreLanguageMatch(item, queryHasJapanese);
     const consensus = scoreConsensus(item, tokenFreq);
-    return { item, direct, consensus, index };
+    return { item, direct, language, consensus, index };
   });
 
   const hasDirect = scored.some((x) => x.direct > 0);
@@ -138,10 +140,27 @@ function rerankNdlFallback(items: BookSearchResult[], queries: string[]): BookSe
   return scored
     .sort((a, b) => {
       if (hasDirect && b.direct !== a.direct) return b.direct - a.direct;
+      if (b.language !== a.language) return b.language - a.language;
       if (b.consensus !== a.consensus) return b.consensus - a.consensus;
       return a.index - b.index;
     })
     .map((x) => x.item);
+}
+
+function scoreLanguageMatch(item: BookSearchResult, queryHasJapanese: boolean): number {
+  if (!queryHasJapanese) return 0;
+
+  const title = item.title ?? '';
+  const hasJapanese = containsJapaneseText(title);
+  const hasLatin = /[a-zA-Z]/.test(title);
+
+  if (hasJapanese) return 200;
+  if (hasLatin) return -200;
+  return 0;
+}
+
+function containsJapaneseText(value: string | null | undefined): boolean {
+  return /[ぁ-ゖァ-ヶ一-龠々ー]/.test(value ?? '');
 }
 
 function scoreDirectRelevance(item: BookSearchResult, normalizedQueries: string[]): number {
@@ -246,18 +265,17 @@ export async function GET(request: NextRequest) {
 
     const ndlMerged: Awaited<ReturnType<typeof searchByTitle>> = [];
     for (const queryVariant of variants) {
-      const ndlResults = await ndlSearchByTitle(queryVariant);
+      const ndlResults = await ndlSearchByTitle(queryVariant, 30);
       ndlMerged.push(...ndlResults);
     }
-    const ndlUnique = rerankNdlFallback(
-      await enrichNdlWithOpenBd(dedupeResults(ndlMerged).slice(0, 10)),
-      variants
-    );
+    const ndlReranked = rerankNdlFallback(dedupeResults(ndlMerged).slice(0, 40), variants);
+    const ndlUnique = await enrichNdlWithOpenBd(ndlReranked.slice(0, 10));
 
     bookSearchDebug('provider-counts', {
       requesterId,
       googleCount: googleUnique.length,
       ndlCount: ndlUnique.length,
+      ndlCandidateCount: ndlReranked.length,
       ndlTopTitles: ndlUnique.slice(0, 3).map((x) => x.title),
     });
 
