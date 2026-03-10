@@ -175,6 +175,8 @@ begin
 end;
 $$;
 
+DROP FUNCTION IF EXISTS public.get_kid_active_mission(uuid);
+
 create or replace function public.get_kid_active_mission(
   target_child_id uuid
 )
