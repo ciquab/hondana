@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AppTopNav } from '@/components/app-top-nav';
 import { redirect } from 'next/navigation';
 import { KidRecordForm } from '@/components/kid-record-form';
 import { getKidSessionChildId } from '@/lib/kids/session';
@@ -15,13 +15,11 @@ export default async function KidsNewRecordPage({
 
   return (
     <main className="mx-auto max-w-xl p-4">
-      <Link
-        href="/kids/home"
-        className="mb-3 inline-block text-sm text-blue-600 underline"
-      >
-        こどもホームへもどる
-      </Link>
-      <h1 className="mb-4 text-2xl font-bold">どくしょきろく</h1>
+      <AppTopNav
+        title="どくしょきろく"
+        backHref="/kids/home"
+        backLabel="ホーム"
+      />
       <KidRecordForm
         initialTitle={params.title}
         initialAuthor={params.author}
