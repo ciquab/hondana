@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type BookRow = {
   id: string;
@@ -101,6 +101,11 @@ export function KidsBookshelf({
     ])
   ) as Record<GenreKey, number>;
 
+  const activeTabMeta = useMemo(
+    () => GENRE_TABS.find((tab) => tab.key === activeTab) ?? GENRE_TABS[0],
+    [activeTab]
+  );
+
   return (
     <section className="rounded-2xl bg-gradient-to-b from-amber-50 to-orange-100 p-4 shadow">
       <h1 className="text-2xl font-bold text-amber-900">
@@ -108,21 +113,31 @@ export function KidsBookshelf({
       </h1>
 
       {/* genre tabs */}
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-        {GENRE_TABS.map(({ key, label, emoji }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            className={`flex-shrink-0 rounded-full px-3 py-1 text-sm font-medium transition ${
-              activeTab === key
-                ? 'bg-amber-700 text-white'
-                : 'bg-white/70 text-amber-900 hover:bg-white'
-            }`}
-          >
-            {emoji ? `${emoji} ` : ''}
-            {label}({tabCounts[key]})
-          </button>
-        ))}
+      <div className="mt-3 rounded-2xl bg-white/70 p-2 shadow-inner">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {GENRE_TABS.map(({ key, label, emoji }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`rounded-2xl px-3 py-2 text-left text-xs font-bold transition sm:text-sm ${
+                activeTab === key
+                  ? 'bg-amber-700 text-white shadow'
+                  : 'bg-white text-amber-900 hover:bg-amber-100'
+              }`}
+              aria-pressed={activeTab === key}
+            >
+              <span className="block truncate">
+                {emoji ? `${emoji} ` : ''}
+                {label}
+              </span>
+              <span
+                className={`text-[11px] font-medium ${activeTab === key ? 'text-white/90' : 'text-amber-700'}`}
+              >
+                {tabCounts[key]}さつ
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {records.length === 0 ? (
@@ -167,17 +182,23 @@ export function KidsBookshelf({
         </div>
       ) : (
         <>
-          <p className="mt-3 text-sm font-medium text-amber-900">
-            {activeTab === 'all'
-              ? `これまでのどくしょきろく ${records.length} けん`
-              : `${filtered.length} さつ`}
-          </p>
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-white/70 px-3 py-2 text-amber-900">
+            <p className="text-sm font-bold">📚 {activeTabMeta.label} のたな</p>
+            <p className="text-xs font-semibold">
+              {activeTab === 'all'
+                ? `ぜんぶで ${records.length} けん`
+                : `${filtered.length} さつ`}
+            </p>
+          </div>
           <div className="mt-4 space-y-4">
             {shelfRows.map((row, rowIndex) => (
               <div
-                key={rowIndex}
-                className="relative rounded-lg px-3 pb-4 pt-3"
-                style={{ backgroundColor: '#DEB887' }}
+                key={`${activeTab}-${rowIndex}`}
+                className="bookshelf-row relative rounded-lg px-3 pb-4 pt-3"
+                style={{
+                  backgroundColor: '#DEB887',
+                  animationDelay: `${rowIndex * 80}ms`
+                }}
               >
                 <div className="flex min-h-48 items-end gap-3 overflow-x-auto pb-1">
                   {row.map((record) => {
