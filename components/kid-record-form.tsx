@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useActionState, useCallback, useRef, useState } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import {
   createKidRecord,
   type KidRecordActionResult
@@ -13,6 +13,7 @@ import {
 } from '@/lib/kids/feelings';
 import type { BookSearchResult } from '@/lib/books/types';
 import { BookCoverImg } from '@/components/book-cover-img';
+import { trackNavigationEvent } from '@/lib/analytics/navigation-events';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
   ssr: false
@@ -45,6 +46,14 @@ const STAMPS = [
   }
 ] as const;
 
+
+const PRIMARY_BTN =
+  'rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-50';
+const SECONDARY_BTN =
+  'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50';
+const TERTIARY_BTN =
+  'rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100';
+
 type KidRecordFormProps = {
   initialTitle?: string;
   initialAuthor?: string;
@@ -72,6 +81,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
   const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<'simple' | 'detailed'>('simple');
+  const recordCreateTrackedRef = useRef(false);
 
   const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>('finished');
   const [finishedOn, setFinishedOn] = useState(() =>
@@ -124,6 +134,13 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
     }
   }, [searchQuery]);
 
+
+  useEffect(() => {
+    if (recordCreateTrackedRef.current) return;
+    recordCreateTrackedRef.current = true;
+    trackNavigationEvent({ event: 'record_create_start', target: 'kid_record_form' });
+  }, []);
+
   const toggleFeeling = (tag: string) => {
     setFeelingTags((prev) =>
       prev.includes(tag) ? prev.filter((v) => v !== tag) : [...prev, tag]
@@ -160,7 +177,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
             type="button"
             onClick={handleTitleSearch}
             disabled={searching}
-            className="rounded bg-slate-600 px-3 py-2 text-sm text-white disabled:opacity-50"
+            className={SECONDARY_BTN}
           >
             {searching ? 'けんさくちゅう…' : 'けんさく'}
           </button>
@@ -204,14 +221,14 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                     setHasSearched(false);
                     searchInputRef.current?.focus();
                   }}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
+                  className={SECONDARY_BTN}
                 >
                   べつのことばでけんさくする
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowScanner(true)}
-                  className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-700 transition hover:bg-orange-100"
+                  className={TERTIARY_BTN}
                 >
                   バーコードでさがす
                 </button>
@@ -222,7 +239,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                     setSearchQuery('');
                     titleInputRef.current?.focus();
                   }}
-                  className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 transition hover:bg-emerald-100"
+                  className={SECONDARY_BTN}
                 >
                   じぶんでにゅうりょくする
                 </button>
@@ -485,7 +502,14 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
         <button
           type="submit"
           disabled={pending || !stamp}
-          className="rounded-xl bg-orange-500 px-4 py-2 font-bold text-white disabled:opacity-50"
+          className={PRIMARY_BTN}
+          onClick={() =>
+            trackNavigationEvent({
+              event: 'record_create_submit',
+              target: mode,
+              meta: { hasStamp: Boolean(stamp), hasGenre: Boolean(genre) }
+            })
+          }
         >
           {pending ? 'ほぞんちゅう…' : 'ほぞんする'}
         </button>

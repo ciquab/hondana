@@ -32,6 +32,18 @@ export default async function DashboardPage() {
         </form>
       </header>
 
+      {children.length > 0 && <DashboardActions actions={dashboardActions} />}
+
+      <section className="mb-4 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-3 text-lg font-semibold">子ども一覧</h2>
+        <DashboardChildrenTabs
+          childProfiles={children}
+          recordCounts={recordCounts}
+          monthlyByChild={monthlyByChild}
+          weeklyHighlights={weeklyHighlights}
+        />
+      </section>
+
       {children.length > 0 && (
         <section className="mb-4 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 p-4 shadow">
           <h2 className="mb-2 text-sm font-semibold text-white/90">
@@ -79,18 +91,6 @@ export default async function DashboardPage() {
             🧒 こどもモード
           </Link>
         </div>
-      </section>
-
-      {children.length > 0 && <DashboardActions actions={dashboardActions} />}
-
-      <section className="rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">子ども一覧</h2>
-        <DashboardChildrenTabs
-          children={children}
-          recordCounts={recordCounts}
-          monthlyByChild={monthlyByChild}
-          weeklyHighlights={weeklyHighlights}
-        />
       </section>
     </main>
   );

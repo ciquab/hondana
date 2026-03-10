@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { TrackedLink } from '@/components/tracked-link';
 import { useState } from 'react';
 
 type Child = {
@@ -17,7 +18,7 @@ type WeeklyHighlight = {
 } | null;
 
 type Props = {
-  children: Child[];
+  childProfiles: Child[];
   recordCounts: Record<string, number>;
   monthlyByChild: Record<string, number>;
   weeklyHighlights?: Record<string, WeeklyHighlight>;
@@ -30,20 +31,20 @@ const STAMP_LABELS: Record<string, string> = {
   hard: '😓 むずかしかった',
 };
 
-export function DashboardChildrenTabs({ children, recordCounts, monthlyByChild, weeklyHighlights }: Props) {
-  const [activeId, setActiveId] = useState<string>(children[0]?.id ?? '');
+export function DashboardChildrenTabs({ childProfiles, recordCounts, monthlyByChild, weeklyHighlights }: Props) {
+  const [activeId, setActiveId] = useState<string>(childProfiles[0]?.id ?? '');
 
-  if (children.length === 0) {
+  if (childProfiles.length === 0) {
     return <p className="text-slate-600">子どもプロフィールがありません。追加してください。</p>;
   }
 
-  const active = children.find((c) => c.id === activeId) ?? children[0];
+  const active = childProfiles.find((c) => c.id === activeId) ?? childProfiles[0];
 
   return (
     <div>
       {/* タブ */}
       <div className="flex overflow-x-auto border-b border-slate-200">
-        {children.map((child) => (
+        {childProfiles.map((child) => (
           <button
             key={child.id}
             onClick={() => setActiveId(child.id)}
@@ -74,6 +75,24 @@ export function DashboardChildrenTabs({ children, recordCounts, monthlyByChild, 
               詳細を見る →
             </Link>
           </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <TrackedLink
+              href={`/children/${active.id}/records/new`}
+              eventName="dashboard_child_quick_add_click"
+              childId={active.id}
+              target="child_record_new"
+              className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+            >
+              ＋記録を追加
+            </TrackedLink>
+            <Link
+              href={`/children/${active.id}`}
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              最新を見る
+            </Link>
+          </div>
+
           <div className="mt-3 flex gap-4">
             <div className="rounded-lg bg-slate-50 px-4 py-2 text-center">
               <p className="text-xs text-slate-500">合計</p>
