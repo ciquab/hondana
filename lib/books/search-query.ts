@@ -7,10 +7,6 @@ function toKatakana(input: string): string {
   return input.replace(/[ぁ-ゖ]/g, (char) => String.fromCharCode(char.charCodeAt(0) + 0x60));
 }
 
-function toHiragana(input: string): string {
-  return input.replace(/[ァ-ヶ]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0x60));
-}
-
 export function buildTitleQueryVariants(rawQuery: string): string[] {
   const query = rawQuery.trim();
   if (!query) return [];
