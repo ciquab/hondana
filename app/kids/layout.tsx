@@ -1,14 +1,20 @@
-import { requireKidContext } from '@/lib/kids/client';
 import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
 import { AgeModeProvider } from '@/lib/kids/age-mode-context';
+import { getKidSession } from '@/lib/kids/session';
+import { createChildSessionClient } from '@/lib/supabase/child';
 
 export default async function KidsLayout({
   children
 }: {
   children: React.ReactNode;
 }) {
-  const { childId, supabase } = await requireKidContext();
-  const mode = await resolveKidAgeMode(supabase, childId);
+  const session = await getKidSession();
+  const mode = session
+    ? await resolveKidAgeMode(
+        createChildSessionClient({ childId: session.childId, familyId: session.familyId }),
+        session.childId
+      )
+    : 'standard';
 
   return (
     <AgeModeProvider mode={mode}>
