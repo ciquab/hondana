@@ -292,12 +292,14 @@ Step 1〜3 で仕様書 Phase 1 のコア機能および子ども向け体験を
 - 導線イベント（home nav / record start / submit）に `age_mode` 付与
 - `get_kid_child_profile` の返却列拡張 migration は **DROP→CREATE** 方式へ修正済み
 
+- 追記（コード確認判定）: **4-7 はコード実装上は完了（A1〜A3）**。ただし、最終完了判定には UI回帰確認・表現統一・計測値確認のクローズが必要。
+
 - A-0a: `/settings/children` で生年入力を推奨化（年齢適応UIの説明追記）
 - A-0b: `/settings/children/[id]/edit` を新設（表示名・生年・年齢モード編集）
 - A-0c: `updateChild` Server Action を追加（家族スコープ権限チェック付き）
 - DB: `children.age_mode_override`（`auto/junior/standard`）列を追加
 
-次アクション: **4-7 UI回帰確認（主要 kids 6画面）と計測値確認**を行い、その後 4-8 → 4-2 の順に進める。
+次アクション: **4-7 UI回帰確認（主要 kids 6画面 + home/messages 文言統一反映）と計測値確認**を行い、その後 4-8 → 4-2 の順に進める。
 
 実装順の全体像（Step 4 内）:
 
