@@ -11,6 +11,17 @@
 - `/kids/home` `/kids/messages` の文言分岐を追加し、junior/standard 表現の統一を継続。
 - コード確認判定: **4-7 は「実装完了（A1〜A3）」だが、UI回帰確認・表現統一・計測値確認は継続中**。
 
+### 回帰確認メモ（2026-03-11）
+
+| 観点 | 対象 | 結果 | 補足 |
+| --- | --- | --- | --- |
+| 年齢モード判定ロジック | `lib/kids/age-mode.ts` + unit test | ✅ | override優先・`auto` 判定・生年欠損時フォールバックを確認 |
+| モード配信経路 | `app/kids/layout.tsx` / `resolveKidAgeMode` | ✅ | kid profile RPC→layout provider まで接続済み |
+| 文言分岐の適用範囲 | kids主要6画面 + `KidRecordForm` | ✅ | home/messages を含め `ageText` 分岐の実装を確認 |
+| イベント計測キー | `kid_home_nav_click` / `record_create_start` / `record_create_submit` | ✅ | `age_mode` がイベント meta に付与される実装を確認 |
+| 画面の目視回帰（junior/standard） | `/kids/*` 主要画面 | ⏳ | Supabase環境変数未設定のため、E2E目視は別環境で継続 |
+| 計測値確認（実データ） | analytics ダッシュボード | ⏳ | 公開環境データでの確認が必要 |
+
 ---
 
 ## 1. 背景と狙い
