@@ -1,3 +1,7 @@
+-- PostgreSQL cannot change an existing function's return type in-place.
+-- Drop and recreate to extend get_kid_child_profile with age-mode fields.
+drop function if exists public.get_kid_child_profile(uuid);
+
 create or replace function public.get_kid_child_profile(target_child_id uuid)
 returns table (
   id uuid,
