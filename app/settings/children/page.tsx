@@ -5,12 +5,18 @@ import Link from 'next/link';
 import { createChild, type ActionResult } from '@/app/actions/family';
 
 export default function ChildrenSettingsPage() {
-  const [state, formAction, pending] = useActionState<ActionResult, FormData>(createChild, {});
+  const [state, formAction, pending] = useActionState<ActionResult, FormData>(
+    createChild,
+    {}
+  );
 
   return (
     <main className="mx-auto max-w-xl p-4">
       <h1 className="mb-4 text-2xl font-bold">子どもプロフィール作成</h1>
-      <Link className="mb-4 inline-block text-blue-600 underline" href="/dashboard">
+      <Link
+        className="mb-4 inline-block text-blue-600 underline"
+        href="/dashboard"
+      >
         ダッシュボードへ戻る
       </Link>
 
@@ -27,15 +33,18 @@ export default function ChildrenSettingsPage() {
         />
 
         <label htmlFor="birthYear" className="mb-2 block text-sm font-medium">
-          生年（任意）
+          生年（任意・入力推奨）
         </label>
         <input
           id="birthYear"
           name="birthYear"
           type="number"
           className="mb-3 w-full rounded border p-2"
-          placeholder="2018"
+          placeholder="例: 2018（年齢に合わせた表示のため推奨）"
         />
+        <p className="mb-3 text-xs text-slate-600">
+          生年を入力すると、子どもの年齢に合わせて表示（ひらがな中心/標準）を自動調整できます。
+        </p>
 
         <label htmlFor="pin" className="mb-2 block text-sm font-medium">
           4桁PIN（子どもログイン用）
