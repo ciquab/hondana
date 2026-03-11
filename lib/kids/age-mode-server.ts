@@ -6,7 +6,7 @@ type KidProfileRow = {
 };
 
 type KidProfileRpcClient = {
-  rpc: (fn: 'get_kid_child_profile', args: { target_child_id: string }) => Promise<{ data: unknown[] | null }>;
+  rpc: (fn: 'get_kid_child_profile', args: { target_child_id: string }) => PromiseLike<{ data: unknown[] | null }>;
 };
 
 export async function resolveKidAgeMode(
