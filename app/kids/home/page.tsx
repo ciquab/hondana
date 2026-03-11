@@ -10,13 +10,11 @@ import { KidSuggestionsSection } from '@/components/kid-suggestions-section';
 import { BookCoverImage } from '@/components/book-cover-image';
 import { TrackedLink } from '@/components/tracked-link';
 import { ageText } from '@/lib/kids/age-text';
-import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
+import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 type ChildRow = {
   display_name: string;
-  birth_year: number | null;
-  age_mode_override: AgeModeOverride | null;
 };
 
 type SuggestionRow = {
@@ -72,10 +70,7 @@ export default async function KidsHomePage({
   const child = (childRows?.[0] ?? null) as ChildRow | null;
   if (!child) redirect('/kids/login');
 
-  const ageMode = getAgeModeFromProfile({
-    birthYear: child.birth_year,
-    ageModeOverride: child.age_mode_override ?? 'auto'
-  });
+  const ageMode = await resolveKidAgeMode(supabase, childId);
 
   const newBadge = params.badge
     ? (badges.find((b) => b.badge_id === params.badge) ?? null)
