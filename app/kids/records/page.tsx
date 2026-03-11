@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { KidsBookshelf } from '@/components/kids-bookshelf';
+import { ageText } from '@/lib/kids/age-text';
+import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
 
 type BookRow = {
   id: string;
@@ -26,6 +28,7 @@ export default async function KidsRecordsPage() {
 
   if (!child) redirect('/kids/login');
 
+  const ageMode = await resolveKidAgeMode(supabase, childId);
   const records = (recordRows ?? []) as BookRow[];
 
   return (
@@ -34,7 +37,7 @@ export default async function KidsRecordsPage() {
         href="/kids/home"
         className="mb-3 inline-block text-sm text-blue-600 underline"
       >
-        こどもホームへもどる
+        {ageText(ageMode, { junior: 'ほーむへ', standard: 'こどもホームへもどる' })}
       </Link>
 
       <KidsBookshelf records={records} childName={child.display_name} />

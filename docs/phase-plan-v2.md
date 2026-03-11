@@ -288,7 +288,7 @@ Step 1〜3 で仕様書 Phase 1 のコア機能および子ども向け体験を
 
 進捗メモ（2026-03-11 追記）: **4-7 Sprint A1〜A3 は実装済み**。
 - `AgeMode` 判定基盤・Context・`ageText` を導入
-- `/kids/home` `/kids/records/new` `/kids/records/complete` `KidRecordForm` に第一弾の年齢適応を導入
+- `/kids/home` `/kids/records/new` `/kids/records/complete` `/kids/messages` `/kids/records` `/kids/calendar` `KidRecordForm` に年齢適応を導入（A2拡張）
 - 導線イベント（home nav / record start / submit）に `age_mode` 付与
 - `get_kid_child_profile` の返却列拡張 migration は **DROP→CREATE** 方式へ修正済み
 
@@ -297,7 +297,7 @@ Step 1〜3 で仕様書 Phase 1 のコア機能および子ども向け体験を
 - A-0c: `updateChild` Server Action を追加（家族スコープ権限チェック付き）
 - DB: `children.age_mode_override`（`auto/junior/standard`）列を追加
 
-次アクション: **4-7 Sprint A2の適用範囲拡張（kids他画面）とUI回帰確認**を行い、その後 4-8 → 4-2 の順に進める。
+次アクション: **4-7 UI回帰確認（主要 kids 6画面）と計測値確認**を行い、その後 4-8 → 4-2 の順に進める。
 
 実装順の全体像（Step 4 内）:
 
