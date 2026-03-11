@@ -9,8 +9,14 @@ import { MissionProgress } from '@/components/mission-progress';
 import { KidSuggestionsSection } from '@/components/kid-suggestions-section';
 import { BookCoverImage } from '@/components/book-cover-image';
 import { TrackedLink } from '@/components/tracked-link';
+import { ageText } from '@/lib/kids/age-text';
+import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
+type ChildRow = {
+  display_name: string;
+};
+
 type SuggestionRow = {
   id: string;
   created_at: string;
@@ -61,8 +67,10 @@ export default async function KidsHomePage({
 
   const latestMessage = messages[0] ?? null;
 
-  const child = childRows?.[0];
+  const child = (childRows?.[0] ?? null) as ChildRow | null;
   if (!child) redirect('/kids/login');
+
+  const ageMode = await resolveKidAgeMode(supabase, childId);
 
   const newBadge = params.badge
     ? (badges.find((b) => b.badge_id === params.badge) ?? null)
@@ -80,12 +88,12 @@ export default async function KidsHomePage({
             🧒
           </span>
           <h1 className="text-xl font-bold text-amber-900">
-            {child.display_name} のホーム
+            {ageText(ageMode, { junior: `${child.display_name} の ほーむ`, standard: `${child.display_name} のホーム` })}
           </h1>
         </div>
         <form action={kidSignOut}>
           <button className="rounded-full border border-amber-300 bg-white px-3 py-1 text-sm text-amber-800">
-            ログアウト
+{ageText(ageMode, { junior: 'おわる', standard: 'ログアウト' })}
           </button>
         </form>
       </header>
@@ -98,6 +106,7 @@ export default async function KidsHomePage({
               eventName="kid_home_notice_click"
               childId={childId}
               target="unread_messages"
+              meta={{ age_mode: ageMode }}
               className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-4 py-3"
             >
               <div>
@@ -129,11 +138,12 @@ export default async function KidsHomePage({
           eventName="kid_home_nav_click"
           childId={childId}
           target="record_new"
+          meta={{ age_mode: ageMode }}
           className="relative flex flex-col items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm transition hover:bg-emerald-100"
         >
           <span className="text-4xl">✏️</span>
           <span className="text-center text-sm font-medium text-emerald-800">
-            きょうのきろくをつける
+            {ageText(ageMode, { junior: 'きろくする', standard: 'きょうのきろくをつける' })}
           </span>
         </TrackedLink>
         <TrackedLink
@@ -141,11 +151,12 @@ export default async function KidsHomePage({
           eventName="kid_home_nav_click"
           childId={childId}
           target="records"
+          meta={{ age_mode: ageMode }}
           className="relative flex flex-col items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm transition hover:bg-indigo-100"
         >
           <span className="text-4xl">📚</span>
           <span className="text-center text-sm font-medium text-indigo-800">
-            ほんだなをみる
+            {ageText(ageMode, { junior: 'ほんだな', standard: 'ほんだなをみる' })}
           </span>
         </TrackedLink>
         <TrackedLink
@@ -153,11 +164,12 @@ export default async function KidsHomePage({
           eventName="kid_home_nav_click"
           childId={childId}
           target="calendar"
+          meta={{ age_mode: ageMode }}
           className="relative flex flex-col items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm transition hover:bg-violet-100"
         >
           <span className="text-4xl">📅</span>
           <span className="text-center text-sm font-medium text-violet-800">
-            カレンダーをみる
+            {ageText(ageMode, { junior: 'カレンダー', standard: 'カレンダーをみる' })}
           </span>
         </TrackedLink>
         <TrackedLink
@@ -165,6 +177,7 @@ export default async function KidsHomePage({
           eventName="kid_home_nav_click"
           childId={childId}
           target="messages"
+          meta={{ age_mode: ageMode }}
           className={`relative flex flex-col items-center gap-2 rounded-2xl border p-4 shadow-sm transition ${
             unreadCount > 0
               ? 'border-rose-200 bg-rose-50 hover:bg-rose-100'
@@ -180,7 +193,7 @@ export default async function KidsHomePage({
           <span
             className={`text-center text-sm font-medium ${unreadCount > 0 ? 'text-rose-800' : 'text-slate-700'}`}
           >
-            メッセージ
+            {ageText(ageMode, { junior: 'おてがみ', standard: 'メッセージ' })}
           </span>
         </TrackedLink>
       </div>
