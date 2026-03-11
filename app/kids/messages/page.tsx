@@ -7,7 +7,10 @@ import { requireKidContext } from '@/lib/kids/client';
 import { getKidMessages } from '@/lib/kids/messages';
 import { TrackedSubmitButton } from '@/components/tracked-submit-button';
 import { ageText } from '@/lib/kids/age-text';
-import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
+import {
+  getAgeModeFromProfile,
+  type AgeModeOverride
+} from '@/lib/kids/age-mode';
 
 const EMOJI_MAP: Record<string, string> = {
   heart: '❤️',
@@ -28,9 +31,11 @@ export default async function KidsMessagesPage() {
     getKidMessages()
   ]);
 
-  const child = (childRows?.[0] ?? null) as
-    | { display_name: string; birth_year: number | null; age_mode_override: AgeModeOverride | null }
-    | null;
+  const child = (childRows?.[0] ?? null) as {
+    display_name: string;
+    birth_year: number | null;
+    age_mode_override: AgeModeOverride | null;
+  } | null;
   if (!child) redirect('/kids/login');
 
   const ageMode = getAgeModeFromProfile({
@@ -48,27 +53,58 @@ export default async function KidsMessagesPage() {
         backHref="/kids/home"
         backLabel={ageText(ageMode, { junior: 'ほーむ', standard: 'ホーム' })}
       />
-      <p className={`mb-4 ${ageMode === 'junior' ? 'text-base' : 'text-sm'} text-slate-600`}>みどく {unreadCount} けん</p>
+      <p
+        className={`mb-4 ${ageMode === 'junior' ? 'text-base' : 'text-sm'} text-slate-600`}
+      >
+        {ageText(ageMode, {
+          junior: `みどく ${unreadCount} けん`,
+          standard: `未読 ${unreadCount} 件`
+        })}
+      </p>
 
       {messages.length === 0 ? (
         <EmptyStateCard
           icon="💬"
-          title="まだ メッセージは ないよ"
-          description={
-            <>
-              ほんをよんで きろくすると、おうちのひとから
-              <br />
-              メッセージが とどくかも！
-            </>
-          }
+          title={ageText(ageMode, {
+            junior: 'まだ メッセージは ないよ',
+            standard: 'まだメッセージはありません'
+          })}
+          description={ageText(ageMode, {
+            junior: (
+              <>
+                ほんをよんで きろくすると、おうちのひとから
+                <br />
+                メッセージが とどくかも！
+              </>
+            ),
+            standard: (
+              <>
+                本を読んで記録すると、家族から
+                <br />
+                メッセージが届くかもしれません。
+              </>
+            )
+          })}
           primaryAction={
-            <Link href="/kids/records/new" className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}>
-              {ageText(ageMode, { junior: '📖 きろくする', standard: '📖 きろくをつける' })}
+            <Link
+              href="/kids/records/new"
+              className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}
+            >
+              {ageText(ageMode, {
+                junior: '📖 きろくする',
+                standard: '📖 きろくをつける'
+              })}
             </Link>
           }
           secondaryAction={
-            <Link href="/kids/home" className={`${SECONDARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}>
-              {ageText(ageMode, { junior: 'ほーむ', standard: 'ホームにもどる' })}
+            <Link
+              href="/kids/home"
+              className={`${SECONDARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}
+            >
+              {ageText(ageMode, {
+                junior: 'ほーむ',
+                standard: 'ホームにもどる'
+              })}
             </Link>
           }
         />
@@ -102,7 +138,10 @@ export default async function KidsMessagesPage() {
                   ))
                 ) : (
                   <span className="text-xs text-slate-600">
-                    リアクションはまだありません
+                    {ageText(ageMode, {
+                      junior: 'リアクションは まだないよ',
+                      standard: 'リアクションはまだありません'
+                    })}
                   </span>
                 )}
               </div>
@@ -117,11 +156,19 @@ export default async function KidsMessagesPage() {
                     meta={{ age_mode: ageMode }}
                     className={`rounded-lg bg-orange-600 px-3 py-1.5 font-semibold text-white hover:bg-orange-700 ${ageMode === 'junior' ? 'h-12 text-base' : 'text-sm'}`}
                   >
-                    {ageText(ageMode, { junior: 'よんだ！', standard: 'よんだ！' })}
+                    {ageText(ageMode, {
+                      junior: 'よんだ！',
+                      standard: '既読にする'
+                    })}
                   </TrackedSubmitButton>
                 </form>
               ) : (
-                <p className="mt-3 text-xs text-green-700">よんだよ</p>
+                <p className="mt-3 text-xs text-green-700">
+                  {ageText(ageMode, {
+                    junior: 'よんだよ',
+                    standard: '既読です'
+                  })}
+                </p>
               )}
             </li>
           ))}
