@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { MissionProgress } from '@/components/mission-progress';
 import { BookCoverImage } from '@/components/book-cover-image';
+import { ageText } from '@/lib/kids/age-text';
+import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
 
 const STAMP_LABELS: Record<string, { emoji: string; label: string }> = {
   great: { emoji: '🌟', label: 'すごくよかった' },
@@ -27,6 +29,11 @@ type MissionRow = {
   ends_at: string;
 };
 
+type ChildRow = {
+  birth_year: number | null;
+  age_mode_override: AgeModeOverride | null;
+};
+
 type BadgeRow = {
   badge_id: string;
   name: string | null;
@@ -44,7 +51,7 @@ export default async function RecordCompletePage({
   if (!params.recordId) redirect('/kids/home');
 
   // 記録情報・ミッション・バッジを並列取得
-  const [{ data: recordRows }, { data: missionRows }, badgeInfo] =
+  const [{ data: recordRows }, { data: missionRows }, badgeInfo, { data: childRows }] =
     await Promise.all([
       supabase.rpc('get_kid_record_detail', {
         target_child_id: childId,
@@ -60,13 +67,20 @@ export default async function RecordCompletePage({
             .eq('id', params.badge)
             .single()
         : Promise.resolve({ data: null }),
+      supabase.rpc('get_kid_child_profile', { target_child_id: childId })
     ]);
 
   const record = (recordRows as RecordRow[] | null)?.[0] ?? null;
   const mission = (missionRows as MissionRow[] | null)?.[0] ?? null;
   const newBadge = badgeInfo?.data as BadgeRow | null;
+  const child = (childRows?.[0] ?? null) as ChildRow | null;
 
   if (!record) redirect('/kids/home');
+
+  const ageMode = getAgeModeFromProfile({
+    birthYear: child?.birth_year ?? null,
+    ageModeOverride: child?.age_mode_override ?? 'auto'
+  });
 
   const stampInfo = STAMP_LABELS[record.stamp ?? ''];
 
@@ -76,7 +90,7 @@ export default async function RecordCompletePage({
       <div className="mb-6">
         <p className="text-5xl">🎉</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-800">
-          きろく できたよ！
+          {ageText(ageMode, { junior: 'きろく できた！', standard: 'きろく できたよ！' })}
         </h1>
       </div>
 
@@ -138,13 +152,13 @@ export default async function RecordCompletePage({
           href="/kids/records/new"
           className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white shadow hover:bg-orange-600"
         >
-          📚 もう1さつ とうろく
+          {ageText(ageMode, { junior: '📚 もう 1さつ', standard: '📚 もう1さつ とうろく' })}
         </Link>
         <Link
           href="/kids/home"
           className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          🏠 ホームにもどる
+          {ageText(ageMode, { junior: '🏠 ほーむ', standard: '🏠 ホームにもどる' })}
         </Link>
       </div>
     </main>
