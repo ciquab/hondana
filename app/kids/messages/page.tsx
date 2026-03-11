@@ -20,9 +20,9 @@ const EMOJI_MAP: Record<string, string> = {
 };
 
 const PRIMARY_BTN =
-  'inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700';
+  'inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-600';
 const SECONDARY_BTN =
-  'inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50';
+  'inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100';
 
 export default async function KidsMessagesPage() {
   const { childId, supabase } = await requireKidContext();
@@ -54,7 +54,7 @@ export default async function KidsMessagesPage() {
         backLabel={ageText(ageMode, { junior: 'ほーむ', standard: 'ホーム' })}
       />
       <p
-        className={`mb-4 ${ageMode === 'junior' ? 'text-base' : 'text-sm'} text-slate-600`}
+        className={`mb-4 ${ageMode === 'junior' ? 'text-base' : 'text-sm'} text-amber-800`}
       >
         {ageText(ageMode, {
           junior: `みどく ${unreadCount} けん`,
@@ -113,31 +113,31 @@ export default async function KidsMessagesPage() {
           {messages.map((message) => (
             <li
               key={message.id}
-              className={`rounded-xl border bg-white p-4 shadow ${message.unread ? 'border-blue-400' : 'border-slate-200'}`}
+              className={`rounded-xl border bg-white/95 p-4 shadow ${message.unread ? 'border-orange-300 bg-orange-50/40' : 'border-amber-100'}`}
             >
               <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-700">
+                <p className="text-sm font-semibold text-amber-900">
                   {message.bookTitle}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-amber-700">
                   {new Date(message.created_at).toLocaleString('ja-JP')}
                 </p>
               </div>
 
-              <p className="text-slate-800">{message.body}</p>
+              <p className="text-amber-950">{message.body}</p>
 
-              <div className="mt-2 flex flex-wrap gap-2 text-sm text-slate-600">
+              <div className="mt-2 flex flex-wrap gap-2 text-sm text-amber-800">
                 {Object.entries(message.reactions).length > 0 ? (
                   Object.entries(message.reactions).map(([emoji, count]) => (
                     <span
                       key={emoji}
-                      className="rounded-full bg-slate-100 px-2 py-0.5"
+                      className="rounded-full bg-amber-100 px-2 py-0.5"
                     >
                       {EMOJI_MAP[emoji] ?? emoji} {count}
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-600">
+                  <span className="text-xs text-amber-800">
                     {ageText(ageMode, {
                       junior: 'リアクションは まだないよ',
                       standard: 'リアクションはまだありません'
@@ -154,7 +154,7 @@ export default async function KidsMessagesPage() {
                     childId={childId}
                     target="mark_read"
                     meta={{ age_mode: ageMode }}
-                    className={`rounded-lg bg-orange-600 px-3 py-1.5 font-semibold text-white hover:bg-orange-700 ${ageMode === 'junior' ? 'h-12 text-base' : 'text-sm'}`}
+                    className={`rounded-lg bg-orange-500 px-3 py-1.5 font-semibold text-white hover:bg-orange-600 ${ageMode === 'junior' ? 'h-12 text-base' : 'text-sm'}`}
                   >
                     {ageText(ageMode, {
                       junior: 'よんだ！',
@@ -163,7 +163,7 @@ export default async function KidsMessagesPage() {
                   </TrackedSubmitButton>
                 </form>
               ) : (
-                <p className="mt-3 text-xs text-green-700">
+                <p className="mt-3 text-xs text-emerald-700">
                   {ageText(ageMode, {
                     junior: 'よんだよ',
                     standard: '既読です'

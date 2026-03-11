@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-amber-50 text-slate-900;
   font-family: 'Zen Maru Gothic', sans-serif;
 }
 
