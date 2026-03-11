@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { KidsBookshelf } from '@/components/kids-bookshelf';
 import { ageText } from '@/lib/kids/age-text';
-import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
+import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
 
 type BookRow = {
   id: string;
@@ -24,11 +24,16 @@ export default async function KidsRecordsPage() {
     })
   ]);
 
-  const child = childRows?.[0];
+  const child = (childRows?.[0] ?? null) as
+    | { display_name: string; birth_year: number | null; age_mode_override: AgeModeOverride | null }
+    | null;
 
   if (!child) redirect('/kids/login');
 
-  const ageMode = await resolveKidAgeMode(supabase, childId);
+  const ageMode = getAgeModeFromProfile({
+    birthYear: child.birth_year,
+    ageModeOverride: child.age_mode_override ?? 'auto'
+  });
   const records = (recordRows ?? []) as BookRow[];
 
   return (
