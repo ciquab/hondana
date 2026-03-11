@@ -2,7 +2,13 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { createFamily, createInvite, revokeInvite, updateMyDisplayName, type ActionResult } from '@/app/actions/family';
+import {
+  createFamily,
+  createInvite,
+  revokeInvite,
+  updateMyDisplayName,
+  type ActionResult
+} from '@/app/actions/family';
 import { createClient } from '@/lib/supabase/client';
 
 type ActiveInvite = {
@@ -21,7 +27,8 @@ function InviteCard({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
 
   const inviteUrl = useMemo(() => {
-    if (typeof window === 'undefined') return `/invite?code=${encodeURIComponent(code)}`;
+    if (typeof window === 'undefined')
+      return `/invite?code=${encodeURIComponent(code)}`;
     return `${window.location.origin}/invite?code=${encodeURIComponent(code)}`;
   }, [code]);
 
@@ -42,7 +49,9 @@ function InviteCard({ code }: { code: string }) {
     <div className="rounded border bg-blue-50 p-3">
       <p className="mb-1 text-sm text-slate-600">招待コード:</p>
       <div className="flex items-center justify-center gap-2">
-        <p className="font-mono text-2xl font-bold tracking-widest text-blue-700">{code}</p>
+        <p className="font-mono text-2xl font-bold tracking-widest text-blue-700">
+          {code}
+        </p>
         <button
           type="button"
           onClick={handleCopy}
@@ -51,11 +60,19 @@ function InviteCard({ code }: { code: string }) {
           {copied ? 'コピー済み ✓' : 'コピー'}
         </button>
       </div>
-      <p className="mt-2 text-xs text-slate-500">QRを読み取るか、コードを入力して参加できます。</p>
+      <p className="mt-2 text-xs text-slate-500">
+        QRを読み取るか、コードを入力して参加できます。
+      </p>
       <div className="mt-2 flex justify-center">
-        <img src={qrUrl} alt="招待QRコード" className="h-40 w-40 rounded border bg-white p-2" />
+        <img
+          src={qrUrl}
+          alt="招待QRコード"
+          className="h-40 w-40 rounded border bg-white p-2"
+        />
       </div>
-      <p className="mt-2 break-all rounded bg-white p-2 text-xs text-slate-600">{inviteUrl}</p>
+      <p className="mt-2 break-all rounded bg-white p-2 text-xs text-slate-600">
+        {inviteUrl}
+      </p>
     </div>
   );
 }
@@ -68,22 +85,20 @@ export default function FamilySettingsPage() {
   const [children, setChildren] = useState<ChildRow[]>([]);
   const [origin, setOrigin] = useState('');
 
-  const [familyState, familyAction, familyPending] = useActionState<ActionResult, FormData>(
-    createFamily,
-    {}
-  );
-  const [inviteState, inviteAction, invitePending] = useActionState<ActionResult, FormData>(
-    createInvite,
-    {}
-  );
-  const [revokeState, revokeAction, revokePending] = useActionState<ActionResult, FormData>(
-    revokeInvite,
-    {}
-  );
-  const [displayNameState, displayNameAction, displayNamePending] = useActionState<ActionResult, FormData>(
-    updateMyDisplayName,
-    {}
-  );
+  const [familyState, familyAction, familyPending] = useActionState<
+    ActionResult,
+    FormData
+  >(createFamily, {});
+  const [inviteState, inviteAction, invitePending] = useActionState<
+    ActionResult,
+    FormData
+  >(createInvite, {});
+  const [revokeState, revokeAction, revokePending] = useActionState<
+    ActionResult,
+    FormData
+  >(revokeInvite, {});
+  const [displayNameState, displayNameAction, displayNamePending] =
+    useActionState<ActionResult, FormData>(updateMyDisplayName, {});
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -130,18 +145,29 @@ export default function FamilySettingsPage() {
     load();
   }, [inviteState.inviteCode, revokeState.ok, displayNameState.ok]);
 
-  const kidLoginBase = useMemo(() => (origin ? `${origin}/kids/login` : '/kids/login'), [origin]);
+  const kidLoginBase = useMemo(
+    () => (origin ? `${origin}/kids/login` : '/kids/login'),
+    [origin]
+  );
 
   return (
     <main className="mx-auto max-w-xl p-4">
       <h1 className="mb-4 text-2xl font-bold">家族設定</h1>
-      <Link className="mb-4 inline-block text-blue-600 underline" href="/dashboard">
+      <Link
+        className="mb-4 inline-block text-blue-600 underline"
+        href="/dashboard"
+      >
         ダッシュボードへ戻る
       </Link>
 
-      <form action={displayNameAction} className="mb-6 rounded-xl bg-white p-4 shadow">
+      <form
+        action={displayNameAction}
+        className="mb-6 rounded-xl bg-white p-4 shadow"
+      >
         <h2 className="mb-2 text-lg font-semibold">親アカウント表示名</h2>
-        <p className="mb-2 text-sm text-slate-600">子ども画面のコメント・リアクションに表示される名前です。</p>
+        <p className="mb-2 text-sm text-slate-600">
+          子ども画面のコメント・リアクションに表示される名前です。
+        </p>
         <input
           name="displayName"
           className="mb-3 w-full rounded border p-2"
@@ -152,8 +178,12 @@ export default function FamilySettingsPage() {
           required
         />
 
-        {displayNameState.error && <p className="mb-3 text-sm text-red-600">{displayNameState.error}</p>}
-        {displayNameState.ok && <p className="mb-3 text-sm text-green-700">{displayNameState.ok}</p>}
+        {displayNameState.error && (
+          <p className="mb-3 text-sm text-red-600">{displayNameState.error}</p>
+        )}
+        {displayNameState.ok && (
+          <p className="mb-3 text-sm text-green-700">{displayNameState.ok}</p>
+        )}
 
         <button
           className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50"
@@ -182,7 +212,10 @@ export default function FamilySettingsPage() {
         </div>
       )}
 
-      <form action={familyAction} className="mb-6 rounded-xl bg-white p-4 shadow">
+      <form
+        action={familyAction}
+        className="mb-6 rounded-xl bg-white p-4 shadow"
+      >
         <label htmlFor="familyName" className="mb-2 block text-sm font-medium">
           家族名
         </label>
@@ -212,13 +245,17 @@ export default function FamilySettingsPage() {
       {familyId && (
         <>
           <section className="mb-6 space-y-4 rounded-xl bg-white p-4 shadow">
-            <h2 className="text-lg font-semibold">子どもログインリンク（PINのみ）</h2>
+            <h2 className="text-lg font-semibold">
+              子どもログインリンク（PINのみ）
+            </h2>
             <p className="text-sm text-slate-600">
               子どもごとのURL/QRを共有すると、子どもはID入力なしでPINだけでログインできます。
             </p>
 
             {children.length === 0 ? (
-              <p className="text-sm text-slate-500">子どもプロフィールがありません。先に子どもを追加してください。</p>
+              <p className="text-sm text-slate-500">
+                子どもプロフィールがありません。先に子どもを追加してください。
+              </p>
             ) : (
               <ul className="space-y-4">
                 {children.map((child) => {
@@ -227,12 +264,26 @@ export default function FamilySettingsPage() {
 
                   return (
                     <li key={child.id} className="rounded border p-3">
-                      <p className="font-medium">{child.display_name}</p>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="font-medium">{child.display_name}</p>
+                        <Link
+                          href={`/settings/children/${child.id}/edit`}
+                          className="text-xs text-blue-600 underline"
+                        >
+                          プロフィール編集
+                        </Link>
+                      </div>
                       <div className="mt-2 flex flex-wrap items-start gap-3">
-                        <img src={qrUrl} alt={`${child.display_name} ログインQR`} className="h-28 w-28 rounded border bg-white p-1" />
+                        <img
+                          src={qrUrl}
+                          alt={`${child.display_name} ログインQR`}
+                          className="h-28 w-28 rounded border bg-white p-1"
+                        />
                         <div className="min-w-0 flex-1 text-xs text-slate-600">
                           <p className="mb-1">ログインURL</p>
-                          <p className="break-all rounded bg-slate-50 p-2">{loginUrl}</p>
+                          <p className="break-all rounded bg-slate-50 p-2">
+                            {loginUrl}
+                          </p>
                         </div>
                       </div>
                     </li>
@@ -266,27 +317,47 @@ export default function FamilySettingsPage() {
               </button>
             </form>
 
-            {inviteState.inviteCode && <InviteCard code={inviteState.inviteCode} />}
+            {inviteState.inviteCode && (
+              <InviteCard code={inviteState.inviteCode} />
+            )}
 
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-slate-700">有効な招待コード</h3>
-              {revokeState.error && <p className="mb-2 text-sm text-red-600">{revokeState.error}</p>}
-              {revokeState.ok && <p className="mb-2 text-sm text-green-700">{revokeState.ok}</p>}
+              <h3 className="mb-2 text-sm font-semibold text-slate-700">
+                有効な招待コード
+              </h3>
+              {revokeState.error && (
+                <p className="mb-2 text-sm text-red-600">{revokeState.error}</p>
+              )}
+              {revokeState.ok && (
+                <p className="mb-2 text-sm text-green-700">{revokeState.ok}</p>
+              )}
 
               {activeInvites.length === 0 ? (
-                <p className="text-sm text-slate-500">現在有効な招待コードはありません。</p>
+                <p className="text-sm text-slate-500">
+                  現在有効な招待コードはありません。
+                </p>
               ) : (
                 <ul className="space-y-2">
                   {activeInvites.map((invite) => (
-                    <li key={invite.id} className="flex items-center justify-between rounded border p-2">
+                    <li
+                      key={invite.id}
+                      className="flex items-center justify-between rounded border p-2"
+                    >
                       <div>
-                        <p className="font-mono font-semibold tracking-widest">{invite.invite_code}</p>
+                        <p className="font-mono font-semibold tracking-widest">
+                          {invite.invite_code}
+                        </p>
                         <p className="text-xs text-slate-500">
-                          期限: {new Date(invite.expires_at).toLocaleString('ja-JP')}
+                          期限:{' '}
+                          {new Date(invite.expires_at).toLocaleString('ja-JP')}
                         </p>
                       </div>
                       <form action={revokeAction}>
-                        <input type="hidden" name="inviteId" value={invite.id} />
+                        <input
+                          type="hidden"
+                          name="inviteId"
+                          value={invite.id}
+                        />
                         <button
                           type="submit"
                           className="rounded bg-slate-700 px-3 py-1 text-xs text-white disabled:opacity-50"

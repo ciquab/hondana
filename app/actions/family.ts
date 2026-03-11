@@ -6,28 +6,33 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { canCreateAdminClient, createAdminClient } from '@/lib/supabase/admin';
 import { hashPin } from '@/lib/kids/pin';
-import { sanitizeHeaderValue, getClientIpFromForwardedFor } from '@/lib/utils/request';
+import {
+  sanitizeHeaderValue,
+  getClientIpFromForwardedFor
+} from '@/lib/utils/request';
 import type { ActionResult as BaseActionResult } from '@/lib/actions/types';
 
-export type ActionResult = BaseActionResult<{ inviteCode?: string; ok?: string }>;
+export type ActionResult = BaseActionResult<{
+  inviteCode?: string;
+  ok?: string;
+}>;
 
+type AgeModeOverride = 'auto' | 'junior' | 'standard';
 
-async function logInviteAuditEvent(
-  payload: {
-    actorUserId: string;
-    action:
-      | 'create_invite_failed'
-      | 'create_invite_success'
-      | 'revoke_invite_failed'
-      | 'revoke_invite_success'
-      | 'accept_invite_failed'
-      | 'accept_invite_success';
-    familyId?: string | null;
-    inviteId?: string | null;
-    reason?: string;
-    metadata?: Record<string, unknown>;
-  }
-) {
+async function logInviteAuditEvent(payload: {
+  actorUserId: string;
+  action:
+    | 'create_invite_failed'
+    | 'create_invite_success'
+    | 'revoke_invite_failed'
+    | 'revoke_invite_success'
+    | 'accept_invite_failed'
+    | 'accept_invite_success';
+  familyId?: string | null;
+  inviteId?: string | null;
+  reason?: string;
+  metadata?: Record<string, unknown>;
+}) {
   if (!canCreateAdminClient()) return;
 
   const headerStore = await headers();
@@ -92,11 +97,16 @@ export async function createChild(
   const pin = String(formData.get('pin') ?? '').trim();
 
   if (!displayName) return { error: '表示名を入力してください。' };
-  if (!/^\d{4}$/.test(pin)) return { error: 'PINは4桁の数字で入力してください。' };
+  if (!/^\d{4}$/.test(pin))
+    return { error: 'PINは4桁の数字で入力してください。' };
 
   if (birthYearRaw) {
     const year = Number(birthYearRaw);
-    if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()) {
+    if (
+      !Number.isInteger(year) ||
+      year < 1900 ||
+      year > new Date().getFullYear()
+    ) {
       return { error: '生年が正しくありません。' };
     }
   }
@@ -147,16 +157,97 @@ export async function createChild(
       .eq('id', newChild.id);
     if (rollbackError) {
       // ロールバック自体が失敗した場合は孤立レコードが残るためログに残す
-      console.error('[createChild] rollback failed: orphan child record may exist', {
-        childId: newChild.id,
-        rollbackError,
-      });
+      console.error(
+        '[createChild] rollback failed: orphan child record may exist',
+        {
+          childId: newChild.id,
+          rollbackError
+        }
+      );
     }
     return { error: 'PINの設定に失敗しました。もう一度お試しください。' };
   }
 
   revalidatePath('/dashboard');
   redirect('/dashboard');
+}
+
+export async function updateChild(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const childId = String(formData.get('childId') ?? '').trim();
+  const displayName = String(formData.get('displayName') ?? '').trim();
+  const birthYearRaw = String(formData.get('birthYear') ?? '').trim();
+  const ageModeRaw = String(formData.get('ageModeOverride') ?? 'auto').trim();
+
+  if (!childId) return { error: '子どもIDが不正です。' };
+  if (!displayName) return { error: '表示名を入力してください。' };
+
+  if (birthYearRaw) {
+    const year = Number(birthYearRaw);
+    if (
+      !Number.isInteger(year) ||
+      year < 1900 ||
+      year > new Date().getFullYear()
+    ) {
+      return { error: '生年が正しくありません。' };
+    }
+  }
+
+  const allowedModes: AgeModeOverride[] = ['auto', 'junior', 'standard'];
+  if (!allowedModes.includes(ageModeRaw as AgeModeOverride)) {
+    return { error: '年齢モードが不正です。' };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data: member } = await supabase
+    .from('family_members')
+    .select('family_id')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .single();
+
+  if (!member?.family_id) {
+    return { error: '家族情報が見つかりません。' };
+  }
+
+  const { data: child } = await supabase
+    .from('children')
+    .select('id')
+    .eq('id', childId)
+    .eq('family_id', member.family_id)
+    .maybeSingle();
+
+  if (!child) {
+    return { error: '編集対象の子どもが見つかりません。' };
+  }
+
+  const { error } = await supabase
+    .from('children')
+    .update({
+      display_name: displayName,
+      birth_year: birthYearRaw ? Number(birthYearRaw) : null,
+      age_mode_override: ageModeRaw
+    })
+    .eq('id', childId)
+    .eq('family_id', member.family_id);
+
+  if (error) {
+    return { error: '子どもプロフィールの更新に失敗しました。' };
+  }
+
+  revalidatePath('/settings/family');
+  revalidatePath('/settings/children');
+  revalidatePath(`/settings/children/${childId}/edit`);
+  return { ok: '子どもプロフィールを更新しました。' };
 }
 
 export async function createInvite(
@@ -185,7 +276,9 @@ export async function createInvite(
       reason: error.message,
       metadata: { attemptedFamilyId: familyId }
     });
-    return { error: '招待コードの発行に失敗しました。もう一度お試しください。' };
+    return {
+      error: '招待コードの発行に失敗しました。もう一度お試しください。'
+    };
   }
 
   await logInviteAuditEvent({
@@ -299,7 +392,8 @@ export async function updateMyDisplayName(
   const displayName = String(formData.get('displayName') ?? '').trim();
 
   if (!displayName) return { error: '表示名を入力してください。' };
-  if (displayName.length > 30) return { error: '表示名は30文字以内で入力してください。' };
+  if (displayName.length > 30)
+    return { error: '表示名は30文字以内で入力してください。' };
 
   const supabase = await createClient();
   const {
