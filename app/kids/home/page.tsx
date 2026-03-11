@@ -10,7 +10,10 @@ import { KidSuggestionsSection } from '@/components/kid-suggestions-section';
 import { BookCoverImage } from '@/components/book-cover-image';
 import { TrackedLink } from '@/components/tracked-link';
 import { ageText } from '@/lib/kids/age-text';
-import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
+import {
+  getAgeModeFromProfile,
+  type AgeModeOverride
+} from '@/lib/kids/age-mode';
 
 type RecentRow = { id: string; title: string | null; cover_url: string | null };
 type ChildRow = {
@@ -63,9 +66,17 @@ export default async function KidsHomePage({
     supabase.rpc('get_kid_active_mission', { target_child_id: childId })
   ]);
   const suggestions = (suggestionRows ?? []) as SuggestionRow[];
-  const activeMission = (missionRows && missionRows.length > 0)
-    ? (missionRows[0] as { title: string; icon: string; target_value: number; current_progress: number; status: string; ends_at: string })
-    : null;
+  const activeMission =
+    missionRows && missionRows.length > 0
+      ? (missionRows[0] as {
+          title: string;
+          icon: string;
+          target_value: number;
+          current_progress: number;
+          status: string;
+          ends_at: string;
+        })
+      : null;
 
   const latestMessage = messages[0] ?? null;
 
@@ -93,7 +104,10 @@ export default async function KidsHomePage({
             🧒
           </span>
           <h1 className="text-xl font-bold text-amber-900">
-            {ageText(ageMode, { junior: `${child.display_name} の ほーむ`, standard: `${child.display_name} のホーム` })}
+            {ageText(ageMode, {
+              junior: `${child.display_name} の ほーむ`,
+              standard: `${child.display_name} のホーム`
+            })}
           </h1>
         </div>
         <form action={kidSignOut}>
@@ -115,21 +129,40 @@ export default async function KidsHomePage({
               className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-4 py-3"
             >
               <div>
-                <p className="text-xs font-semibold text-rose-600">💌 しらせ</p>
+                <p className="text-xs font-semibold text-rose-600">
+                  {ageText(ageMode, {
+                    junior: '💌 しらせ',
+                    standard: '💌 お知らせ'
+                  })}
+                </p>
                 <p className="text-sm font-semibold text-rose-900">
-                  みどくメッセージが {unreadCount} けんあるよ
+                  {ageText(ageMode, {
+                    junior: `みどくメッセージが ${unreadCount} けんあるよ`,
+                    standard: `未読メッセージが ${unreadCount} 件あります`
+                  })}
                 </p>
               </div>
-              <span className="rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white">よみにいく</span>
+              <span className="rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white">
+                {ageText(ageMode, {
+                  junior: 'よみにいく',
+                  standard: '確認する'
+                })}
+              </span>
             </TrackedLink>
           )}
 
           {activeMission && (
             <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
-              <p className="text-xs font-semibold text-sky-600">🎯 いまのミッション</p>
-              <p className="text-sm font-semibold text-sky-900">{activeMission.title}</p>
+              <p className="text-xs font-semibold text-sky-600">
+                🎯 いまのミッション
+              </p>
+              <p className="text-sm font-semibold text-sky-900">
+                {activeMission.title}
+              </p>
               {missionDaysLeft !== null && (
-                <p className="text-xs text-sky-700">あと {missionDaysLeft} にち</p>
+                <p className="text-xs text-sky-700">
+                  あと {missionDaysLeft} にち
+                </p>
               )}
             </div>
           )}
@@ -148,7 +181,10 @@ export default async function KidsHomePage({
         >
           <span className="text-4xl">✏️</span>
           <span className="text-center text-sm font-medium text-emerald-800">
-            {ageText(ageMode, { junior: 'きろくする', standard: 'きょうのきろくをつける' })}
+            {ageText(ageMode, {
+              junior: 'きろくする',
+              standard: 'きょうのきろくをつける'
+            })}
           </span>
         </TrackedLink>
         <TrackedLink
@@ -161,7 +197,10 @@ export default async function KidsHomePage({
         >
           <span className="text-4xl">📚</span>
           <span className="text-center text-sm font-medium text-indigo-800">
-            {ageText(ageMode, { junior: 'ほんだな', standard: 'ほんだなをみる' })}
+            {ageText(ageMode, {
+              junior: 'ほんだな',
+              standard: 'ほんだなをみる'
+            })}
           </span>
         </TrackedLink>
         <TrackedLink
@@ -174,7 +213,10 @@ export default async function KidsHomePage({
         >
           <span className="text-4xl">📅</span>
           <span className="text-center text-sm font-medium text-violet-800">
-            {ageText(ageMode, { junior: 'カレンダー', standard: 'カレンダーをみる' })}
+            {ageText(ageMode, {
+              junior: 'カレンダー',
+              standard: 'カレンダーをみる'
+            })}
           </span>
         </TrackedLink>
         <TrackedLink
@@ -205,12 +247,20 @@ export default async function KidsHomePage({
 
       <section className="mb-6 rounded-xl bg-white p-4 shadow">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">さいきんよんだほん</h2>
+          <h2 className="text-lg font-semibold">
+            {ageText(ageMode, {
+              junior: 'さいきん よんだ ほん',
+              standard: '最近読んだ本'
+            })}
+          </h2>
           <Link
             href="/kids/records"
             className="text-sm text-blue-600 underline"
           >
-            まえのきろくをひらく
+            {ageText(ageMode, {
+              junior: 'まえのきろくをひらく',
+              standard: '過去の記録を見る'
+            })}
           </Link>
         </div>
         {recentRows && recentRows.length > 0 ? (
@@ -241,16 +291,25 @@ export default async function KidsHomePage({
           <div className="flex flex-col items-center py-6 text-center">
             <span className="text-4xl">📚</span>
             <p className="mt-2 font-semibold text-slate-700">
-              まだ きろくが ないよ
+              {ageText(ageMode, {
+                junior: 'まだ きろくが ないよ',
+                standard: 'まだ記録がありません'
+              })}
             </p>
             <p className="mt-1 text-sm text-slate-500">
-              ほんをよんだら きろくしてみよう！
+              {ageText(ageMode, {
+                junior: 'ほんをよんだら きろくしてみよう！',
+                standard: '本を読んだら記録してみよう。'
+              })}
             </p>
             <Link
               href="/kids/records/new"
               className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
             >
-              📖 きろくをつける
+              {ageText(ageMode, {
+                junior: '📖 きろくをつける',
+                standard: '📖 記録をつける'
+              })}
             </Link>
           </div>
         )}
@@ -303,13 +362,19 @@ export default async function KidsHomePage({
         <section className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-xs font-semibold text-rose-600">
-              💌 おとなからのメッセージ
+              {ageText(ageMode, {
+                junior: '💌 おとなからのメッセージ',
+                standard: '💌 家族からのメッセージ'
+              })}
             </p>
             <Link
               href="/kids/messages"
               className="text-xs text-rose-500 underline"
             >
-              ぜんぶみる
+              {ageText(ageMode, {
+                junior: 'ぜんぶみる',
+                standard: 'すべて見る'
+              })}
             </Link>
           </div>
           <p className="line-clamp-2 text-sm text-rose-900">
@@ -320,7 +385,6 @@ export default async function KidsHomePage({
           </p>
         </section>
       )}
-
     </main>
   );
 }
