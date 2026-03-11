@@ -71,17 +71,29 @@ export default async function RecordDetailPage({ params }: Props) {
     }
   }
 
-  const books = record.books as {
-    id: string;
-    title: string;
-    author: string | null;
-    isbn13: string | null;
-    cover_url: string | null;
-  } | null;
-  const children = record.children as {
-    id: string;
-    display_name: string;
-  } | null;
+  const bookRelation = (record.books ?? null) as
+    | {
+        id: string;
+        title: string;
+        author: string | null;
+        isbn13: string | null;
+        cover_url: string | null;
+      }
+    | {
+        id: string;
+        title: string;
+        author: string | null;
+        isbn13: string | null;
+        cover_url: string | null;
+      }[]
+    | null;
+  const books = Array.isArray(bookRelation) ? bookRelation[0] ?? null : bookRelation;
+
+  const childRelation = (record.children ?? null) as
+    | { id: string; display_name: string }
+    | { id: string; display_name: string }[]
+    | null;
+  const children = Array.isArray(childRelation) ? childRelation[0] ?? null : childRelation;
 
   return (
     <main className="mx-auto max-w-xl p-4">

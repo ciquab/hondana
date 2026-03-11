@@ -28,12 +28,6 @@ type MissionRow = {
   status: string;
   ends_at: string;
 };
-
-type ChildRow = {
-  birth_year: number | null;
-  age_mode_override: AgeModeOverride | null;
-};
-
 type BadgeRow = {
   badge_id: string;
   name: string | null;
