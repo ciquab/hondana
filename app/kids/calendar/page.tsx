@@ -5,7 +5,10 @@ import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
 import { ageText } from '@/lib/kids/age-text';
-import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
+import {
+  getAgeModeFromProfile,
+  type AgeModeOverride
+} from '@/lib/kids/age-mode';
 
 type CalendarEntryRow = { created_at: string; stamp: string | null };
 
@@ -62,9 +65,11 @@ export default async function KidsCalendarPage({
     getChildBadges()
   ]);
 
-  const child = (childRows?.[0] ?? null) as
-    | { display_name: string; birth_year: number | null; age_mode_override: AgeModeOverride | null }
-    | null;
+  const child = (childRows?.[0] ?? null) as {
+    display_name: string;
+    birth_year: number | null;
+    age_mode_override: AgeModeOverride | null;
+  } | null;
   if (!child) redirect('/kids/login');
 
   const ageMode = getAgeModeFromProfile({
@@ -124,20 +129,20 @@ export default async function KidsCalendarPage({
       <div className="mb-4 flex items-center gap-2">
         <Link
           href={`/kids/calendar?month=${prevMonth}`}
-          className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
+          className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
         >
           {ageText(ageMode, { junior: '◀ まえ', standard: '◀ まえのつき' })}
         </Link>
         <p className="flex-1 text-center font-semibold">{bounds.monthLabel}</p>
         <Link
           href={`/kids/calendar?month=${nextMonthParam}`}
-          className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
+          className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
         >
           {ageText(ageMode, { junior: 'つぎ ▶', standard: 'つぎのつき ▶' })}
         </Link>
       </div>
 
-      <section className="mb-6 rounded-xl bg-white p-4 shadow">
+      <section className="mb-6 rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
         <h2 className="mb-3 text-lg font-semibold">こんげつのきろく</h2>
         {hasEntries ? (
           <div className="grid grid-cols-7 gap-1 text-center text-xs">
@@ -148,15 +153,15 @@ export default async function KidsCalendarPage({
               return (
                 <div
                   key={day}
-                  className={`rounded border p-1.5 ${isToday ? 'border-blue-400 bg-blue-50' : ''}`}
+                  className={`rounded border p-1.5 ${isToday ? 'border-orange-300 bg-orange-50' : 'border-amber-100 bg-amber-50/30'}`}
                 >
                   <div
-                    className={`font-semibold ${isToday ? 'text-blue-600' : ''}`}
+                    className={`font-semibold ${isToday ? 'text-orange-700' : 'text-amber-900'}`}
                   >
                     {day}
                   </div>
                   {info ? (
-                    <div className="mt-0.5 text-xs text-slate-700">
+                    <div className="mt-0.5 text-xs text-amber-900">
                       <div>{info.count}さつ</div>
                       <div>
                         {info.stamp
@@ -165,7 +170,7 @@ export default async function KidsCalendarPage({
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-0.5 text-xs text-slate-500">-</div>
+                    <div className="mt-0.5 text-xs text-amber-700">-</div>
                   )}
                 </div>
               );
@@ -179,26 +184,32 @@ export default async function KidsCalendarPage({
             primaryAction={
               <Link
                 href="/kids/records/new"
-                className={`inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 font-bold text-white transition hover:bg-orange-700 ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10 text-sm'}`}
+                className={`inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 font-bold text-white transition hover:bg-orange-600 ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10 text-sm'}`}
               >
-                {ageText(ageMode, { junior: 'きろくする', standard: 'きろくをつける' })}
+                {ageText(ageMode, {
+                  junior: 'きろくする',
+                  standard: 'きろくをつける'
+                })}
               </Link>
             }
           />
         )}
       </section>
 
-      <section className="rounded-xl bg-white p-4 shadow">
+      <section className="rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
         <h2 className="mb-3 text-lg font-semibold">げっとしたばっじ</h2>
         {badges.length > 0 ? (
           <ul className="space-y-2">
             {badges.map((badge) => {
               return (
-                <li key={badge.badge_id} className="rounded border p-3">
+                <li
+                  key={badge.badge_id}
+                  className="rounded-lg border border-amber-200 bg-amber-50/40 p-3"
+                >
                   <p className="font-medium">
                     {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
                   </p>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-amber-800">
                     {badge.description ?? ''}
                   </p>
                 </li>
@@ -208,10 +219,8 @@ export default async function KidsCalendarPage({
         ) : (
           <div className="flex flex-col items-center py-4 text-center">
             <span className="text-3xl">🏅</span>
-            <p className="mt-2 text-sm text-slate-600">
-              まだ バッジは ないよ
-            </p>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-2 text-sm text-amber-800">まだ バッジは ないよ</p>
+            <p className="mt-1 text-xs text-amber-600">
               きろくすると バッジが もらえるよ！
             </p>
           </div>

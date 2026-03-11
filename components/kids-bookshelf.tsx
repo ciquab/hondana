@@ -107,7 +107,7 @@ export function KidsBookshelf({
   );
 
   return (
-    <section className="rounded-2xl bg-gradient-to-b from-amber-50 to-orange-100 p-4 shadow">
+    <section className="rounded-2xl bg-gradient-to-b from-amber-50 via-orange-50 to-rose-50 p-4 shadow">
       <h1 className="text-2xl font-bold text-amber-900">
         {childName} のほんだな
       </h1>
@@ -121,8 +121,8 @@ export function KidsBookshelf({
               onClick={() => setActiveTab(key)}
               className={`rounded-2xl px-3 py-2 text-left text-xs font-bold transition sm:text-sm ${
                 activeTab === key
-                  ? 'bg-amber-700 text-white shadow'
-                  : 'bg-white text-amber-900 hover:bg-amber-100'
+                  ? 'bg-orange-500 text-white shadow'
+                  : 'bg-white text-amber-900 hover:bg-orange-100'
               }`}
               aria-pressed={activeTab === key}
             >
@@ -131,7 +131,7 @@ export function KidsBookshelf({
                 {label}
               </span>
               <span
-                className={`text-[11px] font-medium ${activeTab === key ? 'text-white/90' : 'text-amber-700'}`}
+                className={`text-[11px] font-medium ${activeTab === key ? 'text-white/90' : 'text-orange-700'}`}
               >
                 {tabCounts[key]}さつ
               </span>
@@ -196,7 +196,7 @@ export function KidsBookshelf({
                 key={`${activeTab}-${rowIndex}`}
                 className="bookshelf-row relative rounded-lg px-3 pb-4 pt-3"
                 style={{
-                  backgroundColor: '#DEB887',
+                  backgroundColor: '#f3c692',
                   animationDelay: `${rowIndex * 80}ms`
                 }}
               >
@@ -266,7 +266,7 @@ export function KidsBookshelf({
                 </div>
                 <div
                   className="absolute bottom-0 left-2 right-2 h-2 rounded"
-                  style={{ backgroundColor: '#8B4513' }}
+                  style={{ backgroundColor: '#b86a2d' }}
                 />
               </div>
             ))}
