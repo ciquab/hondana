@@ -14,6 +14,7 @@ import {
 import type { BookSearchResult } from '@/lib/books/types';
 import { BookCoverImg } from '@/components/book-cover-img';
 import { trackNavigationEvent } from '@/lib/analytics/navigation-events';
+import { useAgeMode } from '@/lib/kids/age-mode-context';
 
 const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner'), {
   ssr: false
@@ -46,6 +47,7 @@ const STAMPS = [
   }
 ] as const;
 
+const JUNIOR_GENRES: (typeof CHILD_GENRES)[number][] = ['story', 'zukan', 'manga'];
 
 const PRIMARY_BTN =
   'rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-50';
@@ -80,10 +82,12 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
   const [feelingTags, setFeelingTags] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const ageMode = useAgeMode();
   const [mode, setMode] = useState<'simple' | 'detailed'>('simple');
   const recordCreateTrackedRef = useRef(false);
 
   const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>('finished');
+  const canUseDetailed = ageMode === 'standard';
   const [finishedOn, setFinishedOn] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
@@ -138,8 +142,12 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
   useEffect(() => {
     if (recordCreateTrackedRef.current) return;
     recordCreateTrackedRef.current = true;
-    trackNavigationEvent({ event: 'record_create_start', target: 'kid_record_form' });
-  }, []);
+    trackNavigationEvent({
+      event: 'record_create_start',
+      target: 'kid_record_form',
+      meta: { age_mode: ageMode }
+    });
+  }, [ageMode]);
 
   const toggleFeeling = (tag: string) => {
     setFeelingTags((prev) =>
@@ -249,6 +257,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
         )}
       </div>
 
+      {canUseDetailed && (
       <div className="mb-4 flex gap-1 rounded-lg bg-slate-100 p-1">
         <button
           type="button"
@@ -273,6 +282,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
           📝 くわしく
         </button>
       </div>
+      )}
 
       <form
         action={formAction}
@@ -396,7 +406,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                 </span>
               </legend>
               <div className="grid grid-cols-2 gap-2">
-                {CHILD_GENRES.map((g) => {
+                {(ageMode === 'junior' ? JUNIOR_GENRES : CHILD_GENRES).map((g) => {
                   const selected = genre === g;
                   return (
                     <button
@@ -502,12 +512,12 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
         <button
           type="submit"
           disabled={pending || !stamp}
-          className={PRIMARY_BTN}
+          className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}
           onClick={() =>
             trackNavigationEvent({
               event: 'record_create_submit',
               target: mode,
-              meta: { hasStamp: Boolean(stamp), hasGenre: Boolean(genre) }
+              meta: { hasStamp: Boolean(stamp), hasGenre: Boolean(genre), age_mode: ageMode }
             })
           }
         >

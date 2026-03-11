@@ -6,6 +6,8 @@ import { markKidMessageRead } from '@/app/actions/kid-message';
 import { requireKidContext } from '@/lib/kids/client';
 import { getKidMessages } from '@/lib/kids/messages';
 import { TrackedSubmitButton } from '@/components/tracked-submit-button';
+import { ageText } from '@/lib/kids/age-text';
+import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
 
 const EMOJI_MAP: Record<string, string> = {
   heart: '❤️',
@@ -26,17 +28,27 @@ export default async function KidsMessagesPage() {
     getKidMessages()
   ]);
 
-  const child = childRows?.[0];
+  const child = (childRows?.[0] ?? null) as
+    | { display_name: string; birth_year: number | null; age_mode_override: AgeModeOverride | null }
+    | null;
   if (!child) redirect('/kids/login');
+
+  const ageMode = getAgeModeFromProfile({
+    birthYear: child.birth_year,
+    ageModeOverride: child.age_mode_override ?? 'auto'
+  });
 
   return (
     <main className="mx-auto max-w-2xl p-4">
       <AppTopNav
-        title={`${child.display_name} へのメッセージ`}
+        title={ageText(ageMode, {
+          junior: `${child.display_name} への おてがみ`,
+          standard: `${child.display_name} へのメッセージ`
+        })}
         backHref="/kids/home"
-        backLabel="ホーム"
+        backLabel={ageText(ageMode, { junior: 'ほーむ', standard: 'ホーム' })}
       />
-      <p className="mb-4 text-sm text-slate-600">みどく {unreadCount} けん</p>
+      <p className={`mb-4 ${ageMode === 'junior' ? 'text-base' : 'text-sm'} text-slate-600`}>みどく {unreadCount} けん</p>
 
       {messages.length === 0 ? (
         <EmptyStateCard
@@ -50,13 +62,13 @@ export default async function KidsMessagesPage() {
             </>
           }
           primaryAction={
-            <Link href="/kids/records/new" className={PRIMARY_BTN}>
-              📖 きろくをつける
+            <Link href="/kids/records/new" className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}>
+              {ageText(ageMode, { junior: '📖 きろくする', standard: '📖 きろくをつける' })}
             </Link>
           }
           secondaryAction={
-            <Link href="/kids/home" className={SECONDARY_BTN}>
-              ホームにもどる
+            <Link href="/kids/home" className={`${SECONDARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}>
+              {ageText(ageMode, { junior: 'ほーむ', standard: 'ホームにもどる' })}
             </Link>
           }
         />
@@ -102,9 +114,10 @@ export default async function KidsMessagesPage() {
                     eventName="kid_message_mark_read"
                     childId={childId}
                     target="mark_read"
-                    className="rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-orange-700"
+                    meta={{ age_mode: ageMode }}
+                    className={`rounded-lg bg-orange-600 px-3 py-1.5 font-semibold text-white hover:bg-orange-700 ${ageMode === 'junior' ? 'h-12 text-base' : 'text-sm'}`}
                   >
-                    よんだ！
+                    {ageText(ageMode, { junior: 'よんだ！', standard: 'よんだ！' })}
                   </TrackedSubmitButton>
                 </form>
               ) : (

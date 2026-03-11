@@ -4,6 +4,8 @@ import { EmptyStateCard } from '@/components/empty-state-card';
 import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { getChildBadges } from '@/lib/kids/badges';
+import { ageText } from '@/lib/kids/age-text';
+import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
 
 type CalendarEntryRow = { created_at: string; stamp: string | null };
 
@@ -60,8 +62,15 @@ export default async function KidsCalendarPage({
     getChildBadges()
   ]);
 
-  const child = childRows?.[0];
+  const child = (childRows?.[0] ?? null) as
+    | { display_name: string; birth_year: number | null; age_mode_override: AgeModeOverride | null }
+    | null;
   if (!child) redirect('/kids/login');
+
+  const ageMode = getAgeModeFromProfile({
+    birthYear: child.birth_year,
+    ageModeOverride: child.age_mode_override ?? 'auto'
+  });
 
   const dayMap = new Map<number, { count: number; stamp?: string }>();
   for (const row of (records ?? []) as CalendarEntryRow[]) {
@@ -104,9 +113,12 @@ export default async function KidsCalendarPage({
   return (
     <main className="mx-auto max-w-2xl p-4">
       <AppTopNav
-        title={`${child.display_name} のどくしょカレンダー`}
+        title={ageText(ageMode, {
+          junior: `${child.display_name} の カレンダー`,
+          standard: `${child.display_name} のどくしょカレンダー`
+        })}
         backHref="/kids/home"
-        backLabel="ホーム"
+        backLabel={ageText(ageMode, { junior: 'ほーむ', standard: 'ホーム' })}
       />
 
       <div className="mb-4 flex items-center gap-2">
@@ -114,14 +126,14 @@ export default async function KidsCalendarPage({
           href={`/kids/calendar?month=${prevMonth}`}
           className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
         >
-          ◀ まえのつき
+          {ageText(ageMode, { junior: '◀ まえ', standard: '◀ まえのつき' })}
         </Link>
         <p className="flex-1 text-center font-semibold">{bounds.monthLabel}</p>
         <Link
           href={`/kids/calendar?month=${nextMonthParam}`}
           className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
         >
-          つぎのつき ▶
+          {ageText(ageMode, { junior: 'つぎ ▶', standard: 'つぎのつき ▶' })}
         </Link>
       </div>
 
@@ -167,9 +179,9 @@ export default async function KidsCalendarPage({
             primaryAction={
               <Link
                 href="/kids/records/new"
-                className="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700"
+                className={`inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 font-bold text-white transition hover:bg-orange-700 ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10 text-sm'}`}
               >
-                きろくをつける
+                {ageText(ageMode, { junior: 'きろくする', standard: 'きろくをつける' })}
               </Link>
             }
           />
