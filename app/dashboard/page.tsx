@@ -50,15 +50,12 @@ export default async function DashboardPage() {
         </form>
       </header>
 
-      <section className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow">
-        <p className="text-xs font-semibold text-slate-500">現在の家族名</p>
-        <p className="mt-1 text-lg font-semibold text-slate-900">🏠 {currentFamilyName}</p>
-      </section>
 
       {children.length > 0 && <DashboardActions actions={dashboardActions} />}
 
       <section className="mb-4 rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">子ども一覧</h2>
+        <h2 className="mb-1 text-lg font-semibold">🏠 {currentFamilyName}</h2>
+        <p className="mb-3 text-sm text-slate-600">子ども一覧</p>
         <DashboardChildrenTabs
           childProfiles={children}
           recordCounts={recordCounts}
