@@ -6,7 +6,7 @@ interface BarcodeDetectResult {
   rawValue: string;
 }
 interface BarcodeDetectorInstance {
-  detect: (source: HTMLVideoElement) => Promise<BarcodeDetectResult[]>;
+  detect: (source: CanvasImageSource) => Promise<BarcodeDetectResult[]>;
 }
 interface WindowWithBarcodeDetector extends Window {
   BarcodeDetector: new (opts: { formats: string[] }) => BarcodeDetectorInstance;
@@ -19,14 +19,69 @@ type Props = {
 
 export default function BarcodeScanner({ onDetected, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const roiCanvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(true);
   const streamRef = useRef<MediaStream | null>(null);
+  const stableIsbnRef = useRef<string | null>(null);
+  const stableCountRef = useRef(0);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
   }, []);
+
+  const getRoiCanvas = useCallback((): HTMLCanvasElement | null => {
+    const video = videoRef.current;
+    const canvas = roiCanvasRef.current;
+    if (!video || !canvas || !video.videoWidth || !video.videoHeight) {
+      return null;
+    }
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+
+    const roiWidth = Math.round(video.videoWidth * 0.72);
+    const roiHeight = Math.round(video.videoHeight * 0.28);
+    const startX = Math.round((video.videoWidth - roiWidth) / 2);
+    const startY = Math.round((video.videoHeight - roiHeight) / 2);
+
+    canvas.width = roiWidth;
+    canvas.height = roiHeight;
+    ctx.drawImage(
+      video,
+      startX,
+      startY,
+      roiWidth,
+      roiHeight,
+      0,
+      0,
+      roiWidth,
+      roiHeight
+    );
+
+    return canvas;
+  }, []);
+
+  const detectStableIsbn = useCallback(
+    (isbn: string): boolean => {
+      if (stableIsbnRef.current === isbn) {
+        stableCountRef.current += 1;
+      } else {
+        stableIsbnRef.current = isbn;
+        stableCountRef.current = 1;
+      }
+
+      if (stableCountRef.current >= 2) {
+        stopCamera();
+        onDetected(isbn);
+        return true;
+      }
+
+      return false;
+    },
+    [onDetected, stopCamera]
+  );
 
   useEffect(() => {
     if (!scanning) return;
@@ -36,7 +91,7 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
     async function startScanning() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
+          video: { facingMode: 'environment' }
         });
 
         if (cancelled) {
@@ -53,19 +108,27 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
 
         // Try native BarcodeDetector first, fall back to @zxing/library
         if ('BarcodeDetector' in window) {
-          const detector = new (window as unknown as WindowWithBarcodeDetector).BarcodeDetector({
-            formats: ['ean_13'],
+          const detector = new (
+            window as unknown as WindowWithBarcodeDetector
+          ).BarcodeDetector({
+            formats: ['ean_13']
           });
 
           const tick = async () => {
             if (cancelled || !videoRef.current) return;
             try {
-              const barcodes = await detector.detect(videoRef.current);
+              const roiCanvas = getRoiCanvas();
+              if (!roiCanvas) {
+                if (!cancelled) requestAnimationFrame(tick);
+                return;
+              }
+              const barcodes = await detector.detect(roiCanvas);
               if (barcodes.length > 0) {
                 const isbn = barcodes[0].rawValue;
-                if (isbn.startsWith('978') || isbn.startsWith('979')) {
-                  stopCamera();
-                  onDetected(isbn);
+                if (
+                  (isbn.startsWith('978') || isbn.startsWith('979')) &&
+                  detectStableIsbn(isbn)
+                ) {
                   return;
                 }
               }
@@ -84,13 +147,13 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
           const tick = async () => {
             if (cancelled || !videoRef.current) return;
             try {
-              const result = await reader.decodeFromVideoElement(videoRef.current);
+              const result = await reader.decodeFromVideoElement(
+                videoRef.current
+              );
               if (cancelled) return;
               const isbn = result.getText();
-              if (/^97[89]\d{10}$/.test(isbn)) {
+              if (/^97[89]\d{10}$/.test(isbn) && detectStableIsbn(isbn)) {
                 reader.reset();
-                stopCamera();
-                onDetected(isbn);
                 return;
               }
             } catch {
@@ -103,7 +166,9 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
         }
       } catch {
         if (!cancelled) {
-          setError('カメラにアクセスできません。カメラの許可を確認してください。');
+          setError(
+            'カメラにアクセスできません。カメラの許可を確認してください。'
+          );
         }
       }
     }
@@ -114,12 +179,14 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
       cancelled = true;
       stopCamera();
     };
-  }, [scanning, onDetected, stopCamera]);
+  }, [scanning, detectStableIsbn, getRoiCanvas, onDetected, stopCamera]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
       <div className="flex items-center justify-between bg-black/80 p-3">
-        <span className="text-sm text-white">バーコードをカメラに映してください</span>
+        <span className="text-sm text-white">
+          バーコードをカメラに映してください
+        </span>
         <button
           onClick={() => {
             setScanning(false);
@@ -146,10 +213,14 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
           />
           {/* Scan guide overlay */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="h-32 w-64 rounded-lg border-2 border-white/60" />
+            <div className="h-32 w-64 rounded-lg border-2 border-white/70 bg-black/10" />
+          </div>
+          <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/45 px-4 py-2 text-xs text-white">
+            枠の中にバーコードを入れると読み取りやすいです
           </div>
         </div>
       )}
+      <canvas ref={roiCanvasRef} className="hidden" aria-hidden />
     </div>
   );
 }

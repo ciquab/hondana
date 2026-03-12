@@ -107,13 +107,13 @@ export function KidsBookshelf({
   );
 
   return (
-    <section className="rounded-2xl bg-gradient-to-b from-amber-50 via-orange-50 to-rose-50 p-4 shadow">
+    <section className="kid-card p-4">
       <h1 className="text-2xl font-bold text-amber-900">
         {childName} のほんだな
       </h1>
 
       {/* genre tabs */}
-      <div className="mt-3 rounded-2xl bg-white/70 p-2 shadow-inner">
+      <div className="mt-3 rounded-2xl bg-white/80 p-2 shadow-inner">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {GENRE_TABS.map(({ key, label, emoji }) => (
             <button
@@ -141,7 +141,7 @@ export function KidsBookshelf({
       </div>
 
       {records.length === 0 ? (
-        <div className="mt-4 flex flex-col items-center rounded-xl bg-white/80 py-8 text-center shadow">
+        <div className="mt-4 flex flex-col items-center rounded-xl border border-amber-100 bg-white/90 py-8 text-center shadow">
           <span className="text-5xl">📚</span>
           <p className="mt-3 text-lg font-bold text-slate-700">
             ほんだなは まだ からっぽ
@@ -157,7 +157,7 @@ export function KidsBookshelf({
           </Link>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="mt-4 flex flex-col items-center rounded-xl bg-white/80 py-6 text-center text-sm text-slate-700">
+        <div className="mt-4 flex flex-col items-center rounded-xl border border-amber-100 bg-white/90 py-6 text-center text-sm text-slate-700">
           {GENRE_EMPTY_MESSAGES[activeTab] ? (
             <>
               <p className="text-3xl">
@@ -182,7 +182,7 @@ export function KidsBookshelf({
         </div>
       ) : (
         <>
-          <div className="mt-3 flex items-center justify-between rounded-xl bg-white/70 px-3 py-2 text-amber-900">
+          <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-100 bg-white/90 px-3 py-2 text-amber-900">
             <p className="text-sm font-bold">📚 {activeTabMeta.label} のたな</p>
             <p className="text-xs font-semibold">
               {activeTab === 'all'
@@ -194,9 +194,8 @@ export function KidsBookshelf({
             {shelfRows.map((row, rowIndex) => (
               <div
                 key={`${activeTab}-${rowIndex}`}
-                className="bookshelf-row relative rounded-lg px-3 pb-4 pt-3"
+                className="bookshelf-row relative rounded-lg border border-amber-200/70 bg-[#fdf2d7] px-3 pb-4 pt-3"
                 style={{
-                  backgroundColor: '#f3c692',
                   animationDelay: `${rowIndex * 80}ms`
                 }}
               >
@@ -264,10 +263,7 @@ export function KidsBookshelf({
                     );
                   })}
                 </div>
-                <div
-                  className="absolute bottom-0 left-2 right-2 h-2 rounded"
-                  style={{ backgroundColor: '#b86a2d' }}
-                />
+                <div className="absolute bottom-0 left-2 right-2 h-2 rounded bg-amber-600/80" />
               </div>
             ))}
           </div>

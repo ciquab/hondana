@@ -7,6 +7,35 @@ body {
   font-family: 'Zen Maru Gothic', sans-serif;
 }
 
+@layer components {
+  .kid-link {
+    @apply text-sm text-amber-700 underline underline-offset-2 hover:text-amber-800;
+  }
+
+  .kid-card {
+    @apply rounded-2xl border border-amber-200/80 bg-[#fff9ea] shadow;
+  }
+
+  .kid-accent {
+    @apply text-amber-900;
+  }
+
+  .kid-note-card {
+    @apply relative rounded-2xl border border-amber-200 bg-[#fffaf0] p-5 shadow;
+    background-image: linear-gradient(
+      to bottom,
+      transparent 31px,
+      #f0e5c9 32px
+    );
+    background-size: 100% 32px;
+  }
+
+  .kid-note-card::before {
+    content: '';
+    @apply pointer-events-none absolute left-6 top-0 h-full w-px bg-rose-200/70;
+  }
+}
+
 @keyframes shelfPopIn {
   from {
     opacity: 0;

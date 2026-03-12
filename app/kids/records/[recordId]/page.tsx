@@ -105,171 +105,173 @@ export default async function KidRecordDetailPage({
 
   return (
     <main className="mx-auto max-w-xl p-4">
-      <Link href="/kids/records" className="text-sm text-blue-600 underline">
+      <Link href="/kids/records" className="kid-link">
         ほんだなにもどる
       </Link>
 
-      <div className="mt-3 rounded-2xl bg-gradient-to-b from-sky-50 to-indigo-100 p-5 shadow">
-        <p className="text-xs font-medium text-indigo-700">
-          {record.child_display_name ?? 'こども'} のどくしょきろく
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-indigo-950">
-          {record.title ?? 'タイトルふめい'}
-        </h1>
+      <article className="kid-note-card mt-3">
+        <div className="rounded-xl border border-amber-200/70 bg-white/75 p-4">
+          <p className="text-xs font-medium text-amber-700">
+            {record.child_display_name ?? 'こども'} のどくしょきろく
+          </p>
+          <h1 className="mt-1 text-2xl font-bold text-amber-950">
+            {record.title ?? 'タイトルふめい'}
+          </h1>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          <span className="rounded-full bg-white/85 px-3 py-1 text-sm font-medium text-indigo-800">
-            {STATUS_LABELS[record.status] ?? record.status}
-          </span>
-          {record.stamp ? (
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
-              {STAMP_LABELS[record.stamp] ?? record.stamp}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-amber-900">
+              {STATUS_LABELS[record.status] ?? record.status}
             </span>
+            {record.stamp ? (
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
+                {STAMP_LABELS[record.stamp] ?? record.stamp}
+              </span>
+            ) : null}
+          </div>
+
+          {record.cover_url ? (
+            <div className="mt-4 flex justify-center">
+              <BookCoverImage
+                src={record.cover_url}
+                alt={record.title ?? 'ひょうし'}
+                className="h-48 w-32 rounded-lg object-cover shadow"
+                fallbackClassName="flex h-48 w-32 items-center justify-center rounded-lg bg-white/80 text-sm text-slate-500"
+                fallbackText="ひょうしがぞうはありません"
+              />
+            </div>
+          ) : (
+            <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-white/80 text-sm text-slate-500">
+              ひょうしがぞうはありません
+            </div>
+          )}
+
+          {feelingTags.length > 0 ? (
+            <section className="mt-4">
+              <h2 className="text-sm font-semibold text-amber-900">
+                きもちタグ
+              </h2>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {feelingTags.map((tag, i) => (
+                  <span
+                    key={`${tag}-${i}`}
+                    className="rounded-full bg-rose-100 px-3 py-1 text-sm text-rose-900"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </section>
           ) : null}
-        </div>
 
-        {record.cover_url ? (
-          <div className="mt-4 flex justify-center">
-            <BookCoverImage
-              src={record.cover_url}
-              alt={record.title ?? 'ひょうし'}
-              className="h-48 w-32 rounded-lg object-cover shadow"
-              fallbackClassName="flex h-48 w-32 items-center justify-center rounded-lg bg-white/80 text-sm text-slate-500"
-              fallbackText="ひょうしがぞうはありません"
-            />
-          </div>
-        ) : (
-          <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-white/80 text-sm text-slate-500">
-            ひょうしがぞうはありません
-          </div>
-        )}
-
-        {feelingTags.length > 0 ? (
-          <section className="mt-4">
-            <h2 className="text-sm font-semibold text-indigo-800">
-              きもちタグ
+          <section className="mt-4 rounded-xl border border-amber-100 bg-white/90 p-4">
+            <h2 className="text-sm font-semibold text-amber-900">
+              おうちのひとのリアクション
             </h2>
             <div className="mt-2 flex flex-wrap gap-2">
-              {feelingTags.map((tag, i) => (
-                <span
-                  key={`${tag}-${i}`}
-                  className="rounded-full bg-rose-100 px-3 py-1 text-sm text-rose-900"
-                >
-                  {tag}
-                </span>
-              ))}
+              {reactionCountMap.size > 0 ? (
+                Array.from(reactionCountMap.entries()).map(([emoji, count]) => (
+                  <span
+                    key={emoji}
+                    className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
+                  >
+                    {EMOJI_MAP[emoji] ?? emoji} {count}
+                  </span>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">
+                  まだリアクションはありません
+                </p>
+              )}
             </div>
-          </section>
-        ) : null}
 
-        <section className="mt-4 rounded-xl bg-white/85 p-4">
-          <h2 className="text-sm font-semibold text-indigo-900">
-            おうちのひとのリアクション
-          </h2>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {reactionCountMap.size > 0 ? (
-              Array.from(reactionCountMap.entries()).map(([emoji, count]) => (
-                <span
-                  key={emoji}
-                  className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
-                >
-                  {EMOJI_MAP[emoji] ?? emoji} {count}
-                </span>
-              ))
+            {reactionByParent.size > 0 ? (
+              <ul className="mt-3 space-y-2">
+                {Array.from(reactionByParent.entries()).map(
+                  ([parentName, emojis]) => (
+                    <li
+                      key={parentName}
+                      className="rounded-lg bg-amber-50/80 p-2 text-sm text-slate-700"
+                    >
+                      <p className="font-medium">{parentName}</p>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {Object.entries(emojis).map(([emoji, count]) => (
+                          <span
+                            key={`${parentName}-${emoji}`}
+                            className="rounded-full bg-white px-2 py-0.5 text-xs"
+                          >
+                            {EMOJI_MAP[emoji] ?? emoji} {count}
+                          </span>
+                        ))}
+                      </div>
+                    </li>
+                  )
+                )}
+              </ul>
+            ) : null}
+          </section>
+
+          <section className="mt-4 rounded-xl border border-amber-100 bg-white/90 p-4">
+            <h2 className="text-sm font-semibold text-amber-900">
+              おうちのひとからのこめんと
+            </h2>
+            {comments.length > 0 ? (
+              <ul className="mt-2 space-y-2">
+                {comments.map((comment) => (
+                  <li
+                    key={comment.id}
+                    className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700"
+                  >
+                    <p className="mb-1 text-xs font-semibold text-amber-700">
+                      {comment.author_display_name}
+                    </p>
+                    <p className="whitespace-pre-wrap">{comment.body}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {new Date(comment.created_at).toLocaleString('ja-JP')}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <p className="text-sm text-slate-500">
-                まだリアクションはありません
+              <p className="mt-2 text-sm text-slate-500">
+                まだこめんとはありません
               </p>
             )}
-          </div>
+          </section>
 
-          {reactionByParent.size > 0 ? (
-            <ul className="mt-3 space-y-2">
-              {Array.from(reactionByParent.entries()).map(
-                ([parentName, emojis]) => (
-                  <li
-                    key={parentName}
-                    className="rounded-lg bg-slate-50 p-2 text-sm text-slate-700"
-                  >
-                    <p className="font-medium">{parentName}</p>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {Object.entries(emojis).map(([emoji, count]) => (
-                        <span
-                          key={`${parentName}-${emoji}`}
-                          className="rounded-full bg-white px-2 py-0.5 text-xs"
-                        >
-                          {EMOJI_MAP[emoji] ?? emoji} {count}
-                        </span>
-                      ))}
-                    </div>
-                  </li>
-                )
-              )}
-            </ul>
-          ) : null}
-        </section>
-
-        <section className="mt-4 rounded-xl bg-white/85 p-4">
-          <h2 className="text-sm font-semibold text-indigo-900">
-            おうちのひとからのこめんと
-          </h2>
-          {comments.length > 0 ? (
-            <ul className="mt-2 space-y-2">
-              {comments.map((comment) => (
-                <li
-                  key={comment.id}
-                  className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700"
-                >
-                  <p className="mb-1 text-xs font-semibold text-indigo-700">
-                    {comment.author_display_name}
-                  </p>
-                  <p className="whitespace-pre-wrap">{comment.body}</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {new Date(comment.created_at).toLocaleString('ja-JP')}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm text-slate-500">
-              まだこめんとはありません
-            </p>
-          )}
-        </section>
-
-        <dl className="mt-5 space-y-3 rounded-xl bg-white/80 p-4 text-sm">
-          <div>
-            <dt className="font-medium text-slate-700">ちょしゃ</dt>
-            <dd className="text-slate-700">{record.author ?? 'ふめい'}</dd>
-          </div>
-          <div>
-            <dt className="font-medium text-slate-700">ISBN</dt>
-            <dd className="text-slate-700">{record.isbn13 ?? 'なし'}</dd>
-          </div>
-          <div>
-            <dt className="font-medium text-slate-700">きろくしたひ</dt>
-            <dd className="text-slate-700">
-              {new Date(record.created_at).toLocaleDateString('ja-JP')}
-            </dd>
-          </div>
-          {record.finished_on ? (
+          <dl className="mt-5 space-y-3 rounded-xl border border-amber-100 bg-white/90 p-4 text-sm">
             <div>
-              <dt className="font-medium text-slate-700">よみおわったひ</dt>
+              <dt className="font-medium text-slate-700">ちょしゃ</dt>
+              <dd className="text-slate-700">{record.author ?? 'ふめい'}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-slate-700">ISBN</dt>
+              <dd className="text-slate-700">{record.isbn13 ?? 'なし'}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-slate-700">きろくしたひ</dt>
               <dd className="text-slate-700">
-                {formatYmdDate(record.finished_on)}
+                {new Date(record.created_at).toLocaleDateString('ja-JP')}
               </dd>
             </div>
-          ) : null}
-          {record.memo ? (
-            <div>
-              <dt className="font-medium text-slate-700">ひとことかんそう</dt>
-              <dd className="whitespace-pre-wrap text-slate-700">
-                {record.memo}
-              </dd>
-            </div>
-          ) : null}
-        </dl>
-      </div>
+            {record.finished_on ? (
+              <div>
+                <dt className="font-medium text-slate-700">よみおわったひ</dt>
+                <dd className="text-slate-700">
+                  {formatYmdDate(record.finished_on)}
+                </dd>
+              </div>
+            ) : null}
+            {record.memo ? (
+              <div>
+                <dt className="font-medium text-slate-700">ひとことかんそう</dt>
+                <dd className="whitespace-pre-wrap text-slate-700">
+                  {record.memo}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
+      </article>
     </main>
   );
 }
