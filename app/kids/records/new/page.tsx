@@ -5,7 +5,7 @@ import { requireKidContext } from '@/lib/kids/client';
 import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
 
 export default async function KidsNewRecordPage({
-  searchParams,
+  searchParams
 }: {
   searchParams: Promise<{ title?: string; author?: string; isbn?: string }>;
 }) {
@@ -18,12 +18,12 @@ export default async function KidsNewRecordPage({
       <AppTopNav
         title={ageText(ageMode, {
           junior: 'きろく',
-          standard: 'どくしょきろく',
+          standard: '読書記録'
         })}
         backHref="/kids/home"
         backLabel={ageText(ageMode, {
           junior: 'ほーむ',
-          standard: 'ホーム',
+          standard: 'ホーム'
         })}
       />
       <KidRecordForm

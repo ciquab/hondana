@@ -44,18 +44,23 @@ export default async function RecordCompletePage({
 
   if (!params.recordId) redirect('/kids/home');
 
-  const [{ data: recordRows }, { data: missionRows }, badgeInfo] = await Promise.all([
-    supabase.rpc('get_kid_record_detail', {
-      target_child_id: childId,
-      target_record_id: params.recordId
-    }),
-    supabase.rpc('get_kid_active_mission', {
-      target_child_id: childId
-    }),
-    params.badge
-      ? supabase.from('badges').select('id, name, icon').eq('id', params.badge).single()
-      : Promise.resolve({ data: null })
-  ]);
+  const [{ data: recordRows }, { data: missionRows }, badgeInfo] =
+    await Promise.all([
+      supabase.rpc('get_kid_record_detail', {
+        target_child_id: childId,
+        target_record_id: params.recordId
+      }),
+      supabase.rpc('get_kid_active_mission', {
+        target_child_id: childId
+      }),
+      params.badge
+        ? supabase
+            .from('badges')
+            .select('id, name, icon')
+            .eq('id', params.badge)
+            .single()
+        : Promise.resolve({ data: null })
+    ]);
 
   const record = (recordRows as RecordRow[] | null)?.[0] ?? null;
   const mission = (missionRows as MissionRow[] | null)?.[0] ?? null;
@@ -70,7 +75,10 @@ export default async function RecordCompletePage({
       <div className="mb-6">
         <p className="text-5xl">🎉</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-800">
-          {ageText(ageMode, { junior: 'きろく できた！', standard: 'きろく できたよ！' })}
+          {ageText(ageMode, {
+            junior: 'きろく できた！',
+            standard: '記録できたよ！'
+          })}
         </h1>
       </div>
 
@@ -88,7 +96,9 @@ export default async function RecordCompletePage({
             📖
           </div>
         )}
-        <p className="mt-3 text-lg font-bold text-slate-800">{record.title ?? 'ほん'}</p>
+        <p className="mt-3 text-lg font-bold text-slate-800">
+          {record.title ?? 'ほん'}
+        </p>
         {stampInfo && (
           <p className="mt-1 text-sm text-slate-600">
             {stampInfo.emoji} {stampInfo.label}
@@ -99,6 +109,7 @@ export default async function RecordCompletePage({
       {mission && (
         <div className="mb-4 w-full max-w-xs">
           <MissionProgress
+            ageMode={ageMode}
             title={mission.title}
             icon={mission.icon}
             targetValue={mission.target_value}
@@ -111,9 +122,13 @@ export default async function RecordCompletePage({
 
       {newBadge && (
         <div className="mb-6 w-full max-w-xs rounded-2xl border border-amber-300 bg-amber-50 p-4">
-          <p className="text-xs font-semibold text-amber-600">あたらしいバッジ！</p>
+          <p className="text-xs font-semibold text-amber-600">
+            あたらしいバッジ！
+          </p>
           <p className="mt-1 text-3xl">{newBadge.icon ?? '🏅'}</p>
-          <p className="mt-1 font-bold text-amber-800">{newBadge.name ?? newBadge.badge_id}</p>
+          <p className="mt-1 font-bold text-amber-800">
+            {newBadge.name ?? newBadge.badge_id}
+          </p>
         </div>
       )}
 
@@ -122,13 +137,19 @@ export default async function RecordCompletePage({
           href="/kids/records/new"
           className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white shadow hover:bg-orange-600"
         >
-          {ageText(ageMode, { junior: '📚 もう 1さつ', standard: '📚 もう1さつ とうろく' })}
+          {ageText(ageMode, {
+            junior: '📚 もう 1さつ',
+            standard: '📚 もう1冊 登録'
+          })}
         </Link>
         <Link
           href="/kids/home"
           className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          {ageText(ageMode, { junior: '🏠 ほーむ', standard: '🏠 ホームにもどる' })}
+          {ageText(ageMode, {
+            junior: '🏠 ほーむ',
+            standard: '🏠 ホームに戻る'
+          })}
         </Link>
       </div>
     </main>

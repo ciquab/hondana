@@ -156,14 +156,20 @@ export default async function KidsHomePage({
           {activeMission && (
             <div className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 shadow-sm">
               <p className="text-xs font-semibold text-violet-600">
-                🎯 いまのミッション
+                {ageText(ageMode, {
+                  junior: '🎯 いまのミッション',
+                  standard: '🎯 今のミッション'
+                })}
               </p>
               <p className="text-sm font-semibold text-violet-900">
                 {activeMission.title}
               </p>
               {missionDaysLeft !== null && (
                 <p className="text-xs text-violet-700">
-                  あと {missionDaysLeft} にち
+                  {ageText(ageMode, {
+                    junior: `あと ${missionDaysLeft} にち`,
+                    standard: `あと ${missionDaysLeft} 日`
+                  })}
                 </p>
               )}
             </div>
@@ -185,7 +191,7 @@ export default async function KidsHomePage({
           <span className="text-center text-sm font-medium text-orange-800">
             {ageText(ageMode, {
               junior: 'きろくする',
-              standard: 'きょうのきろくをつける'
+              standard: '今日の記録をつける'
             })}
           </span>
         </TrackedLink>
@@ -201,7 +207,7 @@ export default async function KidsHomePage({
           <span className="text-center text-sm font-medium text-sky-800">
             {ageText(ageMode, {
               junior: 'ほんだな',
-              standard: 'ほんだなをみる'
+              standard: '本棚を見る'
             })}
           </span>
         </TrackedLink>
@@ -217,7 +223,7 @@ export default async function KidsHomePage({
           <span className="text-center text-sm font-medium text-amber-800">
             {ageText(ageMode, {
               junior: 'カレンダー',
-              standard: 'カレンダーをみる'
+              standard: 'カレンダーを見る'
             })}
           </span>
         </TrackedLink>
@@ -319,6 +325,7 @@ export default async function KidsHomePage({
 
       {activeMission && (
         <MissionProgress
+          ageMode={ageMode}
           title={activeMission.title}
           icon={activeMission.icon}
           targetValue={activeMission.target_value}
