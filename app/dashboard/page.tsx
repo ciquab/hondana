@@ -23,6 +23,10 @@ export default async function DashboardPage() {
     redirect('/settings/family');
   }
 
+  const currentFamilyName =
+    ((families[0]?.families as { name?: string } | null)?.name ?? '').trim() ||
+    '（未設定）';
+
   const children = await getChildrenForCurrentUser();
   const childIds = children.map((c) => c.id);
   const [
@@ -46,10 +50,12 @@ export default async function DashboardPage() {
         </form>
       </header>
 
+
       {children.length > 0 && <DashboardActions actions={dashboardActions} />}
 
       <section className="mb-4 rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">子ども一覧</h2>
+        <h2 className="mb-1 text-lg font-semibold">🏠 {currentFamilyName}</h2>
+        <p className="mb-3 text-sm text-slate-600">子ども一覧</p>
         <DashboardChildrenTabs
           childProfiles={children}
           recordCounts={recordCounts}
