@@ -56,16 +56,18 @@ export default async function KidsRecordsPage() {
       <KidsBookshelf records={records} childName={child.display_name} />
 
       {/* FAB: 本を登録する */}
-      <Link
-        href="/kids/records/new"
-        className="fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-2xl text-white shadow-lg transition hover:bg-orange-600 active:scale-95"
-        aria-label={ageText(ageMode, {
-          junior: 'きろくする',
-          standard: '記録をつける'
-        })}
-      >
-        ＋
-      </Link>
+      <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center">
+        <Link
+          href="/kids/records/new"
+          className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-6 py-3 text-base font-bold text-white shadow-lg transition hover:bg-orange-600 active:scale-95"
+        >
+          <span>📖</span>
+          {ageText(ageMode, {
+            junior: 'ほんをとうろくする',
+            standard: '本を登録する'
+          })}
+        </Link>
+      </div>
     </main>
   );
 }
