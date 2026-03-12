@@ -23,6 +23,10 @@ export default async function DashboardPage() {
     redirect('/settings/family');
   }
 
+  const currentFamilyName =
+    ((families[0]?.families as { name?: string } | null)?.name ?? '').trim() ||
+    '（未設定）';
+
   const children = await getChildrenForCurrentUser();
   const childIds = children.map((c) => c.id);
   const [
@@ -45,6 +49,11 @@ export default async function DashboardPage() {
           <button className="rounded border px-3 py-1">ログアウト</button>
         </form>
       </header>
+
+      <section className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow">
+        <p className="text-xs font-semibold text-slate-500">現在の家族名</p>
+        <p className="mt-1 text-lg font-semibold text-slate-900">🏠 {currentFamilyName}</p>
+      </section>
 
       {children.length > 0 && <DashboardActions actions={dashboardActions} />}
 

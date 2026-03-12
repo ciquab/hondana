@@ -260,7 +260,7 @@ export default async function KidsHomePage({
             className="text-sm text-orange-700 underline"
           >
             {ageText(ageMode, {
-              junior: 'まえのきろくをひらく',
+              junior: 'まえの きろくを みる',
               standard: '過去の記録を見る'
             })}
           </Link>
@@ -365,8 +365,8 @@ export default async function KidsHomePage({
           <div className="mb-1 flex items-center justify-between">
             <p className="text-xs font-semibold text-rose-600">
               {ageText(ageMode, {
-                junior: '💌 おとなからのメッセージ',
-                standard: '💌 家族からのメッセージ'
+                junior: '💌 おうちのひとからのメッセージ',
+                standard: '💌 おうちのひとからのメッセージ'
               })}
             </p>
             <Link
@@ -374,7 +374,7 @@ export default async function KidsHomePage({
               className="text-xs text-rose-700 underline"
             >
               {ageText(ageMode, {
-                junior: 'ぜんぶみる',
+                junior: 'ぜんぶ みる',
                 standard: 'すべて見る'
               })}
             </Link>
