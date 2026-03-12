@@ -23,6 +23,14 @@ type ChildRow = {
   display_name: string;
 };
 
+type FamilyMemberRow = {
+  family_id: string;
+  display_name: string | null;
+  families: {
+    name: string | null;
+  } | null;
+};
+
 function InviteCard({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -84,6 +92,9 @@ export default function FamilySettingsPage() {
   const [displayName, setDisplayName] = useState('');
   const [children, setChildren] = useState<ChildRow[]>([]);
   const [origin, setOrigin] = useState('');
+  const [currentFamilyName, setCurrentFamilyName] = useState('');
+  const [copiedKidId, setCopiedKidId] = useState<string | null>(null);
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   const [familyState, familyAction, familyPending] = useActionState<
     ActionResult,
@@ -115,17 +126,18 @@ export default function FamilySettingsPage() {
 
       const { data: fm } = await supabase
         .from('family_members')
-        .select('family_id, display_name')
+        .select('family_id, display_name, families(name)')
         .eq('user_id', user.id)
         .limit(1);
 
-      const rows = fm ?? [];
+      const rows = ((fm ?? []) as FamilyMemberRow[]);
       setHasFamily(rows.length > 0);
       if (rows.length === 0) return;
 
       const fid = rows[0].family_id as string;
       setFamilyId(fid);
       setDisplayName(String(rows[0].display_name ?? ''));
+      setCurrentFamilyName(String(rows[0].families?.name ?? ''));
 
       const [{ data: inviteRows }, { data: childRows }] = await Promise.all([
         supabase.rpc('get_active_family_invites', {
@@ -150,6 +162,21 @@ export default function FamilySettingsPage() {
     [origin]
   );
 
+  const onCopyKidLoginUrl = async (childId: string, url: string) => {
+    setCopyError(null);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedKidId(childId);
+      setTimeout(
+        () => setCopiedKidId((current) => (current === childId ? null : current)),
+        2000
+      );
+    } catch {
+      setCopyError('コピーに失敗しました。URLを長押ししてコピーしてください。');
+    }
+  };
+
   return (
     <main className="mx-auto max-w-xl p-4">
       <h1 className="mb-4 text-2xl font-bold">家族設定</h1>
@@ -159,6 +186,13 @@ export default function FamilySettingsPage() {
       >
         ダッシュボードへ戻る
       </Link>
+
+      <section className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow">
+        <h2 className="text-sm font-semibold text-slate-500">現在の家族名</h2>
+        <p className="mt-1 text-lg font-semibold text-slate-900">
+          {currentFamilyName || '（未設定）'}
+        </p>
+      </section>
 
       <form
         action={displayNameAction}
@@ -252,6 +286,8 @@ export default function FamilySettingsPage() {
               子どもごとのURL/QRを共有すると、子どもはID入力なしでPINだけでログインできます。
             </p>
 
+            {copyError && <p className="text-sm text-red-600">{copyError}</p>}
+
             {children.length === 0 ? (
               <p className="text-sm text-slate-500">
                 子どもプロフィールがありません。先に子どもを追加してください。
@@ -280,7 +316,16 @@ export default function FamilySettingsPage() {
                           className="h-28 w-28 rounded border bg-white p-1"
                         />
                         <div className="min-w-0 flex-1 text-xs text-slate-600">
-                          <p className="mb-1">ログインURL</p>
+                          <div className="mb-1 flex items-center justify-between gap-2">
+                            <p>ログインURL</p>
+                            <button
+                              type="button"
+                              onClick={() => onCopyKidLoginUrl(child.id, loginUrl)}
+                              className="rounded border bg-white px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
+                            >
+                              {copiedKidId === child.id ? 'コピーしました ✓' : 'URLをコピー'}
+                            </button>
+                          </div>
                           <p className="break-all rounded bg-slate-50 p-2">
                             {loginUrl}
                           </p>

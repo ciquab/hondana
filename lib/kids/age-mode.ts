@@ -31,7 +31,8 @@ export function getAgeModeFromProfile(
 
     const age = getAgeFromBirthYear(profile.birthYear, now);
     if (age === null) return 'standard';
-    return age <= 8 ? 'junior' : 'standard';
+    // birth year only (month/day unknown) のため、9歳までは junior 扱いにして早すぎる standard 化を防ぐ
+    return age <= 9 ? 'junior' : 'standard';
   }
 
   return 'standard';

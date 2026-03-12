@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
@@ -9,28 +10,44 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [signInLoading, setSignInLoading] = useState(false);
+  const [signUpLoading, setSignUpLoading] = useState(false);
+
+  const loading = signInLoading || signUpLoading;
 
   const onSignIn = async () => {
     setMessage('');
-    setLoading(true);
+    setSignInLoading(true);
+    let signInSucceeded = false;
+
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       if (error) {
         setMessage('メールアドレスまたはパスワードが正しくありません。');
         return;
       }
+
+      signInSucceeded = true;
       router.push('/dashboard');
       router.refresh();
+    } catch {
+      setMessage(
+        '通信エラーが発生しました。しばらくしてからもう一度お試しください。'
+      );
     } finally {
-      setLoading(false);
+      if (!signInSucceeded) {
+        setSignInLoading(false);
+      }
     }
   };
 
   const onSignUp = async () => {
     setMessage('');
-    setLoading(true);
+    setSignUpLoading(true);
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signUp({ email, password });
@@ -39,10 +56,32 @@ export default function LoginPage() {
         return;
       }
       setMessage('サインアップしました。ログインしてください。');
+    } catch {
+      setMessage(
+        '通信エラーが発生しました。しばらくしてからもう一度お試しください。'
+      );
     } finally {
-      setLoading(false);
+      setSignUpLoading(false);
     }
   };
+
+  if (signInLoading) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
+        <section className="w-full rounded-xl bg-white p-6 text-center shadow">
+          <p className="text-sm text-slate-500">ほんだな ログイン</p>
+          <h1 className="mt-2 text-2xl font-bold">ログイン中…</h1>
+          <p className="mt-3 text-sm text-slate-600">
+            画面が切り替わるまでそのままお待ちください。
+          </p>
+          <div
+            className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"
+            aria-hidden="true"
+          />
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
@@ -64,7 +103,10 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-medium">
+            <label
+              htmlFor="password"
+              className="mb-1 block text-sm font-medium"
+            >
               パスワード
             </label>
             <input
@@ -82,17 +124,28 @@ export default function LoginPage() {
           <button
             onClick={onSignIn}
             disabled={loading}
+            aria-busy={signInLoading}
             className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
           >
-            {loading ? '処理中…' : 'ログイン'}
+            {signInLoading ? 'ログイン中…' : 'ログイン'}
           </button>
           <button
             onClick={onSignUp}
             disabled={loading}
+            aria-busy={signUpLoading}
             className="rounded bg-slate-700 px-4 py-2 text-white disabled:opacity-50"
           >
-            サインアップ
+            {signUpLoading ? '登録中…' : 'サインアップ'}
           </button>
+        </div>
+
+        <div className="mt-3">
+          <Link
+            href="/login/forgot-password"
+            className="text-sm text-blue-700 underline"
+          >
+            パスワードを忘れた方
+          </Link>
         </div>
 
         {message && (

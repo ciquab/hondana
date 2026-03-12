@@ -79,7 +79,7 @@ export default async function KidsMessagesPage() {
             ),
             standard: (
               <>
-                本を読んで記録すると、家族から
+                本を読んで記録すると、おうちのひとから
                 <br />
                 メッセージが届くかもしれません。
               </>
@@ -92,7 +92,7 @@ export default async function KidsMessagesPage() {
             >
               {ageText(ageMode, {
                 junior: '📖 きろくする',
-                standard: '📖 きろくをつける'
+                standard: '📖 記録をつける'
               })}
             </Link>
           }
@@ -103,7 +103,7 @@ export default async function KidsMessagesPage() {
             >
               {ageText(ageMode, {
                 junior: 'ほーむ',
-                standard: 'ホームにもどる'
+                standard: 'ホームに戻る'
               })}
             </Link>
           }

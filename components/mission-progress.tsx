@@ -1,3 +1,4 @@
+import { formatMissionTitle } from '@/lib/kids/mission-text';
 type Props = {
   title: string;
   icon: string;
@@ -5,6 +6,7 @@ type Props = {
   currentProgress: number;
   status: string;
   endsAt: string;
+  ageMode?: 'junior' | 'standard';
 };
 
 export function MissionProgress({
@@ -14,6 +16,7 @@ export function MissionProgress({
   currentProgress,
   status,
   endsAt,
+  ageMode = 'junior'
 }: Props) {
   const daysLeft = Math.max(
     0,
@@ -31,21 +34,29 @@ export function MissionProgress({
       }`}
     >
       <p className="mb-1 text-xs font-semibold text-slate-500">
-        🎯 いまのミッション
+        {ageMode === 'junior' ? '🎯 いまのミッション' : '🎯 今のミッション'}
       </p>
       <div className="flex items-center gap-2">
         <span className="text-2xl">{icon}</span>
-        <span className="font-bold text-slate-800">{title}</span>
+        <span className="font-bold text-slate-800">{formatMissionTitle(title, ageMode)}</span>
       </div>
       <div className="mt-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-slate-600">
             {completed
               ? '🎉 クリア！'
-              : `あと ${targetValue - currentProgress}${title.includes('にち') ? 'にち' : 'さつ'}！`}
+              : ageMode === 'junior'
+                ? `あと ${targetValue - currentProgress}${title.includes('にち') ? 'にち' : 'さつ'}！`
+                : `あと ${targetValue - currentProgress}${title.includes('にち') ? '日' : '冊'}！`}
           </span>
           <span className="text-slate-500">
-            {completed ? 'すごい！ よくがんばったね！' : `のこり ${daysLeft}にち`}
+            {completed
+              ? ageMode === 'junior'
+                ? 'すごい！ よくがんばったね！'
+                : 'すごい！ よく頑張ったね！'
+              : ageMode === 'junior'
+                ? `のこり ${daysLeft}にち`
+                : `残り ${daysLeft}日`}
           </span>
         </div>
         <div className="mt-1 h-3 overflow-hidden rounded-full bg-white/70">

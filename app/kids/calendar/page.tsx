@@ -131,19 +131,24 @@ export default async function KidsCalendarPage({
           href={`/kids/calendar?month=${prevMonth}`}
           className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
         >
-          {ageText(ageMode, { junior: '◀ まえ', standard: '◀ まえのつき' })}
+          {ageText(ageMode, { junior: '◀ まえ', standard: '◀ 前の月' })}
         </Link>
         <p className="flex-1 text-center font-semibold">{bounds.monthLabel}</p>
         <Link
           href={`/kids/calendar?month=${nextMonthParam}`}
           className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
         >
-          {ageText(ageMode, { junior: 'つぎ ▶', standard: 'つぎのつき ▶' })}
+          {ageText(ageMode, { junior: 'つぎ ▶', standard: '次の月 ▶' })}
         </Link>
       </div>
 
       <section className="mb-6 rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">こんげつのきろく</h2>
+        <h2 className="mb-3 text-lg font-semibold">
+          {ageText(ageMode, {
+            junior: 'こんげつのきろく',
+            standard: '今月の記録'
+          })}
+        </h2>
         {hasEntries ? (
           <div className="grid grid-cols-7 gap-1 text-center text-xs">
             {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -162,7 +167,12 @@ export default async function KidsCalendarPage({
                   </div>
                   {info ? (
                     <div className="mt-0.5 text-xs text-amber-900">
-                      <div>{info.count}さつ</div>
+                      <div>
+                        {ageText(ageMode, {
+                          junior: `${info.count}さつ`,
+                          standard: `${info.count}冊`
+                        })}
+                      </div>
                       <div>
                         {info.stamp
                           ? (STAMP_EMOJI[info.stamp] ?? info.stamp)
@@ -179,8 +189,14 @@ export default async function KidsCalendarPage({
         ) : (
           <EmptyStateCard
             icon="📅"
-            title="こんげつの きろくは まだないよ"
-            description="きょう よんだほんを とうろくしてみよう。"
+            title={ageText(ageMode, {
+              junior: 'こんげつの きろくは まだないよ',
+              standard: '今月の記録はまだありません'
+            })}
+            description={ageText(ageMode, {
+              junior: 'きょう よんだほんを とうろくしてみよう。',
+              standard: '今日読んだ本を登録してみよう。'
+            })}
             primaryAction={
               <Link
                 href="/kids/records/new"
@@ -188,7 +204,7 @@ export default async function KidsCalendarPage({
               >
                 {ageText(ageMode, {
                   junior: 'きろくする',
-                  standard: 'きろくをつける'
+                  standard: '記録をつける'
                 })}
               </Link>
             }
@@ -197,7 +213,7 @@ export default async function KidsCalendarPage({
       </section>
 
       <section className="rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">げっとしたばっじ</h2>
+        <h2 className="mb-3 text-lg font-semibold">げっとしたバッジ</h2>
         {badges.length > 0 ? (
           <ul className="space-y-2">
             {badges.map((badge) => {
