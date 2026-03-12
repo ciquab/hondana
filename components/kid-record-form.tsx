@@ -47,8 +47,6 @@ const STAMPS = [
   }
 ] as const;
 
-const JUNIOR_GENRES: (typeof CHILD_GENRES)[number][] = ['story', 'zukan', 'manga'];
-
 const PRIMARY_BTN =
   'rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-50';
 const SECONDARY_BTN =
@@ -403,7 +401,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                 </span>
               </legend>
               <div className="grid grid-cols-2 gap-2">
-                {(ageMode === 'junior' ? JUNIOR_GENRES : CHILD_GENRES).map((g) => {
+                {CHILD_GENRES.map((g) => {
                   const selected = genre === g;
                   return (
                     <button
