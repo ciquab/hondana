@@ -32,6 +32,8 @@ type BadgeRow = {
   badge_id: string;
   name: string | null;
   icon: string | null;
+  junior_name: string | null;
+  junior_description: string | null;
 };
 
 export default async function RecordCompletePage({
@@ -56,7 +58,7 @@ export default async function RecordCompletePage({
       params.badge
         ? supabase
             .from('badges')
-            .select('id, name, icon')
+            .select('id, name, icon, junior_name, junior_description')
             .eq('id', params.badge)
             .single()
         : Promise.resolve({ data: null })
@@ -123,11 +125,16 @@ export default async function RecordCompletePage({
       {newBadge && (
         <div className="mb-6 w-full max-w-xs rounded-2xl border border-amber-300 bg-amber-50 p-4">
           <p className="text-xs font-semibold text-amber-600">
-            あたらしいバッジ！
+            {ageText(ageMode, {
+              junior: 'あたらしい バッジ！',
+              standard: 'あたらしいバッジ！'
+            })}
           </p>
           <p className="mt-1 text-3xl">{newBadge.icon ?? '🏅'}</p>
           <p className="mt-1 font-bold text-amber-800">
-            {newBadge.name ?? newBadge.badge_id}
+            {ageMode === 'junior' && newBadge.junior_name
+              ? newBadge.junior_name
+              : newBadge.name ?? newBadge.badge_id}
           </p>
         </div>
       )}
