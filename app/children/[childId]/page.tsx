@@ -70,10 +70,16 @@ type FinishedBookEntry = {
   book: BookInfo;
 };
 
+type BadgeDetail = { name: string; description: string | null; icon: string };
+type BadgeRow = {
+  badge_id: string;
+  awarded_at: string;
+  badges: BadgeDetail | BadgeDetail[] | null;
+};
 type BadgeEntry = {
   badge_id: string;
   awarded_at: string;
-  badges: { name: string; description: string | null; icon: string } | null;
+  badge: BadgeDetail | null;
 };
 
 function toBookInfo(books: unknown): BookInfo | null {
@@ -125,7 +131,10 @@ export default async function ChildRecordsPage({ params }: Props) {
       .order('awarded_at', { ascending: false })
   ]);
 
-  const badges = (badgeRows ?? []) as BadgeEntry[];
+  const badges: BadgeEntry[] = ((badgeRows ?? []) as BadgeRow[]).map((r) => {
+    const b = Array.isArray(r.badges) ? r.badges[0] ?? null : r.badges;
+    return { badge_id: r.badge_id, awarded_at: r.awarded_at, badge: b };
+  });
 
   const commentedRecordIds = await getCommentedRecordIds(
     records.map((r) => r.id)
@@ -278,7 +287,7 @@ export default async function ChildRecordsPage({ params }: Props) {
         {badges.length > 0 ? (
           <ul className="space-y-2">
             {badges.map((badge) => {
-              const b = badge.badges;
+              const b = badge.badge;
               return (
                 <li
                   key={badge.badge_id}
