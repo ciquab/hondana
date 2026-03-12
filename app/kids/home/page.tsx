@@ -106,7 +106,7 @@ export default async function KidsHomePage({
             </span>
             <h1 className="truncate text-xl font-bold text-amber-900">
               {ageText(ageMode, {
-                junior: `${child.display_name} の ほーむ`,
+                junior: `${child.display_name} の ホーム`,
                 standard: `${child.display_name} のホーム`
               })}
             </h1>
@@ -372,7 +372,7 @@ export default async function KidsHomePage({
           <div className="mb-1 flex items-center justify-between">
             <p className="text-xs font-semibold text-rose-600">
               {ageText(ageMode, {
-                junior: '💌 おうちのひとからのメッセージ',
+                junior: '💌 おうちのひとからのおてがみ',
                 standard: '💌 おうちのひとからのメッセージ'
               })}
             </p>

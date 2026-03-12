@@ -48,7 +48,7 @@ export default async function KidsRecordsPage() {
         className="mb-3 inline-block text-sm text-blue-600 underline"
       >
         {ageText(ageMode, {
-          junior: 'ほーむへ',
+          junior: 'ホームへ',
           standard: '子どもホームへ戻る'
         })}
       </Link>

@@ -22,7 +22,7 @@ export default async function KidsNewRecordPage({
         })}
         backHref="/kids/home"
         backLabel={ageText(ageMode, {
-          junior: 'ほーむ',
+          junior: 'ホーム',
           standard: 'ホーム'
         })}
       />

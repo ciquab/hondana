@@ -147,7 +147,7 @@ export default async function RecordCompletePage({
           className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
           {ageText(ageMode, {
-            junior: '🏠 ほーむ',
+            junior: '🏠 ホーム',
             standard: '🏠 ホームに戻る'
           })}
         </Link>
