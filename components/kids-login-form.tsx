@@ -31,17 +31,22 @@ export function KidsLoginForm({
       ) : (
         <div>
           <label htmlFor="childId" className="mb-1 block text-sm font-medium">
-            こどもID
+            ログインID
           </label>
           <input
             id="childId"
             name="childId"
             type="text"
-            className="w-full rounded border p-2"
-            placeholder="こどもIDをいれてね"
+            className="w-full rounded border p-2 uppercase tracking-widest"
+            placeholder="ABC123"
+            maxLength={6}
+            autoCapitalize="characters"
             required
             disabled={disabled}
           />
+          <p className="mt-1 text-xs text-slate-500">
+            おうちのひとに きいてね
+          </p>
         </div>
       )}
 

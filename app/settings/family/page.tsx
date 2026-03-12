@@ -21,6 +21,7 @@ type ActiveInvite = {
 type ChildRow = {
   id: string;
   display_name: string;
+  login_id: string;
 };
 
 type FamilyMemberRow = {
@@ -145,7 +146,7 @@ export default function FamilySettingsPage() {
         }),
         supabase
           .from('children')
-          .select('id, display_name, created_at')
+          .select('id, display_name, login_id, created_at')
           .eq('family_id', fid)
           .order('created_at', { ascending: false })
       ]);
@@ -308,6 +309,12 @@ export default function FamilySettingsPage() {
                         >
                           プロフィール編集
                         </Link>
+                      </div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="text-xs text-slate-500">ログインID:</span>
+                        <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-sm font-bold tracking-widest text-slate-800">
+                          {child.login_id}
+                        </span>
                       </div>
                       <div className="mt-2 flex flex-wrap items-start gap-3">
                         <img
