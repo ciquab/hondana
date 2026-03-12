@@ -98,23 +98,25 @@ export default async function KidsHomePage({
     <main className="relative mx-auto max-w-xl p-4 pb-8">
       {newBadge && <BadgeCelebration badge={newBadge} />}
 
-      <header className="mb-4 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-100/90 px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl shadow-sm">
-            🧒
-          </span>
-          <h1 className="text-xl font-bold text-amber-900">
-            {ageText(ageMode, {
-              junior: `${child.display_name} の ほーむ`,
-              standard: `${child.display_name} のホーム`
-            })}
-          </h1>
+      <header className="mb-4 rounded-2xl border border-amber-200 bg-amber-100/90 px-4 py-3 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+              🧒
+            </span>
+            <h1 className="truncate text-xl font-bold text-amber-900">
+              {ageText(ageMode, {
+                junior: `${child.display_name} の ほーむ`,
+                standard: `${child.display_name} のホーム`
+              })}
+            </h1>
+          </div>
+          <form action={kidSignOut}>
+            <button className="w-full rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 transition hover:bg-amber-100 sm:w-auto">
+              {ageText(ageMode, { junior: 'おわる', standard: 'ログアウト' })}
+            </button>
+          </form>
         </div>
-        <form action={kidSignOut}>
-          <button className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 transition hover:bg-amber-100">
-            {ageText(ageMode, { junior: 'おわる', standard: 'ログアウト' })}
-          </button>
-        </form>
       </header>
 
       {(unreadCount > 0 || activeMission) && (
