@@ -29,7 +29,7 @@ export default async function EditChildPage({ params }: PageProps) {
 
   const { data: child } = await supabase
     .from('children')
-    .select('id, display_name, birth_year, age_mode_override')
+    .select('id, display_name, birth_year, age_mode_override, login_id')
     .eq('id', id)
     .eq('family_id', member.family_id)
     .maybeSingle();
@@ -45,6 +45,16 @@ export default async function EditChildPage({ params }: PageProps) {
       >
         家族設定へ戻る
       </Link>
+
+      <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow">
+        <h2 className="mb-1 text-sm font-semibold text-slate-500">ログインID</h2>
+        <p className="font-mono text-xl font-bold tracking-widest text-slate-800">
+          {child.login_id}
+        </p>
+        <p className="mt-1 text-xs text-slate-500">
+          子どもがログインするときに使うIDです。URLからログインする場合は不要です。
+        </p>
+      </div>
 
       <EditChildForm
         child={{

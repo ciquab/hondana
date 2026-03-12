@@ -48,7 +48,7 @@ export async function verifyKidPin(
   _prev: KidAuthResult,
   formData: FormData
 ): Promise<KidAuthResult> {
-  const childId = String(formData.get('childId') ?? '').trim();
+  const childIdRaw = String(formData.get('childId') ?? '').trim();
   const pin = String(formData.get('pin') ?? '').trim();
 
   if (!canCreateAdminClient() || !canUseKidSession() || !canCreateKidClient()) {
@@ -57,14 +57,25 @@ export async function verifyKidPin(
 
   const supabase = createAdminClient();
 
-  if (!childId || !/^\d{4}$/.test(pin)) {
+  if (!childIdRaw || !/^\d{4}$/.test(pin)) {
     await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_or_pin_format' });
-    return { error: '子どもIDと4桁PINを入力してください。' };
+    return { error: 'ログインIDと4桁PINを入力してください。' };
   }
 
-  if (!isUuid(childId)) {
-    await logKidAuthEvent(supabase, { eventType: 'invalid_input', reason: 'child_id_not_uuid' });
-    return { error: '子どもIDまたはPINが正しくありません。' };
+  // Accept either a UUID (from URL link) or a 6-char login_id (manual entry)
+  let childId: string;
+  if (isUuid(childIdRaw)) {
+    childId = childIdRaw;
+  } else {
+    // Treat as login_id – resolve to child UUID via RPC
+    const { data: resolvedId } = await supabase.rpc('resolve_child_login_id', {
+      target_login_id: childIdRaw
+    });
+    if (!resolvedId) {
+      await logKidAuthEvent(supabase, { eventType: 'child_not_found', reason: 'login_id_not_found' });
+      return { error: 'ログインIDまたはPINが正しくありません。' };
+    }
+    childId = resolvedId;
   }
 
   const { data: authState } = await supabase.rpc('get_child_auth_for_login', {
@@ -75,7 +86,7 @@ export async function verifyKidPin(
   if (!state?.child_exists) {
     burnPinVerifyCost(pin);
     await logKidAuthEvent(supabase, { childId, eventType: 'child_not_found' });
-    return { error: '子どもIDまたはPINが正しくありません。' };
+    return { error: 'ログインIDまたはPINが正しくありません。' };
   }
 
   if (!state.pin_hash) {
@@ -104,7 +115,7 @@ export async function verifyKidPin(
       reason: `fail_count:${current?.pin_failed_count ?? 'unknown'}`
     });
 
-    return { error: '子どもIDまたはPINが正しくありません。' };
+    return { error: 'ログインIDまたはPINが正しくありません。' };
   }
 
   await supabase.rpc('register_kid_pin_attempt', {
