@@ -18,6 +18,8 @@ export default function LoginPage() {
   const onSignIn = async () => {
     setMessage('');
     setSignInLoading(true);
+    let signInSucceeded = false;
+
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({
@@ -28,6 +30,8 @@ export default function LoginPage() {
         setMessage('メールアドレスまたはパスワードが正しくありません。');
         return;
       }
+
+      signInSucceeded = true;
       router.push('/dashboard');
       router.refresh();
     } catch {
@@ -35,7 +39,9 @@ export default function LoginPage() {
         '通信エラーが発生しました。しばらくしてからもう一度お試しください。'
       );
     } finally {
-      setSignInLoading(false);
+      if (!signInSucceeded) {
+        setSignInLoading(false);
+      }
     }
   };
 
@@ -58,6 +64,24 @@ export default function LoginPage() {
       setSignUpLoading(false);
     }
   };
+
+  if (signInLoading) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
+        <section className="w-full rounded-xl bg-white p-6 text-center shadow">
+          <p className="text-sm text-slate-500">ほんだな ログイン</p>
+          <h1 className="mt-2 text-2xl font-bold">ログイン中…</h1>
+          <p className="mt-3 text-sm text-slate-600">
+            画面が切り替わるまでそのままお待ちください。
+          </p>
+          <div
+            className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"
+            aria-hidden="true"
+          />
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
