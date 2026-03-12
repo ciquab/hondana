@@ -3,7 +3,10 @@ import { redirect } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
 import { KidsBookshelf } from '@/components/kids-bookshelf';
 import { ageText } from '@/lib/kids/age-text';
-import { getAgeModeFromProfile, type AgeModeOverride } from '@/lib/kids/age-mode';
+import {
+  getAgeModeFromProfile,
+  type AgeModeOverride
+} from '@/lib/kids/age-mode';
 
 type BookRow = {
   id: string;
@@ -24,9 +27,11 @@ export default async function KidsRecordsPage() {
     })
   ]);
 
-  const child = (childRows?.[0] ?? null) as
-    | { display_name: string; birth_year: number | null; age_mode_override: AgeModeOverride | null }
-    | null;
+  const child = (childRows?.[0] ?? null) as {
+    display_name: string;
+    birth_year: number | null;
+    age_mode_override: AgeModeOverride | null;
+  } | null;
 
   if (!child) redirect('/kids/login');
 
@@ -42,7 +47,10 @@ export default async function KidsRecordsPage() {
         href="/kids/home"
         className="mb-3 inline-block text-sm text-blue-600 underline"
       >
-        {ageText(ageMode, { junior: 'ほーむへ', standard: 'こどもホームへもどる' })}
+        {ageText(ageMode, {
+          junior: 'ホームへ',
+          standard: '子どもホームへ戻る'
+        })}
       </Link>
 
       <KidsBookshelf records={records} childName={child.display_name} />

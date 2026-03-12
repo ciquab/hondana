@@ -28,15 +28,18 @@ describe('getAgeModeFromProfile', () => {
     ).toBe('standard');
   });
 
-  it('auto で 8歳以下なら junior', () => {
+  it('auto で 9歳以下なら junior', () => {
     expect(
       getAgeModeFromProfile({ birthYear: 2018, ageModeOverride: 'auto' }, now)
     ).toBe('junior');
-  });
-
-  it('auto で 9歳以上なら standard', () => {
     expect(
       getAgeModeFromProfile({ birthYear: 2017, ageModeOverride: 'auto' }, now)
+    ).toBe('junior');
+  });
+
+  it('auto で 10歳以上なら standard', () => {
+    expect(
+      getAgeModeFromProfile({ birthYear: 2016, ageModeOverride: 'auto' }, now)
     ).toBe('standard');
   });
 

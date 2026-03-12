@@ -98,23 +98,25 @@ export default async function KidsHomePage({
     <main className="relative mx-auto max-w-xl p-4 pb-8">
       {newBadge && <BadgeCelebration badge={newBadge} />}
 
-      <header className="mb-4 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-100/90 px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl shadow-sm">
-            🧒
-          </span>
-          <h1 className="text-xl font-bold text-amber-900">
-            {ageText(ageMode, {
-              junior: `${child.display_name} の ほーむ`,
-              standard: `${child.display_name} のホーム`
-            })}
-          </h1>
+      <header className="mb-4 rounded-2xl border border-amber-200 bg-amber-100/90 px-4 py-3 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+              🧒
+            </span>
+            <h1 className="truncate text-xl font-bold text-amber-900">
+              {ageText(ageMode, {
+                junior: `${child.display_name} の ホーム`,
+                standard: `${child.display_name} のホーム`
+              })}
+            </h1>
+          </div>
+          <form action={kidSignOut}>
+            <button className="w-full rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 transition hover:bg-amber-100 sm:w-auto">
+              {ageText(ageMode, { junior: 'おわる', standard: 'ログアウト' })}
+            </button>
+          </form>
         </div>
-        <form action={kidSignOut}>
-          <button className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 transition hover:bg-amber-100">
-            {ageText(ageMode, { junior: 'おわる', standard: 'ログアウト' })}
-          </button>
-        </form>
       </header>
 
       {(unreadCount > 0 || activeMission) && (
@@ -154,14 +156,20 @@ export default async function KidsHomePage({
           {activeMission && (
             <div className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 shadow-sm">
               <p className="text-xs font-semibold text-violet-600">
-                🎯 いまのミッション
+                {ageText(ageMode, {
+                  junior: '🎯 いまのミッション',
+                  standard: '🎯 今のミッション'
+                })}
               </p>
               <p className="text-sm font-semibold text-violet-900">
                 {activeMission.title}
               </p>
               {missionDaysLeft !== null && (
                 <p className="text-xs text-violet-700">
-                  あと {missionDaysLeft} にち
+                  {ageText(ageMode, {
+                    junior: `あと ${missionDaysLeft} にち`,
+                    standard: `あと ${missionDaysLeft} 日`
+                  })}
                 </p>
               )}
             </div>
@@ -183,7 +191,7 @@ export default async function KidsHomePage({
           <span className="text-center text-sm font-medium text-orange-800">
             {ageText(ageMode, {
               junior: 'きろくする',
-              standard: 'きょうのきろくをつける'
+              standard: '今日の記録をつける'
             })}
           </span>
         </TrackedLink>
@@ -199,7 +207,7 @@ export default async function KidsHomePage({
           <span className="text-center text-sm font-medium text-sky-800">
             {ageText(ageMode, {
               junior: 'ほんだな',
-              standard: 'ほんだなをみる'
+              standard: '本棚を見る'
             })}
           </span>
         </TrackedLink>
@@ -215,7 +223,7 @@ export default async function KidsHomePage({
           <span className="text-center text-sm font-medium text-amber-800">
             {ageText(ageMode, {
               junior: 'カレンダー',
-              standard: 'カレンダーをみる'
+              standard: 'カレンダーを見る'
             })}
           </span>
         </TrackedLink>
@@ -258,7 +266,7 @@ export default async function KidsHomePage({
             className="text-sm text-orange-700 underline"
           >
             {ageText(ageMode, {
-              junior: 'まえのきろくをひらく',
+              junior: 'まえの きろくを みる',
               standard: '過去の記録を見る'
             })}
           </Link>
@@ -317,6 +325,7 @@ export default async function KidsHomePage({
 
       {activeMission && (
         <MissionProgress
+          ageMode={ageMode}
           title={activeMission.title}
           icon={activeMission.icon}
           targetValue={activeMission.target_value}
@@ -363,8 +372,8 @@ export default async function KidsHomePage({
           <div className="mb-1 flex items-center justify-between">
             <p className="text-xs font-semibold text-rose-600">
               {ageText(ageMode, {
-                junior: '💌 おとなからのメッセージ',
-                standard: '💌 家族からのメッセージ'
+                junior: '💌 おうちのひとからのおてがみ',
+                standard: '💌 おうちのひとからのメッセージ'
               })}
             </p>
             <Link
@@ -372,7 +381,7 @@ export default async function KidsHomePage({
               className="text-xs text-rose-700 underline"
             >
               {ageText(ageMode, {
-                junior: 'ぜんぶみる',
+                junior: 'ぜんぶ みる',
                 standard: 'すべて見る'
               })}
             </Link>

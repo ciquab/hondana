@@ -51,7 +51,7 @@ export default async function KidsMessagesPage() {
           standard: `${child.display_name} へのメッセージ`
         })}
         backHref="/kids/home"
-        backLabel={ageText(ageMode, { junior: 'ほーむ', standard: 'ホーム' })}
+        backLabel={ageText(ageMode, { junior: 'ホーム', standard: 'ホーム' })}
       />
       <p
         className={`mb-4 ${ageMode === 'junior' ? 'text-base' : 'text-sm'} text-amber-800`}
@@ -66,7 +66,7 @@ export default async function KidsMessagesPage() {
         <EmptyStateCard
           icon="💬"
           title={ageText(ageMode, {
-            junior: 'まだ メッセージは ないよ',
+            junior: 'まだ おてがみは ないよ',
             standard: 'まだメッセージはありません'
           })}
           description={ageText(ageMode, {
@@ -74,12 +74,12 @@ export default async function KidsMessagesPage() {
               <>
                 ほんをよんで きろくすると、おうちのひとから
                 <br />
-                メッセージが とどくかも！
+                おてがみが とどくかも！
               </>
             ),
             standard: (
               <>
-                本を読んで記録すると、家族から
+                本を読んで記録すると、おうちのひとから
                 <br />
                 メッセージが届くかもしれません。
               </>
@@ -92,7 +92,7 @@ export default async function KidsMessagesPage() {
             >
               {ageText(ageMode, {
                 junior: '📖 きろくする',
-                standard: '📖 きろくをつける'
+                standard: '📖 記録をつける'
               })}
             </Link>
           }
@@ -102,8 +102,8 @@ export default async function KidsMessagesPage() {
               className={`${SECONDARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}
             >
               {ageText(ageMode, {
-                junior: 'ほーむ',
-                standard: 'ホームにもどる'
+                junior: 'ホーム',
+                standard: 'ホームに戻る'
               })}
             </Link>
           }
