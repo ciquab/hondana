@@ -43,10 +43,7 @@ export default async function KidsRecordsPage() {
 
   return (
     <main className="mx-auto max-w-4xl p-4">
-      <Link
-        href="/kids/home"
-        className="mb-3 inline-block text-sm text-blue-600 underline"
-      >
+      <Link href="/kids/home" className="kid-link mb-3 inline-block">
         {ageText(ageMode, {
           junior: 'ホームへ',
           standard: '子どもホームへ戻る'
