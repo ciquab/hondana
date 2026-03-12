@@ -8,6 +8,8 @@ export type ChildBadgeRow = {
   description: string;
   icon: string;
   sort_order: number;
+  junior_name: string | null;
+  junior_description: string | null;
 };
 
 export async function evaluateChildBadges(sourceRecordId: string) {
@@ -17,6 +19,11 @@ export async function evaluateChildBadges(sourceRecordId: string) {
     target_child_id: childId,
     target_source_record_id: sourceRecordId
   });
+}
+
+export async function getChildBadge(badgeId: string): Promise<ChildBadgeRow | null> {
+  const badges = await getChildBadges();
+  return badges.find((b) => b.badge_id === badgeId) ?? null;
 }
 
 export async function getChildBadges(): Promise<ChildBadgeRow[]> {

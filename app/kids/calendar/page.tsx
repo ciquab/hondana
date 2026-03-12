@@ -213,21 +213,49 @@ export default async function KidsCalendarPage({
       </section>
 
       <section className="rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">ゲットしたバッジ</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">
+            {ageText(ageMode, {
+              junior: 'ゲットした バッジ',
+              standard: 'ゲットしたバッジ'
+            })}
+          </h2>
+          {badges.length > 0 && (
+            <Link
+              href="/kids/badges"
+              className="text-sm text-orange-700 underline"
+            >
+              {ageText(ageMode, {
+                junior: 'ぜんぶ みる',
+                standard: 'すべて見る'
+              })}
+            </Link>
+          )}
+        </div>
         {badges.length > 0 ? (
           <ul className="space-y-2">
             {badges.map((badge) => {
+              const displayName =
+                ageMode === 'junior' && badge.junior_name
+                  ? badge.junior_name
+                  : badge.name ?? badge.badge_id;
+              const displayDescription =
+                ageMode === 'junior' && badge.junior_description
+                  ? badge.junior_description
+                  : badge.description ?? '';
               return (
-                <li
-                  key={badge.badge_id}
-                  className="rounded-lg border border-amber-200 bg-amber-50/40 p-3"
-                >
-                  <p className="font-medium">
-                    {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
-                  </p>
-                  <p className="text-sm text-amber-800">
-                    {badge.description ?? ''}
-                  </p>
+                <li key={badge.badge_id}>
+                  <Link
+                    href={`/kids/badges/${badge.badge_id}`}
+                    className="block rounded-lg border border-amber-200 bg-amber-50/40 p-3 transition hover:bg-amber-100/60"
+                  >
+                    <p className="font-medium">
+                      {badge.icon ?? '🏅'} {displayName}
+                    </p>
+                    <p className="text-sm text-amber-800">
+                      {displayDescription}
+                    </p>
+                  </Link>
                 </li>
               );
             })}
@@ -235,9 +263,17 @@ export default async function KidsCalendarPage({
         ) : (
           <div className="flex flex-col items-center py-4 text-center">
             <span className="text-3xl">🏅</span>
-            <p className="mt-2 text-sm text-amber-800">まだ バッジは ないよ</p>
+            <p className="mt-2 text-sm text-amber-800">
+              {ageText(ageMode, {
+                junior: 'まだ バッジは ないよ',
+                standard: 'まだバッジはありません'
+              })}
+            </p>
             <p className="mt-1 text-xs text-amber-600">
-              きろくすると バッジが もらえるよ！
+              {ageText(ageMode, {
+                junior: 'きろくすると バッジが もらえるよ！',
+                standard: '記録するとバッジがもらえます。'
+              })}
             </p>
           </div>
         )}

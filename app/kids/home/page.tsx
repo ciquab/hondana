@@ -96,7 +96,7 @@ export default async function KidsHomePage({
 
   return (
     <main className="relative mx-auto max-w-xl p-4 pb-8">
-      {newBadge && <BadgeCelebration badge={newBadge} />}
+      {newBadge && <BadgeCelebration badge={newBadge} ageMode={ageMode} />}
 
       <header className="mb-4 rounded-2xl border border-amber-200 bg-amber-100/90 px-4 py-3 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -336,17 +336,40 @@ export default async function KidsHomePage({
       )}
 
       <section className="mb-6 rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
-        <h2 className="mb-2 text-lg font-semibold">バッジ</h2>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">
+            {ageText(ageMode, {
+              junior: 'ゲットした バッジ',
+              standard: 'ゲットしたバッジ'
+            })}
+          </h2>
+          {badges.length > 0 && (
+            <Link
+              href="/kids/badges"
+              className="text-sm text-orange-700 underline"
+            >
+              {ageText(ageMode, {
+                junior: 'ぜんぶ みる',
+                standard: 'すべて見る'
+              })}
+            </Link>
+          )}
+        </div>
         {badges.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {badges.map((badge) => {
+              const displayName =
+                ageMode === 'junior' && badge.junior_name
+                  ? badge.junior_name
+                  : badge.name ?? badge.badge_id;
               return (
-                <span
+                <Link
                   key={badge.badge_id}
-                  className="rounded-full border border-amber-200 bg-amber-100 px-3 py-1 text-sm text-amber-900"
+                  href={`/kids/badges/${badge.badge_id}`}
+                  className="rounded-full border border-amber-200 bg-amber-100 px-3 py-1 text-sm text-amber-900 transition hover:bg-amber-200"
                 >
-                  {badge.icon ?? '🏅'} {badge.name ?? badge.badge_id}
-                </span>
+                  {badge.icon ?? '🏅'} {displayName}
+                </Link>
               );
             })}
           </div>
@@ -354,10 +377,16 @@ export default async function KidsHomePage({
           <div className="flex flex-col items-center py-4 text-center">
             <span className="text-4xl">🏅</span>
             <p className="mt-2 font-semibold text-amber-900">
-              まだ バッジは ないよ
+              {ageText(ageMode, {
+                junior: 'まだ バッジは ないよ',
+                standard: 'まだバッジはありません'
+              })}
             </p>
             <p className="mt-1 text-sm text-amber-700">
-              1さつ きろくすると はじめてのバッジが もらえるよ！
+              {ageText(ageMode, {
+                junior: '1さつ きろくすると はじめてのバッジが もらえるよ！',
+                standard: '1冊記録すると最初のバッジがもらえます。'
+              })}
             </p>
           </div>
         )}
