@@ -74,3 +74,8 @@ as $$
   where cb.child_id = target_child_id
   order by cb.awarded_at desc;
 $$;
+
+-- DROP で失われた権限を再付与
+revoke all on function public.get_kid_badges(uuid) from public;
+grant execute on function public.get_kid_badges(uuid) to service_role;
+grant execute on function public.get_kid_badges(uuid) to child_session;
