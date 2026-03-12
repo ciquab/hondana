@@ -79,7 +79,7 @@ export default async function KidsMessagesPage() {
             ),
             standard: (
               <>
-                本を読んで記録すると、家族から
+                本を読んで記録すると、おうちのひとから
                 <br />
                 メッセージが届くかもしれません。
               </>

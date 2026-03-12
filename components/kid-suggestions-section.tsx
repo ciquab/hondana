@@ -37,7 +37,7 @@ export function KidSuggestionsSection({ suggestions }: Props) {
     <>
       <section className="mb-6 rounded-xl border border-orange-200 bg-orange-50 p-4">
         <p className="mb-2 text-xs font-semibold text-orange-700">
-          📚 おとなからのおすすめ
+          📚 おうちのひとからのおすすめ
         </p>
         <ul className="flex gap-3 overflow-x-auto pb-1">
           {suggestions.map((s) => {

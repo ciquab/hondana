@@ -98,7 +98,7 @@ export default async function RecordDetailPage({ params }: Props) {
   return (
     <main className="mx-auto max-w-xl p-4">
       <AppTopNav
-        title="きろくの詳細"
+        title="記録の詳細"
         backHref={`/children/${record.child_id}`}
         backLabel={`${children?.display_name ?? '子ども'}の一覧`}
       />
