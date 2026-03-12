@@ -13,6 +13,11 @@ import { CHILD_GENRES, GENRE_LABELS } from '@/lib/kids/feelings';
 import { AppTopNav } from '@/components/app-top-nav';
 import { EmptyStateCard } from '@/components/empty-state-card';
 
+function formatBadgeDate(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 function GenreBreakdownChart({
   breakdown
 }: {
@@ -65,6 +70,12 @@ type FinishedBookEntry = {
   book: BookInfo;
 };
 
+type BadgeEntry = {
+  badge_id: string;
+  awarded_at: string;
+  badges: { name: string; description: string | null; icon: string } | null;
+};
+
 function toBookInfo(books: unknown): BookInfo | null {
   if (!books || typeof books !== 'object' || Array.isArray(books)) return null;
   const b = books as Record<string, unknown>;
@@ -100,13 +111,21 @@ export default async function ChildRecordsPage({ params }: Props) {
     records,
     genreBreakdown,
     { data: missionTemplates },
-    { data: activeMissionRows }
+    { data: activeMissionRows },
+    { data: badgeRows }
   ] = await Promise.all([
     getRecordsForChild(childId),
     getGenreBreakdownForChild(childId),
     supabase.from('mission_templates').select('*').order('sort_order'),
-    supabase.rpc('get_kid_active_mission', { target_child_id: childId })
+    supabase.rpc('get_kid_active_mission', { target_child_id: childId }),
+    supabase
+      .from('child_badges')
+      .select('badge_id, awarded_at, badges(name, description, icon)')
+      .eq('child_id', childId)
+      .order('awarded_at', { ascending: false })
   ]);
+
+  const badges = (badgeRows ?? []) as BadgeEntry[];
 
   const commentedRecordIds = await getCommentedRecordIds(
     records.map((r) => r.id)
@@ -250,6 +269,47 @@ export default async function ChildRecordsPage({ params }: Props) {
           <GenreBreakdownChart breakdown={genreBreakdown} />
         </section>
       )}
+
+      {/* Badge list */}
+      <section className="mb-6 rounded-xl bg-white p-4 shadow">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">
+          🏅 取得バッジ（{badges.length}件）
+        </h2>
+        {badges.length > 0 ? (
+          <ul className="space-y-2">
+            {badges.map((badge) => {
+              const b = badge.badges;
+              return (
+                <li
+                  key={badge.badge_id}
+                  className="flex items-start gap-3 rounded-lg border border-amber-100 bg-amber-50/50 p-3"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xl">
+                    {b?.icon ?? '🏅'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-amber-900">
+                      {b?.name ?? badge.badge_id}
+                    </p>
+                    {b?.description && (
+                      <p className="mt-0.5 text-xs text-amber-700">
+                        {b.description}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-slate-500">
+                      取得日: {formatBadgeDate(badge.awarded_at)}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-500">
+            まだバッジを取得していません。本を読んで記録するとバッジがもらえます。
+          </p>
+        )}
+      </section>
 
       {records.length === 0 ? (
         <EmptyStateCard
