@@ -87,7 +87,6 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
   const recordCreateTrackedRef = useRef(false);
 
   const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>('finished');
-  const canUseDetailed = ageMode === 'standard';
   const [finishedOn, setFinishedOn] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
@@ -257,7 +256,6 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
         )}
       </div>
 
-      {canUseDetailed && (
       <div className="mb-4 flex gap-1 rounded-lg bg-slate-100 p-1">
         <button
           type="button"
@@ -282,7 +280,6 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
           📝 くわしく
         </button>
       </div>
-      )}
 
       <form
         action={formAction}
