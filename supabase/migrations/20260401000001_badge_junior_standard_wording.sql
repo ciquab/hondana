@@ -41,7 +41,8 @@ update public.badges set
   junior_description = 'ものがたり・しょうせつを 5さつ よんだよ！'
 where id = 'story_five';
 
--- get_kid_badges を拡張して junior 文言を返す
+-- get_kid_badges を拡張して junior 文言を返す（返却型変更のため DROP が必要）
+drop function if exists public.get_kid_badges(uuid);
 create or replace function public.get_kid_badges(target_child_id uuid)
 returns table (
   badge_id text,
