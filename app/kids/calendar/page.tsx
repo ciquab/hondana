@@ -213,7 +213,7 @@ export default async function KidsCalendarPage({
       </section>
 
       <section className="rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
-        <h2 className="mb-3 text-lg font-semibold">げっとしたバッジ</h2>
+        <h2 className="mb-3 text-lg font-semibold">ゲットしたバッジ</h2>
         {badges.length > 0 ? (
           <ul className="space-y-2">
             {badges.map((badge) => {
