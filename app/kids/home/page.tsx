@@ -51,7 +51,7 @@ export default async function KidsHomePage({
     { data: childRows },
     { data: recentRows },
     badges,
-    { messages, unreadCount },
+    { unreadCount },
     { data: suggestionRows },
     { data: missionRows }
   ] = await Promise.all([
@@ -78,8 +78,6 @@ export default async function KidsHomePage({
         })
       : null;
 
-  const latestMessage = messages[0] ?? null;
-
   const child = (childRows?.[0] ?? null) as ChildRow | null;
   if (!child) redirect('/kids/login');
 
@@ -95,234 +93,146 @@ export default async function KidsHomePage({
   const missionDaysLeft = calcDaysLeft(activeMission?.ends_at);
 
   return (
-    <main className="relative mx-auto max-w-xl p-4 pb-8">
+    <main className="relative mx-auto max-w-xl px-4 pb-10 pt-4">
       {newBadge && <BadgeCelebration badge={newBadge} ageMode={ageMode} />}
 
-      <header className="mb-4 rounded-2xl border border-amber-200 bg-amber-100/90 px-4 py-3 shadow-sm">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl shadow-sm">
-              🧒
-            </span>
-            <h1 className="truncate text-xl font-bold text-amber-900">
-              {ageText(ageMode, {
-                junior: `${child.display_name} の ホーム`,
-                standard: `${child.display_name} のホーム`
-              })}
-            </h1>
-          </div>
-          <form action={kidSignOut}>
-            <button className="w-full rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 transition hover:bg-amber-100 sm:w-auto">
-              {ageText(ageMode, { junior: 'おわる', standard: 'ログアウト' })}
-            </button>
-          </form>
-        </div>
+      {/* ヘッダー：コンパクトに、名前とログアウトのみ */}
+      <header className="mb-5 flex items-center justify-between">
+        <h1 className="text-lg font-bold text-amber-800">
+          {child.display_name}
+        </h1>
+        <form action={kidSignOut}>
+          <button className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-500 transition hover:bg-stone-50">
+            {ageText(ageMode, { junior: 'おわる', standard: 'ログアウト' })}
+          </button>
+        </form>
       </header>
 
-      {(unreadCount > 0 || activeMission) && (
-        <section className="mb-4 space-y-2">
-          {unreadCount > 0 && (
-            <TrackedLink
-              href="/kids/messages"
-              eventName="kid_home_notice_click"
-              childId={childId}
-              target="unread_messages"
-              meta={{ age_mode: ageMode }}
-              className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50/90 px-4 py-3 shadow-sm"
-            >
-              <div>
-                <p className="text-xs font-semibold text-rose-600">
-                  {ageText(ageMode, {
-                    junior: '💌 しらせ',
-                    standard: '💌 お知らせ'
-                  })}
-                </p>
-                <p className="text-sm font-semibold text-rose-900">
-                  {ageText(ageMode, {
-                    junior: `みどくメッセージが ${unreadCount} けんあるよ`,
-                    standard: `未読メッセージが ${unreadCount} 件あります`
-                  })}
-                </p>
-              </div>
-              <span className="rounded-full bg-rose-400 px-3 py-1 text-xs font-bold text-white">
-                {ageText(ageMode, {
-                  junior: 'よみにいく',
-                  standard: '確認する'
-                })}
-              </span>
-            </TrackedLink>
-          )}
-
-          {activeMission && (
-            <div className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 shadow-sm">
-              <p className="text-xs font-semibold text-violet-600">
-                {ageText(ageMode, {
-                  junior: '🎯 いまのミッション',
-                  standard: '🎯 今のミッション'
-                })}
-              </p>
-              <p className="text-sm font-semibold text-violet-900">
-                {activeMission.title}
-              </p>
-              {missionDaysLeft !== null && (
-                <p className="text-xs text-violet-700">
-                  {ageText(ageMode, {
-                    junior: `あと ${missionDaysLeft} にち`,
-                    standard: `あと ${missionDaysLeft} 日`
-                  })}
-                </p>
-              )}
-            </div>
-          )}
-        </section>
+      {/* 未読アラート：rose = 注意色。メッセージがある時だけ表示 */}
+      {unreadCount > 0 && (
+        <TrackedLink
+          href="/kids/messages"
+          eventName="kid_home_notice_click"
+          childId={childId}
+          target="unread_messages"
+          meta={{ age_mode: ageMode }}
+          className="mb-4 flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 transition hover:bg-rose-100"
+        >
+          <div>
+            <p className="text-sm font-bold text-rose-700">
+              {ageText(ageMode, {
+                junior: `💌 メッセージが ${unreadCount} けんあるよ`,
+                standard: `💌 未読メッセージが ${unreadCount} 件あります`
+              })}
+            </p>
+            <p className="text-xs text-rose-600">
+              {ageText(ageMode, {
+                junior: 'おうちのひとからだよ',
+                standard: 'おうちの人からのメッセージです'
+              })}
+            </p>
+          </div>
+          <span className="ml-3 flex-shrink-0 rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white">
+            {ageText(ageMode, { junior: 'よむ →', standard: '確認 →' })}
+          </span>
+        </TrackedLink>
       )}
 
-      {/* ナビゲーション: 2×2 カードグリッド */}
-      <div className="mb-6 grid grid-cols-2 gap-3">
-        <TrackedLink
-          href="/kids/records/new"
-          eventName="kid_home_nav_click"
-          childId={childId}
-          target="record_new"
-          meta={{ age_mode: ageMode }}
-          className="relative flex flex-col items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 p-4 shadow-sm transition hover:bg-orange-100"
-        >
-          <span className="text-4xl">✏️</span>
-          <span className="text-center text-sm font-medium text-orange-800">
+      {/* 主役CTA：「記録する」を画面の主役にする */}
+      <TrackedLink
+        href="/kids/records/new"
+        eventName="kid_home_nav_click"
+        childId={childId}
+        target="record_new"
+        meta={{ age_mode: ageMode }}
+        className="mb-4 flex items-center justify-between rounded-2xl bg-orange-600 px-5 py-5 shadow-md transition hover:bg-orange-700 active:scale-[0.98]"
+      >
+        <div>
+          <p className="text-xl font-bold text-white">
             {ageText(ageMode, {
               junior: 'きろくする',
               standard: '今日の記録をつける'
             })}
-          </span>
-        </TrackedLink>
+          </p>
+          <p className="mt-0.5 text-sm text-orange-100">
+            {ageText(ageMode, {
+              junior: 'よんだほんをとうろくしよう',
+              standard: '読んだ本を登録しよう'
+            })}
+          </p>
+        </div>
+        <span className="text-4xl" aria-hidden>
+          ✏️
+        </span>
+      </TrackedLink>
+
+      {/* サブナビ：3つの等価リンク（主役CTAより明確に格下） */}
+      <div className="mb-6 grid grid-cols-3 gap-2">
         <TrackedLink
           href="/kids/records"
           eventName="kid_home_nav_click"
           childId={childId}
           target="records"
           meta={{ age_mode: ageMode }}
-          className="relative flex flex-col items-center gap-2 rounded-2xl border border-sky-200 bg-sky-50 p-4 shadow-sm transition hover:bg-sky-100"
+          className="flex flex-col items-center gap-1.5 rounded-xl border border-stone-200 bg-white py-3 shadow-sm transition hover:bg-stone-50"
         >
-          <span className="text-4xl">📚</span>
-          <span className="text-center text-sm font-medium text-sky-800">
-            {ageText(ageMode, {
-              junior: 'ほんだな',
-              standard: '本棚を見る'
-            })}
+          <span className="text-2xl" aria-hidden>
+            📚
+          </span>
+          <span className="text-xs font-medium text-stone-600">
+            {ageText(ageMode, { junior: 'ほんだな', standard: '本棚' })}
           </span>
         </TrackedLink>
+
         <TrackedLink
           href="/kids/calendar"
           eventName="kid_home_nav_click"
           childId={childId}
           target="calendar"
           meta={{ age_mode: ageMode }}
-          className="relative flex flex-col items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm transition hover:bg-amber-100"
+          className="flex flex-col items-center gap-1.5 rounded-xl border border-stone-200 bg-white py-3 shadow-sm transition hover:bg-stone-50"
         >
-          <span className="text-4xl">📅</span>
-          <span className="text-center text-sm font-medium text-amber-800">
+          <span className="text-2xl" aria-hidden>
+            📅
+          </span>
+          <span className="text-xs font-medium text-stone-600">
             {ageText(ageMode, {
               junior: 'カレンダー',
-              standard: 'カレンダーを見る'
+              standard: 'カレンダー'
             })}
           </span>
         </TrackedLink>
+
+        {/* メッセージ：未読があればrose色で区別（注意色の一貫した使用） */}
         <TrackedLink
           href="/kids/messages"
           eventName="kid_home_nav_click"
           childId={childId}
           target="messages"
           meta={{ age_mode: ageMode }}
-          className={`relative flex flex-col items-center gap-2 rounded-2xl border p-4 shadow-sm transition ${
+          className={`relative flex flex-col items-center gap-1.5 rounded-xl border py-3 shadow-sm transition ${
             unreadCount > 0
               ? 'border-rose-200 bg-rose-50 hover:bg-rose-100'
-              : 'border-orange-200 bg-orange-50 hover:bg-orange-100'
+              : 'border-stone-200 bg-white hover:bg-stone-50'
           }`}
         >
           {unreadCount > 0 && (
-            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs text-white">
-              {unreadCount}
+            <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
-          <span className="text-4xl">💌</span>
+          <span className="text-2xl" aria-hidden>
+            💌
+          </span>
           <span
-            className={`text-center text-sm font-medium ${unreadCount > 0 ? 'text-rose-800' : 'text-orange-800'}`}
+            className={`text-xs font-medium ${unreadCount > 0 ? 'text-rose-700' : 'text-stone-600'}`}
           >
             {ageText(ageMode, { junior: 'おてがみ', standard: 'メッセージ' })}
           </span>
         </TrackedLink>
       </div>
 
-      <section className="mb-6 rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
-            {ageText(ageMode, {
-              junior: 'さいきん よんだ ほん',
-              standard: '最近読んだ本'
-            })}
-          </h2>
-          <Link
-            href="/kids/records"
-            className="text-sm text-orange-700 underline"
-          >
-            {ageText(ageMode, {
-              junior: 'まえの きろくを みる',
-              standard: '過去の記録を見る'
-            })}
-          </Link>
-        </div>
-        {recentRows && recentRows.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {(recentRows as RecentRow[]).map((row) => {
-              const title = row.title ?? 'ふめいなほん';
-              return (
-                <li key={row.id}>
-                  <Link
-                    href={`/kids/records/${row.id}`}
-                    className="block rounded border border-amber-100 bg-amber-50/30 p-1"
-                  >
-                    <BookCoverImage
-                      src={row.cover_url}
-                      alt={title}
-                      className="h-24 w-full rounded object-cover"
-                      fallbackClassName="flex h-24 w-full items-center justify-center rounded bg-amber-100 text-xs text-amber-700"
-                    />
-                    <p className="mt-1 line-clamp-2 text-xs text-amber-900">
-                      {title}
-                    </p>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <div className="flex flex-col items-center py-6 text-center">
-            <span className="text-4xl">📚</span>
-            <p className="mt-2 font-semibold text-amber-900">
-              {ageText(ageMode, {
-                junior: 'まだ きろくが ないよ',
-                standard: 'まだ記録がありません'
-              })}
-            </p>
-            <p className="mt-1 text-sm text-amber-700">
-              {ageText(ageMode, {
-                junior: 'ほんをよんだら きろくしてみよう！',
-                standard: '本を読んだら記録してみよう。'
-              })}
-            </p>
-            <Link
-              href="/kids/records/new"
-              className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
-            >
-              {ageText(ageMode, {
-                junior: '📖 きろくをつける',
-                standard: '📖 記録をつける'
-              })}
-            </Link>
-          </div>
-        )}
-      </section>
-
+      {/* ミッション：indigo = ミッション専用色 */}
       {activeMission && (
         <MissionProgress
           ageMode={ageMode}
@@ -335,29 +245,86 @@ export default async function KidsHomePage({
         />
       )}
 
-      <section className="mb-6 rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
+      {/* ミッション告知（ホーム上部にも重複して表示されていた分を整理） */}
+      {!activeMission && missionDaysLeft === null && null}
+
+      {/* 最近読んだ本 */}
+      <section className="mb-6 kid-card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-stone-500">
             {ageText(ageMode, {
-              junior: 'ゲットした バッジ',
-              standard: 'ゲットしたバッジ'
+              junior: 'さいきんよんだほん',
+              standard: '最近読んだ本'
             })}
           </h2>
-          {badges.length > 0 && (
-            <Link
-              href="/kids/badges"
-              className="text-sm text-orange-700 underline"
-            >
+          <Link href="/kids/records" className="kid-link">
+            {ageText(ageMode, {
+              junior: 'ぜんぶみる',
+              standard: 'すべて見る'
+            })}
+          </Link>
+        </div>
+        {recentRows && recentRows.length > 0 ? (
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {(recentRows as RecentRow[]).map((row) => {
+              const title = row.title ?? 'ふめいなほん';
+              return (
+                <Link
+                  key={row.id}
+                  href={`/kids/records/${row.id}`}
+                  className="flex-shrink-0 transition hover:-translate-y-0.5"
+                  title={title}
+                >
+                  <BookCoverImage
+                    src={row.cover_url}
+                    alt={title}
+                    className="h-20 w-14 rounded object-cover shadow-sm"
+                    fallbackClassName="flex h-20 w-14 items-center justify-center rounded bg-amber-100 text-xs text-amber-700"
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center py-5 text-center">
+            <span className="text-3xl" aria-hidden>
+              📚
+            </span>
+            <p className="mt-2 text-sm font-medium text-stone-600">
               {ageText(ageMode, {
-                junior: 'ぜんぶ みる',
+                junior: 'まだきろくがないよ',
+                standard: 'まだ記録がありません'
+              })}
+            </p>
+            <p className="mt-0.5 text-xs text-stone-400">
+              {ageText(ageMode, {
+                junior: 'ほんをよんだらきろくしてみよう！',
+                standard: '本を読んだら記録してみよう。'
+              })}
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* バッジ：ゼロ件の場合は非表示（空状態を見せない） */}
+      {badges.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-stone-500">
+              {ageText(ageMode, {
+                junior: 'ゲットしたバッジ',
+                standard: 'ゲットしたバッジ'
+              })}
+            </h2>
+            <Link href="/kids/badges" className="kid-link">
+              {ageText(ageMode, {
+                junior: 'ぜんぶみる',
                 standard: 'すべて見る'
               })}
             </Link>
-          )}
-        </div>
-        {badges.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {badges.map((badge) => {
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {badges.slice(0, 6).map((badge) => {
               const displayName =
                 ageMode === 'junior' && badge.junior_name
                   ? badge.junior_name
@@ -366,62 +333,22 @@ export default async function KidsHomePage({
                 <Link
                   key={badge.badge_id}
                   href={`/kids/badges/${badge.badge_id}`}
-                  className="rounded-full border border-amber-200 bg-amber-100 px-3 py-1 text-sm text-amber-900 transition hover:bg-amber-200"
+                  className="flex flex-shrink-0 flex-col items-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 transition hover:bg-amber-100"
                 >
-                  {badge.icon ?? '🏅'} {displayName}
+                  <span className="text-2xl">{badge.icon ?? '🏅'}</span>
+                  <span className="whitespace-nowrap text-xs text-amber-800">
+                    {displayName}
+                  </span>
                 </Link>
               );
             })}
           </div>
-        ) : (
-          <div className="flex flex-col items-center py-4 text-center">
-            <span className="text-4xl">🏅</span>
-            <p className="mt-2 font-semibold text-amber-900">
-              {ageText(ageMode, {
-                junior: 'まだ バッジは ないよ',
-                standard: 'まだバッジはありません'
-              })}
-            </p>
-            <p className="mt-1 text-sm text-amber-700">
-              {ageText(ageMode, {
-                junior: '1さつ きろくすると はじめてのバッジが もらえるよ！',
-                standard: '1冊記録すると最初のバッジがもらえます。'
-              })}
-            </p>
-          </div>
-        )}
-      </section>
-
-      {suggestions.length > 0 && (
-        <KidSuggestionsSection suggestions={suggestions} />
+        </section>
       )}
 
-      {latestMessage && (
-        <section className="mb-6 rounded-xl border border-rose-200 bg-rose-50/90 p-4 shadow-sm">
-          <div className="mb-1 flex items-center justify-between">
-            <p className="text-xs font-semibold text-rose-600">
-              {ageText(ageMode, {
-                junior: '💌 おうちのひとからのおてがみ',
-                standard: '💌 おうちのひとからのメッセージ'
-              })}
-            </p>
-            <Link
-              href="/kids/messages"
-              className="text-xs text-rose-700 underline"
-            >
-              {ageText(ageMode, {
-                junior: 'ぜんぶ みる',
-                standard: 'すべて見る'
-              })}
-            </Link>
-          </div>
-          <p className="line-clamp-2 text-sm text-rose-900">
-            {latestMessage.body}
-          </p>
-          <p className="mt-1 text-xs text-rose-700">
-            {latestMessage.bookTitle}
-          </p>
-        </section>
+      {/* おすすめ本 */}
+      {suggestions.length > 0 && (
+        <KidSuggestionsSection suggestions={suggestions} />
       )}
     </main>
   );

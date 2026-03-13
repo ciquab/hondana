@@ -2,37 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  色の役割定義（同じ色に複数の意味を持たせない）
+  ────────────────────────────────
+  ブランド色:   amber-700/800   → 見出し・ロゴ・アイデンティティ
+  操作色:       orange-600      → 主要CTAボタンのみ（唯一の行動色）
+  選択状態色:   amber-600       → アクティブタブ・選択中の状態
+  注意色:       rose-600        → 未読・アラート・要注意（のみ）
+  ミッション色: indigo-600      → ミッション・チャレンジ（のみ）
+  完了色:       emerald-600     → 完了・成功状態（のみ）
+  中立色:       stone系         → 背景・テキスト・ボーダー
+*/
+
 body {
-  @apply bg-amber-50 text-slate-900;
+  @apply bg-stone-50 text-stone-900;
   font-family: 'Zen Maru Gothic', sans-serif;
 }
 
 @layer components {
+  /* ─── サーフェス ─── */
+  .surface {
+    @apply rounded-xl border border-stone-200 bg-white shadow-sm;
+  }
+
+  /* ─── ボタン ─── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50;
+  }
+
+  /* ─── 子どもUI共通 ─── */
+  .kid-card {
+    @apply rounded-2xl border border-stone-200 bg-white shadow-sm;
+  }
+
   .kid-link {
     @apply text-sm text-amber-700 underline underline-offset-2 hover:text-amber-800;
   }
 
-  .kid-card {
-    @apply rounded-2xl border border-amber-200/80 bg-[#fff9ea] shadow;
-  }
-
   .kid-accent {
-    @apply text-amber-900;
+    @apply text-amber-800;
   }
 
+  /* 罫線ノート風（日記・感想欄） */
   .kid-note-card {
-    @apply relative rounded-2xl border border-amber-200 bg-[#fffaf0] p-5 shadow;
+    @apply relative rounded-2xl border border-stone-200 bg-white p-5 shadow-sm;
     background-image: linear-gradient(
       to bottom,
       transparent 31px,
-      #f0e5c9 32px
+      #e7e5e4 32px
     );
     background-size: 100% 32px;
   }
 
   .kid-note-card::before {
     content: '';
-    @apply pointer-events-none absolute left-6 top-0 h-full w-px bg-rose-200/70;
+    @apply pointer-events-none absolute left-6 top-0 h-full w-px bg-rose-200/60;
+  }
+
+  /* ─── 注意色（未読・アラート専用） ─── */
+  .alert-notice {
+    @apply rounded-xl border border-rose-200 bg-rose-50;
+  }
+
+  /* ─── ミッション色（チャレンジ専用） ─── */
+  .mission-card {
+    @apply rounded-xl border border-indigo-200 bg-indigo-50;
   }
 }
 
