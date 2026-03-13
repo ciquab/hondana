@@ -446,21 +446,21 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                 <button
                   type="button"
                   onClick={() => setReadStatus('finished')}
-                  className={`rounded-lg border px-2 py-2 text-sm ${readStatus === 'finished' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
+                  className={`rounded-lg border px-2 py-2 text-xs leading-snug ${readStatus === 'finished' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
                 >
                   📖 さいごまでよんだ！
                 </button>
                 <button
                   type="button"
                   onClick={() => setReadStatus('reading')}
-                  className={`rounded-lg border px-2 py-2 text-sm ${readStatus === 'reading' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
+                  className={`rounded-lg border px-2 py-2 text-xs leading-snug ${readStatus === 'reading' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
                 >
                   🔖 とちゅうまで
                 </button>
                 <button
                   type="button"
                   onClick={() => setReadStatus('read_aloud')}
-                  className={`rounded-lg border px-2 py-2 text-sm ${readStatus === 'read_aloud' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white'}`}
+                  className={`rounded-lg border px-2 py-2 text-xs leading-snug ${readStatus === 'read_aloud' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white'}`}
                 >
                   👂 よんでもらった
                 </button>
