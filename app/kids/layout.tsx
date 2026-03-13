@@ -22,7 +22,7 @@ export default async function KidsLayout({
         className="min-h-screen"
         style={{
           background:
-            'radial-gradient(circle at 15% 20%, #fff4d9 0%, #fff4d9 20%, transparent 55%), radial-gradient(circle at 85% 0%, #ffe6f2 0%, #ffe6f2 18%, transparent 50%), linear-gradient(180deg, #fff9ed 0%, #fff6e5 45%, #fff2df 100%)'
+            'radial-gradient(ellipse 100% 35% at 50% 0%, #fff3cc 0%, transparent 100%), linear-gradient(180deg, #fafaf9 0%, #f7f6f4 100%)'
         }}
       >
         {children}

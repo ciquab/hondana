@@ -14,7 +14,7 @@ type BookRow = {
 
 const GENRE_TABS = [
   { key: 'all', label: 'すべて', emoji: null },
-  { key: 'story', label: 'ものがたり・しょうせつ', emoji: '📖' },
+  { key: 'story', label: 'ものがたり', emoji: '📖' },
   { key: 'zukan', label: 'ずかん・かがく', emoji: '🔬' },
   { key: 'manga', label: 'まんが', emoji: '🎭' },
   { key: 'picture_book', label: 'えほん・し', emoji: '🖼️' },
@@ -28,28 +28,28 @@ const GENRE_EMPTY_MESSAGES: Partial<
 > = {
   story: {
     emoji: '📖',
-    main: 'まだ ものがたりは よんでないよ',
-    sub: 'どんな ものがたりがあるか、おうちのひとに きいてみよう！'
+    main: 'まだものがたりはよんでないよ',
+    sub: 'どんなものがたりがあるか、おうちのひとにきいてみよう！'
   },
   zukan: {
     emoji: '🔬',
-    main: 'まだ ずかん・かがくのほんは よんでないよ',
+    main: 'まだずかん・かがくのほんはよんでないよ',
     sub: 'ふしぎなことをしらべてみよう！'
   },
   manga: {
     emoji: '🎭',
-    main: 'まだ まんがは よんでないよ',
+    main: 'まだまんがはよんでないよ',
     sub: 'すきなキャラクターをみつけてみよう！'
   },
   picture_book: {
     emoji: '🖼️',
-    main: 'まだ えほん・しは よんでないよ',
+    main: 'まだえほん・しはよんでないよ',
     sub: 'きれいなえのほんをさがしてみよう！'
   },
   other: {
     emoji: '📚',
-    main: 'まだ きろくがないよ',
-    sub: 'いろんな ほんを よんでみよう！'
+    main: 'まだきろくがないよ',
+    sub: 'いろんなほんをよんでみよう！'
   }
 };
 
@@ -108,93 +108,96 @@ export function KidsBookshelf({
 
   return (
     <section className="kid-card p-4">
-      <h1 className="text-2xl font-bold text-amber-900">
+      <h1 className="text-xl font-bold text-amber-800">
         {childName} のほんだな
       </h1>
 
-      {/* genre tabs */}
-      <div className="mt-3 rounded-2xl bg-white/80 p-2 shadow-inner">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {GENRE_TABS.map(({ key, label, emoji }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`rounded-2xl px-3 py-2 text-left text-xs font-bold transition sm:text-sm ${
-                activeTab === key
-                  ? 'bg-orange-500 text-white shadow'
-                  : 'bg-white text-amber-900 hover:bg-orange-100'
-              }`}
-              aria-pressed={activeTab === key}
+      {/* ジャンルタブ：横スクロールリスト（カラフルグリッドを廃止） */}
+      <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
+        {GENRE_TABS.map(({ key, label, emoji }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`flex flex-shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition ${
+              activeTab === key
+                ? 'bg-amber-600 text-white'
+                : 'border border-stone-200 bg-white text-stone-600 hover:border-amber-300 hover:text-amber-800'
+            }`}
+            aria-pressed={activeTab === key}
+          >
+            {emoji && <span aria-hidden>{emoji}</span>}
+            <span>{label}</span>
+            <span
+              className={`ml-0.5 text-xs ${activeTab === key ? 'text-amber-100' : 'text-stone-400'}`}
             >
-              <span className="block truncate">
-                {emoji ? `${emoji} ` : ''}
-                {label}
-              </span>
-              <span
-                className={`text-[11px] font-medium ${activeTab === key ? 'text-white/90' : 'text-orange-700'}`}
-              >
-                {tabCounts[key]}さつ
-              </span>
-            </button>
-          ))}
-        </div>
+              {tabCounts[key]}
+            </span>
+          </button>
+        ))}
       </div>
 
       {records.length === 0 ? (
-        <div className="mt-4 flex flex-col items-center rounded-xl border border-amber-100 bg-white/90 py-8 text-center shadow">
-          <span className="text-5xl">📚</span>
-          <p className="mt-3 text-lg font-bold text-slate-700">
-            ほんだなは まだ からっぽ
+        <div className="mt-4 flex flex-col items-center rounded-xl border border-stone-100 bg-stone-50 py-8 text-center">
+          <span className="text-5xl" aria-hidden>
+            📚
+          </span>
+          <p className="mt-3 text-lg font-bold text-stone-700">
+            ほんだなはまだからっぽ
           </p>
-          <p className="mt-1 text-sm text-slate-500">
-            ほんをよんだら きろくして、ほんだなを いっぱいにしよう！
+          <p className="mt-1 text-sm text-stone-400">
+            ほんをよんだらきろくして、ほんだなをいっぱいにしよう！
           </p>
           <Link
             href="/kids/records/new"
-            className="mt-4 inline-flex items-center gap-1 rounded-full bg-orange-500 px-5 py-2.5 text-base font-bold text-white shadow hover:bg-orange-600"
+            className="mt-4 inline-flex items-center gap-1 rounded-full bg-orange-600 px-5 py-2.5 text-base font-bold text-white shadow transition hover:bg-orange-700"
           >
-            📖 さいしょの1さつを きろくする
+            📖 さいしょの1さつをきろくする
           </Link>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="mt-4 flex flex-col items-center rounded-xl border border-amber-100 bg-white/90 py-6 text-center text-sm text-slate-700">
+        <div className="mt-4 flex flex-col items-center rounded-xl border border-stone-100 bg-stone-50 py-6 text-center text-sm text-stone-600">
           {GENRE_EMPTY_MESSAGES[activeTab] ? (
             <>
-              <p className="text-3xl">
+              <p className="text-3xl" aria-hidden>
                 {GENRE_EMPTY_MESSAGES[activeTab]!.emoji}
               </p>
               <p className="mt-2 font-semibold">
                 {GENRE_EMPTY_MESSAGES[activeTab]!.main}
               </p>
-              <p className="mt-1 text-slate-500">
+              <p className="mt-1 text-stone-400">
                 {GENRE_EMPTY_MESSAGES[activeTab]!.sub}
               </p>
             </>
           ) : (
-            <p>このジャンルの きろくは まだありません。</p>
+            <p>このジャンルのきろくはまだありません。</p>
           )}
           <Link
             href="/kids/records/new"
-            className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
+            className="mt-3 inline-flex items-center gap-1 rounded-full bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow transition hover:bg-orange-700"
           >
             📖 きろくをつける
           </Link>
         </div>
       ) : (
         <>
-          <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-100 bg-white/90 px-3 py-2 text-amber-900">
-            <p className="text-sm font-bold">📚 {activeTabMeta.label} のたな</p>
-            <p className="text-xs font-semibold">
+          <div className="mt-3 flex items-center justify-between px-1">
+            <p className="text-sm font-medium text-stone-500">
+              {activeTabMeta.emoji && (
+                <span aria-hidden>{activeTabMeta.emoji} </span>
+              )}
+              {activeTabMeta.label}
+            </p>
+            <p className="text-xs text-stone-400">
               {activeTab === 'all'
-                ? `ぜんぶで ${records.length} けん`
-                : `${filtered.length} さつ`}
+                ? `${records.length}さつ`
+                : `${filtered.length}さつ`}
             </p>
           </div>
-          <div className="mt-4 space-y-4">
+          <div className="mt-3 space-y-4">
             {shelfRows.map((row, rowIndex) => (
               <div
                 key={`${activeTab}-${rowIndex}`}
-                className="bookshelf-row relative rounded-lg border border-amber-200/70 bg-[#fdf2d7] px-3 pb-4 pt-3"
+                className="bookshelf-row relative rounded-lg border border-stone-200 bg-stone-50 px-3 pb-4 pt-3"
                 style={{
                   animationDelay: `${rowIndex * 80}ms`
                 }}
@@ -211,7 +214,7 @@ export function KidsBookshelf({
                         className="relative w-20 flex-shrink-0 rounded-md p-1 transition hover:-translate-y-1"
                       >
                         {record.stamp && (
-                          <span className="absolute right-0 top-0 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs shadow">
+                          <span className="absolute right-0 top-0 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-xs shadow">
                             {record.stamp === 'great'
                               ? '🌟'
                               : record.stamp === 'fun'
@@ -254,8 +257,8 @@ export function KidsBookshelf({
                             );
                           })()
                         )}
-                        <div className="pointer-events-none absolute -bottom-3 left-1 right-1 rounded-md bg-white/95 px-1 py-1 shadow">
-                          <p className="line-clamp-2 h-8 text-center text-xs leading-4 text-slate-800">
+                        <div className="pointer-events-none absolute -bottom-3 left-1 right-1 rounded-md bg-white/95 px-1 py-1 shadow-sm">
+                          <p className="line-clamp-2 h-8 text-center text-xs leading-4 text-stone-700">
                             {title}
                           </p>
                         </div>
@@ -263,7 +266,8 @@ export function KidsBookshelf({
                     );
                   })}
                 </div>
-                <div className="absolute bottom-0 left-2 right-2 h-2 rounded bg-amber-600/80" />
+                {/* 棚板 */}
+                <div className="absolute bottom-0 left-2 right-2 h-2 rounded bg-amber-700/60" />
               </div>
             ))}
           </div>
