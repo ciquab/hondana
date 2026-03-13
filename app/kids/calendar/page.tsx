@@ -38,7 +38,6 @@ function getMonthBounds(monthParam: string | undefined) {
   );
 
   return {
-    monthLabel: `${monthStart.getFullYear()}ねん${monthStart.getMonth() + 1}がつ`,
     from: monthStart.toISOString(),
     to: nextMonth.toISOString(),
     monthStart
@@ -133,7 +132,12 @@ export default async function KidsCalendarPage({
         >
           {ageText(ageMode, { junior: '◀ まえ', standard: '◀ 前の月' })}
         </Link>
-        <p className="flex-1 text-center font-semibold">{bounds.monthLabel}</p>
+        <p className="flex-1 text-center font-semibold">
+          {ageText(ageMode, {
+            junior: `${bounds.monthStart.getFullYear()}ねん${bounds.monthStart.getMonth() + 1}がつ`,
+            standard: `${bounds.monthStart.getFullYear()}年${bounds.monthStart.getMonth() + 1}月`
+          })}
+        </p>
         <Link
           href={`/kids/calendar?month=${nextMonthParam}`}
           className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
@@ -142,7 +146,7 @@ export default async function KidsCalendarPage({
         </Link>
       </div>
 
-      <section className="mb-6 rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
+      <section className="mb-6 kid-card p-4">
         <h2 className="mb-3 text-lg font-semibold">
           {ageText(ageMode, {
             junior: 'こんげつのきろく',
@@ -167,7 +171,7 @@ export default async function KidsCalendarPage({
                   </div>
                   {info ? (
                     <div className="mt-0.5 text-xs text-amber-900">
-                      <div>
+                      <div className="whitespace-nowrap">
                         {ageText(ageMode, {
                           junior: `${info.count}さつ`,
                           standard: `${info.count}冊`
@@ -203,8 +207,8 @@ export default async function KidsCalendarPage({
                 className={`inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 font-bold text-white transition hover:bg-orange-600 ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10 text-sm'}`}
               >
                 {ageText(ageMode, {
-                  junior: 'きろくする',
-                  standard: '記録をつける'
+                  junior: '📖 きろくする',
+                  standard: '📖 記録をつける'
                 })}
               </Link>
             }
@@ -212,7 +216,7 @@ export default async function KidsCalendarPage({
         )}
       </section>
 
-      <section className="rounded-xl border border-amber-100 bg-white/95 p-4 shadow">
+      <section className="kid-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">
             {ageText(ageMode, {
@@ -223,7 +227,7 @@ export default async function KidsCalendarPage({
           {badges.length > 0 && (
             <Link
               href="/kids/badges"
-              className="text-sm text-orange-700 underline"
+              className="kid-link"
             >
               {ageText(ageMode, {
                 junior: 'ぜんぶ みる',

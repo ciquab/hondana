@@ -13,7 +13,7 @@ type BookRow = {
 };
 
 const GENRE_TABS = [
-  { key: 'all', label: 'すべて', emoji: null },
+  { key: 'all', label: 'すべて', emoji: '📚' },
   { key: 'story', label: 'ものがたり', emoji: '📖' },
   { key: 'zukan', label: 'ずかん・かがく', emoji: '🔬' },
   { key: 'manga', label: 'まんが', emoji: '🎭' },

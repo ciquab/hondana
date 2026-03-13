@@ -308,7 +308,7 @@ export default async function KidsHomePage({
 
       {/* バッジ：ゼロ件の場合は非表示（空状態を見せない） */}
       {badges.length > 0 && (
-        <section className="mb-6">
+        <section className="mb-6 kid-card p-4">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-stone-500">
               {ageText(ageMode, {
