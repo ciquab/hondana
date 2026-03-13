@@ -51,7 +51,7 @@ export default async function KidsHomePage({
     { data: childRows },
     { data: recentRows },
     badges,
-    { messages, unreadCount },
+    { unreadCount },
     { data: suggestionRows },
     { data: missionRows }
   ] = await Promise.all([
