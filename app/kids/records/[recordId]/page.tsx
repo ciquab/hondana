@@ -212,7 +212,7 @@ export default async function KidRecordDetailPage({
 
           <section className="mt-4 rounded-xl border border-amber-100 bg-white/90 p-4">
             <h2 className="text-sm font-semibold text-amber-900">
-              おうちのひとからのこめんと
+              おうちのひとからのコメント
             </h2>
             {comments.length > 0 ? (
               <ul className="mt-2 space-y-2">
@@ -233,7 +233,7 @@ export default async function KidRecordDetailPage({
               </ul>
             ) : (
               <p className="mt-2 text-sm text-slate-500">
-                まだこめんとはありません
+                まだコメントはありません
               </p>
             )}
           </section>

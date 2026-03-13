@@ -115,61 +115,90 @@ export default async function KidsMessagesPage() {
               key={message.id}
               className={`rounded-xl border bg-white/95 p-4 shadow ${message.unread ? 'border-orange-300 bg-orange-50/40' : 'border-amber-100'}`}
             >
-              <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm font-semibold text-amber-900">
-                  {message.bookTitle}
-                </p>
-                <p className="text-xs text-amber-700">
+              {/* 本のタイトル（タップで記録ページへ） */}
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <Link
+                  href={`/kids/records/${message.record_id}`}
+                  className="min-w-0 flex-1"
+                >
+                  <p className="truncate text-sm font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700">
+                    📖 {message.bookTitle}
+                  </p>
+                </Link>
+                <p className="shrink-0 text-xs text-amber-700">
                   {new Date(message.created_at).toLocaleString('ja-JP')}
                 </p>
               </div>
 
-              <p className="text-amber-950">{message.body}</p>
-
-              <div className="mt-2 flex flex-wrap gap-2 text-sm text-amber-800">
-                {Object.entries(message.reactions).length > 0 ? (
-                  Object.entries(message.reactions).map(([emoji, count]) => (
-                    <span
-                      key={emoji}
-                      className="rounded-full bg-amber-100 px-2 py-0.5"
-                    >
-                      {EMOJI_MAP[emoji] ?? emoji} {count}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-xs text-amber-800">
-                    {ageText(ageMode, {
-                      junior: 'リアクションは まだないよ',
-                      standard: 'リアクションはまだありません'
-                    })}
-                  </span>
-                )}
+              {/* 送信者名とメッセージ本文 */}
+              <div className="rounded-lg bg-amber-50/60 px-3 py-2">
+                <p className="mb-1 text-xs font-semibold text-amber-700">
+                  {message.authorDisplayName}
+                </p>
+                <p className="text-amber-950">{message.body}</p>
               </div>
 
-              {message.unread ? (
-                <form action={markKidMessageRead} className="mt-3">
-                  <input type="hidden" name="commentId" value={message.id} />
-                  <TrackedSubmitButton
-                    eventName="kid_message_mark_read"
-                    childId={childId}
-                    target="mark_read"
-                    meta={{ age_mode: ageMode }}
-                    className={`rounded-lg bg-orange-500 px-3 py-1.5 font-semibold text-white hover:bg-orange-600 ${ageMode === 'junior' ? 'h-12 text-base' : 'text-sm'}`}
-                  >
-                    {ageText(ageMode, {
-                      junior: 'よんだ！',
-                      standard: '既読にする'
-                    })}
-                  </TrackedSubmitButton>
-                </form>
+              {/* リアクション（誰がどの絵文字を送ったか） */}
+              {Object.keys(message.reactions).length > 0 ? (
+                <div className="mt-2 space-y-1">
+                  {Object.entries(message.reactions).map(([emoji, data]) => (
+                    <div
+                      key={emoji}
+                      className="flex items-center gap-2"
+                    >
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-sm text-amber-800">
+                        {EMOJI_MAP[emoji] ?? emoji} {data.count}
+                      </span>
+                      <span className="text-xs text-amber-600">
+                        {data.names.join(' · ')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <p className="mt-3 text-xs text-emerald-700">
+                <p className="mt-2 text-xs text-amber-700">
                   {ageText(ageMode, {
-                    junior: 'よんだよ',
-                    standard: '既読です'
+                    junior: 'リアクションは まだないよ',
+                    standard: 'リアクションはまだありません'
                   })}
                 </p>
               )}
+
+              <div className="mt-3 flex items-center justify-between">
+                {message.unread ? (
+                  <form action={markKidMessageRead}>
+                    <input type="hidden" name="commentId" value={message.id} />
+                    <TrackedSubmitButton
+                      eventName="kid_message_mark_read"
+                      childId={childId}
+                      target="mark_read"
+                      meta={{ age_mode: ageMode }}
+                      className={`rounded-lg bg-orange-500 px-3 py-1.5 font-semibold text-white hover:bg-orange-600 ${ageMode === 'junior' ? 'h-12 text-base' : 'text-sm'}`}
+                    >
+                      {ageText(ageMode, {
+                        junior: 'よんだ！',
+                        standard: '既読にする'
+                      })}
+                    </TrackedSubmitButton>
+                  </form>
+                ) : (
+                  <p className="text-xs text-emerald-700">
+                    {ageText(ageMode, {
+                      junior: 'よんだよ ✓',
+                      standard: '既読 ✓'
+                    })}
+                  </p>
+                )}
+                <Link
+                  href={`/kids/records/${message.record_id}`}
+                  className="kid-link text-xs"
+                >
+                  {ageText(ageMode, {
+                    junior: 'きろくをみる →',
+                    standard: '記録を見る →'
+                  })}
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

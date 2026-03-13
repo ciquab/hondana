@@ -7,7 +7,8 @@ type KidMessageRow = {
   created_at: string;
   book_title: string | null;
   unread: boolean;
-  reactions: Record<string, number> | null;
+  reactions: Record<string, { count: number; names: string[] }> | null;
+  author_display_name: string | null;
 };
 
 export async function getKidMessages() {
@@ -25,7 +26,8 @@ export async function getKidMessages() {
     created_at: row.created_at,
     bookTitle: row.book_title ?? '本',
     unread: row.unread,
-    reactions: row.reactions ?? {}
+    reactions: row.reactions ?? {},
+    authorDisplayName: row.author_display_name ?? 'おうちのひと'
   }));
 
   const unreadCount = messages.filter((m) => m.unread).length;
