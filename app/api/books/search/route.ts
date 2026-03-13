@@ -241,7 +241,22 @@ export async function GET(request: NextRequest) {
   if (isbn) {
     // Try OpenBD first (free, no key, good for Japanese books), then Google Books
     const openBdResult = await openBdLookup(isbn);
-    const result = openBdResult ?? (await searchByIsbn(isbn));
+
+    let result: BookSearchResult | null;
+    if (openBdResult) {
+      // OpenBD found metadata but may lack cover — supplement with Google Books cover
+      if (!openBdResult.coverUrl) {
+        const googleResult = await searchByIsbn(isbn);
+        result = googleResult?.coverUrl
+          ? { ...openBdResult, coverUrl: googleResult.coverUrl, sources: [...openBdResult.sources, 'google-books'] }
+          : openBdResult;
+      } else {
+        result = openBdResult;
+      }
+    } else {
+      result = await searchByIsbn(isbn);
+    }
+
     bookSearchDebug('isbn', {
       requesterId,
       isbn,
