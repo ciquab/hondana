@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
       if (!openBdResult.coverUrl) {
         const googleResult = await searchByIsbn(isbn);
         result = googleResult?.coverUrl
-          ? { ...openBdResult, coverUrl: googleResult.coverUrl, sources: [...openBdResult.sources, 'google-books'] }
+          ? { ...openBdResult, coverUrl: googleResult.coverUrl, sources: [...openBdResult.sources, 'google_books' as BookResultSource] }
           : openBdResult;
       } else {
         result = openBdResult;
