@@ -69,7 +69,6 @@ export default async function KidRecordDetailPage({
     await Promise.all([
       resolveKidAgeMode(supabase, childId),
       Promise.all([
-    await Promise.all([
         supabase.rpc('get_kid_record_detail', {
           target_child_id: childId,
           target_record_id: recordId
