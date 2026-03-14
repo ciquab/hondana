@@ -4,7 +4,6 @@ import { KidRecordForm } from '@/components/kid-record-form';
 import { requireKidContext } from '@/lib/kids/client';
 import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
 import { ageText } from '@/lib/kids/age-text';
-import type { AgeModeOverride } from '@/lib/kids/age-mode';
 
 type RecordRow = {
   id: string;
