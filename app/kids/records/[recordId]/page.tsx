@@ -102,9 +102,17 @@ export default async function KidRecordDetailPage({
 
   return (
     <main className="mx-auto max-w-xl p-4">
-      <Link href="/kids/records" className="kid-link">
-        ほんだなにもどる
-      </Link>
+      <div className="mb-3 flex items-center justify-between">
+        <Link href="/kids/records" className="kid-link">
+          ほんだなにもどる
+        </Link>
+        <Link
+          href={`/kids/records/${record.id}/edit`}
+          className="inline-flex items-center gap-1 rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow transition hover:bg-orange-600 active:scale-95"
+        >
+          ✏️ へんしゅう
+        </Link>
+      </div>
 
       <article className="kid-note-card mt-3">
         <div className="rounded-xl border border-amber-200/70 bg-white/75 p-4">

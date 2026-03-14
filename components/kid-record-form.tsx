@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import {
   createKidRecord,
+  updateKidRecord,
   type KidRecordActionResult
 } from '@/app/actions/kid-record';
 import {
@@ -55,16 +56,40 @@ const TERTIARY_BTN =
   'rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100';
 
 type KidRecordFormProps = {
+  // 新規作成モード
   initialTitle?: string;
   initialAuthor?: string;
   initialIsbn?: string;
+  // 編集モード（recordId が渡された場合）
+  recordId?: string;
+  initialCoverUrl?: string;
+  initialStamp?: string;
+  initialStatus?: 'finished' | 'reading' | 'read_aloud';
+  initialMemo?: string;
+  initialFinishedOn?: string;
+  initialGenre?: string;
+  initialFeelingTags?: string[];
 };
 
-export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidRecordFormProps = {}) {
+export function KidRecordForm({
+  initialTitle,
+  initialAuthor,
+  initialIsbn,
+  recordId,
+  initialCoverUrl,
+  initialStamp,
+  initialStatus,
+  initialMemo,
+  initialFinishedOn,
+  initialGenre,
+  initialFeelingTags,
+}: KidRecordFormProps = {}) {
+  const isEditMode = Boolean(recordId);
+  const action = isEditMode ? updateKidRecord : createKidRecord;
   const [state, formAction, pending] = useActionState<
     KidRecordActionResult,
     FormData
-  >(createKidRecord, {});
+  >(action, {});
   const [showScanner, setShowScanner] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
@@ -74,19 +99,25 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
   const [title, setTitle] = useState(initialTitle ?? '');
   const [author, setAuthor] = useState(initialAuthor ?? '');
   const [isbn, setIsbn] = useState(initialIsbn ?? '');
-  const [coverUrl, setCoverUrl] = useState<string | null>(null);
-  const [stamp, setStamp] = useState<(typeof STAMPS)[number]['value'] | ''>('');
-  const [genre, setGenre] = useState<(typeof CHILD_GENRES)[number] | ''>('');
-  const [feelingTags, setFeelingTags] = useState<string[]>([]);
+  const [coverUrl, setCoverUrl] = useState<string | null>(initialCoverUrl ?? null);
+  const [stamp, setStamp] = useState<(typeof STAMPS)[number]['value'] | ''>(
+    (initialStamp as (typeof STAMPS)[number]['value']) ?? ''
+  );
+  const [genre, setGenre] = useState<(typeof CHILD_GENRES)[number] | ''>(
+    (initialGenre as (typeof CHILD_GENRES)[number]) ?? ''
+  );
+  const [feelingTags, setFeelingTags] = useState<string[]>(initialFeelingTags ?? []);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const ageMode = useAgeMode();
   const [mode, setMode] = useState<'simple' | 'detailed'>('simple');
   const recordCreateTrackedRef = useRef(false);
 
-  const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>('finished');
-  const [finishedOn, setFinishedOn] = useState(() =>
-    new Date().toISOString().slice(0, 10)
+  const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>(
+    initialStatus ?? 'finished'
+  );
+  const [finishedOn, setFinishedOn] = useState(
+    initialFinishedOn ?? new Date().toISOString().slice(0, 10)
   );
 
   const fillFromBook = useCallback((book: BookSearchResult) => {
@@ -154,39 +185,41 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
 
   return (
     <>
-      <div className="mb-4 space-y-3 rounded-xl bg-white p-4 shadow">
-        <button
-          type="button"
-          onClick={() => setShowScanner(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 p-3 text-orange-700 transition hover:bg-orange-100"
-        >
-          📷 バーコードでとうろく
-        </button>
-
-        <div className="flex gap-2">
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                handleTitleSearch();
-              }
-            }}
-            className="flex-1 rounded border p-2 text-sm"
-            placeholder="ほんのなまえをいれよう…"
-          />
+      {/* 書籍検索エリア：新規作成モードのみ表示 */}
+      {!isEditMode && (
+        <div className="mb-4 space-y-3 rounded-xl bg-white p-4 shadow">
           <button
             type="button"
-            onClick={handleTitleSearch}
-            disabled={searching}
-            className={SECONDARY_BTN}
+            onClick={() => setShowScanner(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 p-3 text-orange-700 transition hover:bg-orange-100"
           >
-            {searching ? 'けんさくちゅう…' : 'けんさく'}
+            📷 バーコードでとうろく
           </button>
-        </div>
+
+          <div className="flex gap-2">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  handleTitleSearch();
+                }
+              }}
+              className="flex-1 rounded border p-2 text-sm"
+              placeholder="ほんのなまえをいれよう…"
+            />
+            <button
+              type="button"
+              onClick={handleTitleSearch}
+              disabled={searching}
+              className={SECONDARY_BTN}
+            >
+              {searching ? 'けんさくちゅう…' : 'けんさく'}
+            </button>
+          </div>
 
         {searchResults.length > 0 ? (
           <ul className="max-h-60 space-y-1 overflow-y-auto rounded-lg border bg-white p-2">
@@ -252,7 +285,27 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
             </div>
           )
         )}
-      </div>
+        </div>
+      )}
+
+      {/* 編集モード：本のタイトルを表示のみ（変更不可） */}
+      {isEditMode && title && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl bg-white p-4 shadow">
+          {coverUrl && (
+            <BookCoverImg
+              src={coverUrl}
+              className="h-16 w-11 flex-shrink-0 rounded shadow-sm"
+              placeholderClassName="flex h-16 w-11 flex-shrink-0 items-center justify-center rounded bg-amber-100 text-xs text-amber-700"
+            />
+          )}
+          <div className="min-w-0">
+            <p className="text-xs text-stone-400">
+              {ageMode === 'junior' ? 'このほんをへんしゅう' : 'この本を編集'}
+            </p>
+            <p className="font-semibold text-stone-800 line-clamp-2">{title}</p>
+          </div>
+        </div>
+      )}
 
       <div className="mb-4 flex gap-1 rounded-lg bg-slate-100 p-1">
         <button
@@ -283,6 +336,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
         action={formAction}
         className="space-y-4 rounded-xl bg-white p-4 shadow"
       >
+        {isEditMode && <input type="hidden" name="recordId" value={recordId} />}
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
         <input type="hidden" name="stamp" value={stamp} />
         {mode === 'simple' ? (
@@ -321,20 +375,24 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
           </div>
         )}
 
-        <div>
-          <label htmlFor="title" className="mb-1 block text-sm font-medium">
-            ほんのタイトル
-          </label>
-          <input
-            ref={titleInputRef}
-            id="title"
-            name="title"
-            required
-            className="w-full rounded border p-2"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
+        {isEditMode ? (
+          <input type="hidden" name="title" value={title} />
+        ) : (
+          <div>
+            <label htmlFor="title" className="mb-1 block text-sm font-medium">
+              ほんのタイトル
+            </label>
+            <input
+              ref={titleInputRef}
+              id="title"
+              name="title"
+              required
+              className="w-full rounded border p-2"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+        )}
 
         {mode === 'detailed' && (
           <>
@@ -528,7 +586,13 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
             })
           }
         >
-          {pending ? 'ほぞんちゅう…' : 'ほぞんする'}
+          {pending
+            ? 'ほぞんちゅう…'
+            : isEditMode
+              ? ageMode === 'junior'
+                ? 'へんこうをほぞんする'
+                : '変更を保存する'
+              : 'ほぞんする'}
         </button>
       </form>
 
