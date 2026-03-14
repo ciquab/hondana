@@ -182,7 +182,7 @@ export default function BarcodeScanner({ onDetected, onClose, ageMode = 'standar
       cancelled = true;
       stopCamera();
     };
-  }, [scanning, detectStableIsbn, getRoiCanvas, onDetected, stopCamera]);
+  }, [scanning, detectStableIsbn, getRoiCanvas, onDetected, stopCamera, ageMode]);
 
   const t = {
     header:

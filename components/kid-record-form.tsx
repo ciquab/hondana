@@ -107,6 +107,7 @@ export function KidRecordForm({
     (initialGenre as (typeof CHILD_GENRES)[number]) ?? ''
   );
   const [feelingTags, setFeelingTags] = useState<string[]>(initialFeelingTags ?? []);
+  const [memo, setMemo] = useState(initialMemo ?? '');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const ageMode = useAgeMode();
@@ -558,6 +559,8 @@ export function KidRecordForm({
                 className="w-full rounded border p-2 text-sm"
                 rows={3}
                 placeholder="おもしろかった！　つぎは〇〇をよみたい…など"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
               />
             </div>
           </>
