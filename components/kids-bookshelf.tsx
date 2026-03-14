@@ -112,13 +112,13 @@ export function KidsBookshelf({
         {childName} のほんだな
       </h1>
 
-      {/* ジャンルタブ：横スクロールリスト（カラフルグリッドを廃止） */}
-      <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
+      {/* ジャンルタブ：2行3列グリッド（全タブ一覧表示・スクロール不要） */}
+      <div className="mt-3 grid grid-cols-3 gap-1.5">
         {GENRE_TABS.map(({ key, label, emoji }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex flex-shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition ${
+            className={`flex items-center justify-center gap-1 rounded-full px-2 py-1.5 text-sm font-medium transition ${
               activeTab === key
                 ? 'bg-amber-600 text-white'
                 : 'border border-stone-200 bg-white text-stone-600 hover:border-amber-300 hover:text-amber-800'
@@ -126,9 +126,9 @@ export function KidsBookshelf({
             aria-pressed={activeTab === key}
           >
             {emoji && <span aria-hidden>{emoji}</span>}
-            <span>{label}</span>
+            <span className="truncate">{label}</span>
             <span
-              className={`ml-0.5 text-xs ${activeTab === key ? 'text-amber-100' : 'text-stone-400'}`}
+              className={`ml-0.5 shrink-0 text-xs ${activeTab === key ? 'text-amber-100' : 'text-stone-400'}`}
             >
               {tabCounts[key]}
             </span>
