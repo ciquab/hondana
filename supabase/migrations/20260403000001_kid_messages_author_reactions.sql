@@ -1,6 +1,9 @@
 -- Add author_display_name and per-user reaction names to get_kid_messages.
 -- reactions format changes from {emoji: count} to {emoji: {count, names}}.
 
+-- Drop existing function first because the return type changes (OUT parameters differ).
+drop function if exists public.get_kid_messages(uuid, integer);
+
 create or replace function public.get_kid_messages(
   target_child_id uuid,
   max_rows int default 50
