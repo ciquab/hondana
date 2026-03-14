@@ -17,8 +17,8 @@ export default async function KidsLoginPage({
     <main className="mx-auto max-w-md p-4">
       <h1 className="mb-2 text-2xl font-bold">こどもログイン</h1>
       <p className="mb-4 text-sm text-slate-600">
-        おうちのひとから うけとった URL からひらいたときは、4けたPINだけで
-        ログインできます。URLがないときは、ログインIDとPINをいれてね。
+        ログインIDと4けたのあんしょうばんごう（PIN）をいれてね。
+        おうちのひとに きいてみよう。
       </p>
       {!kidModeReady ? (
         <p className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">

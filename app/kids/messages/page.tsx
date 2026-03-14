@@ -126,7 +126,12 @@ export default async function KidsMessagesPage() {
                   </p>
                 </Link>
                 <p className="shrink-0 text-xs text-amber-700">
-                  {new Date(message.created_at).toLocaleString('ja-JP')}
+                  {(() => {
+                    const d = new Date(message.created_at);
+                    return ageMode === 'junior'
+                      ? `${d.getMonth() + 1}がつ${d.getDate()}にち`
+                      : `${d.getMonth() + 1}月${d.getDate()}日`;
+                  })()}
                 </p>
               </div>
 

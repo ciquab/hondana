@@ -48,7 +48,7 @@ const STAMPS = [
 ] as const;
 
 const PRIMARY_BTN =
-  'rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-50';
+  'w-full rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-50';
 const SECONDARY_BTN =
   'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50';
 const TERTIARY_BTN =
@@ -160,7 +160,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
           onClick={() => setShowScanner(true)}
           className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 p-3 text-orange-700 transition hover:bg-orange-100"
         >
-          バーコードでとうろく
+          📷 バーコードでとうろく
         </button>
 
         <div className="flex gap-2">
@@ -176,7 +176,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
               }
             }}
             className="flex-1 rounded border p-2 text-sm"
-            placeholder="しょめいでけんさく…"
+            placeholder="ほんのなまえをいれよう…"
           />
           <button
             type="button"
@@ -446,23 +446,26 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
                 <button
                   type="button"
                   onClick={() => setReadStatus('finished')}
-                  className={`rounded-lg border px-2 py-2 text-xs leading-snug ${readStatus === 'finished' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
+                  className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'finished' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
                 >
-                  📖 さいごまでよんだ！
+                  <span className="text-xl">📖</span>
+                  <span>さいごまで</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setReadStatus('reading')}
-                  className={`rounded-lg border px-2 py-2 text-xs leading-snug ${readStatus === 'reading' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
+                  className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'reading' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
                 >
-                  🔖 とちゅうまで
+                  <span className="text-xl">🔖</span>
+                  <span>とちゅうまで</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setReadStatus('read_aloud')}
-                  className={`rounded-lg border px-2 py-2 text-xs leading-snug ${readStatus === 'read_aloud' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white'}`}
+                  className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'read_aloud' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white'}`}
                 >
-                  👂 よんでもらった
+                  <span className="text-xl">👂</span>
+                  <span>よんでもらった</span>
                 </button>
               </div>
             </fieldset>
@@ -504,6 +507,15 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
 
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
+        {!stamp && (
+          <p className="text-center text-sm text-amber-700">
+            ⬆️{' '}
+            {ageMode === 'junior'
+              ? 'スタンプをえらんでね！'
+              : 'スタンプを選んでから保存できます'}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={pending || !stamp}
@@ -524,6 +536,7 @@ export function KidRecordForm({ initialTitle, initialAuthor, initialIsbn }: KidR
         <BarcodeScanner
           onDetected={handleBarcodeDetected}
           onClose={() => setShowScanner(false)}
+          ageMode={ageMode}
         />
       )}
     </>

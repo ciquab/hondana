@@ -72,7 +72,7 @@ export function KidsLoginForm({
       <button
         type="submit"
         disabled={pending || disabled}
-        className="w-full rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+        className="h-14 w-full rounded-xl bg-orange-500 px-4 text-base font-bold text-white transition hover:bg-orange-600 disabled:opacity-50"
       >
         {disabled ? 'せっていまち' : pending ? 'かくにんちゅう…' : 'ログイン'}
       </button>
