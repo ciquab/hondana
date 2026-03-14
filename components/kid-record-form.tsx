@@ -399,7 +399,10 @@ export function KidRecordForm({
           <>
             <div>
               <label htmlFor="author" className="mb-1 block text-sm font-medium">
-                かいたひと（にゅうりょくはじゆう）
+                かいたひと{' '}
+                <span className="text-xs font-normal text-slate-600">
+                  {ageMode === 'junior' ? '（かかなくていいよ）' : '（かかなくてもOK）'}
+                </span>
               </label>
               <input
                 id="author"
@@ -410,19 +413,22 @@ export function KidRecordForm({
               />
             </div>
 
-            <div>
-              <label htmlFor="isbn" className="mb-1 block text-sm font-medium">
-                ISBN（13けた・にゅうりょくはじゆう）
-              </label>
-              <input
-                id="isbn"
-                name="isbn"
-                className="w-full rounded border p-2"
-                maxLength={13}
-                value={isbn}
-                onChange={(e) => setIsbn(e.target.value)}
-              />
-            </div>
+            {ageMode !== 'junior' && (
+              <div>
+                <label htmlFor="isbn" className="mb-1 block text-sm font-medium">
+                  ISBN（13けた）{' '}
+                  <span className="text-xs font-normal text-slate-600">（かかなくてもOK）</span>
+                </label>
+                <input
+                  id="isbn"
+                  name="isbn"
+                  className="w-full rounded border p-2"
+                  maxLength={13}
+                  value={isbn}
+                  onChange={(e) => setIsbn(e.target.value)}
+                />
+              </div>
+            )}
           </>
         )}
 
@@ -456,7 +462,7 @@ export function KidRecordForm({
               <legend className="mb-2 text-sm font-medium">
                 ジャンルをえらぶ{' '}
                 <span className="text-xs font-normal text-slate-600">
-                  （かかなくてもOK）
+                  {ageMode === 'junior' ? '（かかなくていいよ）' : '（かかなくてもOK）'}
                 </span>
               </legend>
               <div className="grid grid-cols-2 gap-2">
@@ -550,7 +556,7 @@ export function KidRecordForm({
               <label htmlFor="memo" className="mb-1 block text-sm font-medium">
                 ひとことかんそう{' '}
                 <span className="text-xs font-normal text-slate-600">
-                  （かかなくてもOK）
+                  {ageMode === 'junior' ? '（かかなくていいよ）' : '（かかなくてもOK）'}
                 </span>
               </label>
               <textarea
