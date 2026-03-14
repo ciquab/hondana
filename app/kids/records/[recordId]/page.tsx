@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireKidContext } from '@/lib/kids/client';
+import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
+import { ageText } from '@/lib/kids/age-text';
 import { BookCoverImage } from '@/components/book-cover-image';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -63,21 +65,24 @@ export default async function KidRecordDetailPage({
 
   const { recordId } = await params;
 
-  const [{ data: detailRows }, { data: commentRows }, { data: reactionRows }] =
+  const [ageMode, [{ data: detailRows }, { data: commentRows }, { data: reactionRows }]] =
     await Promise.all([
-      supabase.rpc('get_kid_record_detail', {
-        target_child_id: childId,
-        target_record_id: recordId
-      }),
-      supabase.rpc('get_kid_record_comments', {
-        target_child_id: childId,
-        target_record_id: recordId,
-        max_rows: 10
-      }),
-      supabase.rpc('get_kid_record_reactions', {
-        target_child_id: childId,
-        target_record_id: recordId
-      })
+      resolveKidAgeMode(supabase, childId),
+      Promise.all([
+        supabase.rpc('get_kid_record_detail', {
+          target_child_id: childId,
+          target_record_id: recordId
+        }),
+        supabase.rpc('get_kid_record_comments', {
+          target_child_id: childId,
+          target_record_id: recordId,
+          max_rows: 10
+        }),
+        supabase.rpc('get_kid_record_reactions', {
+          target_child_id: childId,
+          target_record_id: recordId
+        })
+      ])
     ]);
 
   const record = (detailRows as RecordDetailRow[] | null)?.[0];
@@ -102,9 +107,17 @@ export default async function KidRecordDetailPage({
 
   return (
     <main className="mx-auto max-w-xl p-4">
-      <Link href="/kids/records" className="kid-link">
-        ほんだなにもどる
-      </Link>
+      <div className="mb-3 flex items-center justify-between">
+        <Link href="/kids/records" className="kid-link">
+          ほんだなにもどる
+        </Link>
+        <Link
+          href={`/kids/records/${record.id}/edit`}
+          className="inline-flex items-center gap-1 rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow transition hover:bg-orange-600 active:scale-95"
+        >
+          ✏️ {ageText(ageMode, { junior: 'へんしゅう', standard: '編集' })}
+        </Link>
+      </div>
 
       <article className="kid-note-card mt-3">
         <div className="rounded-xl border border-amber-200/70 bg-white/75 p-4">

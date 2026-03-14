@@ -15,9 +15,9 @@ type BookRow = {
 const GENRE_TABS = [
   { key: 'all', label: 'すべて', emoji: '📚' },
   { key: 'story', label: 'ものがたり', emoji: '📖' },
-  { key: 'zukan', label: 'ずかん・かがく', emoji: '🔬' },
+  { key: 'zukan', label: 'ずかん', emoji: '🔬' },
   { key: 'manga', label: 'まんが', emoji: '🎭' },
-  { key: 'picture_book', label: 'えほん・し', emoji: '🖼️' },
+  { key: 'picture_book', label: 'えほん', emoji: '🖼️' },
   { key: 'other', label: 'そのほか', emoji: '📚' }
 ] as const;
 
@@ -118,17 +118,17 @@ export function KidsBookshelf({
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center justify-center gap-1 rounded-full px-2 py-1.5 text-sm font-medium transition ${
+            className={`flex flex-col items-center gap-0.5 rounded-xl border px-1 py-2 font-medium transition ${
               activeTab === key
-                ? 'bg-amber-600 text-white'
-                : 'border border-stone-200 bg-white text-stone-600 hover:border-amber-300 hover:text-amber-800'
+                ? 'border-amber-500 bg-amber-600 text-white'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-amber-300 hover:text-amber-800'
             }`}
             aria-pressed={activeTab === key}
           >
-            {emoji && <span aria-hidden>{emoji}</span>}
-            <span className="truncate">{label}</span>
+            {emoji && <span className="text-xl leading-none" aria-hidden>{emoji}</span>}
+            <span className="text-xs leading-tight">{label}</span>
             <span
-              className={`ml-0.5 shrink-0 text-xs ${activeTab === key ? 'text-amber-100' : 'text-stone-400'}`}
+              className={`text-[10px] leading-none ${activeTab === key ? 'text-amber-100' : 'text-stone-400'}`}
             >
               {tabCounts[key]}
             </span>
