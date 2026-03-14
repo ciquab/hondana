@@ -253,8 +253,8 @@ export default async function KidsHomePage({
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-stone-500">
             {ageText(ageMode, {
-              junior: 'さいきんよんだほん',
-              standard: '最近読んだ本'
+              junior: '📚 さいきんよんだほん',
+              standard: '📚 最近読んだ本'
             })}
           </h2>
           <Link href="/kids/records" className="kid-link">
@@ -312,8 +312,8 @@ export default async function KidsHomePage({
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-stone-500">
               {ageText(ageMode, {
-                junior: 'ゲットしたバッジ',
-                standard: 'ゲットしたバッジ'
+                junior: '🏅 ゲットしたバッジ',
+                standard: '🏅 ゲットしたバッジ'
               })}
             </h2>
             <Link href="/kids/badges" className="kid-link">
