@@ -78,7 +78,7 @@ export default async function RecordCompletePage({
         <p className="text-5xl">🎉</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-800">
           {ageText(ageMode, {
-            junior: 'きろく できた！',
+            junior: 'きろくできた！',
             standard: '記録できたよ！'
           })}
         </h1>
@@ -145,7 +145,7 @@ export default async function RecordCompletePage({
           className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white shadow hover:bg-orange-600"
         >
           {ageText(ageMode, {
-            junior: '📚 もう 1さつ',
+            junior: '📚 もう1さつ',
             standard: '📚 もう1冊 登録'
           })}
         </Link>

@@ -53,9 +53,6 @@ type ParentReaction = {
   parent_display_name: string;
 };
 
-function formatYmdDate(value: string) {
-  return new Date(`${value}T00:00:00`).toLocaleDateString('ja-JP');
-}
 
 export default async function KidRecordDetailPage({
   params
@@ -226,7 +223,10 @@ export default async function KidRecordDetailPage({
                     </p>
                     <p className="whitespace-pre-wrap">{comment.body}</p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {new Date(comment.created_at).toLocaleString('ja-JP')}
+                      {(() => {
+                        const d = new Date(comment.created_at);
+                        return `${d.getMonth() + 1}がつ${d.getDate()}にち`;
+                      })()}
                     </p>
                   </li>
                 ))}
@@ -239,25 +239,29 @@ export default async function KidRecordDetailPage({
           </section>
 
           <dl className="mt-5 space-y-3 rounded-xl border border-amber-100 bg-white/90 p-4 text-sm">
-            <div>
-              <dt className="font-medium text-slate-700">ちょしゃ</dt>
-              <dd className="text-slate-700">{record.author ?? 'ふめい'}</dd>
-            </div>
-            <div>
-              <dt className="font-medium text-slate-700">ISBN</dt>
-              <dd className="text-slate-700">{record.isbn13 ?? 'なし'}</dd>
-            </div>
+            {record.author ? (
+              <div>
+                <dt className="font-medium text-slate-700">かいたひと</dt>
+                <dd className="text-slate-700">{record.author}</dd>
+              </div>
+            ) : null}
             <div>
               <dt className="font-medium text-slate-700">きろくしたひ</dt>
               <dd className="text-slate-700">
-                {new Date(record.created_at).toLocaleDateString('ja-JP')}
+                {(() => {
+                  const d = new Date(record.created_at);
+                  return `${d.getMonth() + 1}がつ${d.getDate()}にち`;
+                })()}
               </dd>
             </div>
             {record.finished_on ? (
               <div>
                 <dt className="font-medium text-slate-700">よみおわったひ</dt>
                 <dd className="text-slate-700">
-                  {formatYmdDate(record.finished_on)}
+                  {(() => {
+                    const d = new Date(`${record.finished_on}T00:00:00`);
+                    return `${d.getMonth() + 1}がつ${d.getDate()}にち`;
+                  })()}
                 </dd>
               </div>
             ) : null}

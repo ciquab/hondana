@@ -5,9 +5,11 @@ import { getChildBadges } from '@/lib/kids/badges';
 import { ageText } from '@/lib/kids/age-text';
 import { resolveKidAgeMode } from '@/lib/kids/age-mode-server';
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, ageMode: 'junior' | 'standard'): string {
   const d = new Date(iso);
-  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  return ageMode === 'junior'
+    ? `${d.getFullYear()}ねん${d.getMonth() + 1}がつ${d.getDate()}にち`
+    : `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
 }
 
 export default async function BadgeListPage() {
@@ -58,7 +60,7 @@ export default async function BadgeListPage() {
                       {displayDescription}
                     </p>
                     <p className="mt-1 text-xs text-amber-600">
-                      {formatDate(badge.awarded_at)}
+                      {formatDate(badge.awarded_at, ageMode)}
                     </p>
                   </div>
                   <span className="mt-1 text-amber-400" aria-hidden>
