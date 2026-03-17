@@ -38,12 +38,12 @@ function GenreBreakdownChart({
             <div className="flex flex-1 items-center gap-2">
               <div className="h-4 flex-1 overflow-hidden rounded bg-slate-100">
                 <div
-                  className={`h-full rounded transition-all ${count === 0 ? 'bg-slate-200' : 'bg-amber-400'}`}
+                  className={`h-full rounded transition-all ${count === 0 ? 'bg-slate-200' : 'bg-sky-400'}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
               <span
-                className={`w-10 text-right font-medium ${count === 0 ? 'text-amber-600' : 'text-slate-700'}`}
+                className={`w-10 text-right font-medium ${count === 0 ? 'text-sky-600' : 'text-slate-700'}`}
               >
                 {count} 冊
               </span>
@@ -132,7 +132,7 @@ export default async function ChildRecordsPage({ params }: Props) {
   ]);
 
   const badges: BadgeEntry[] = ((badgeRows ?? []) as BadgeRow[]).map((r) => {
-    const b = Array.isArray(r.badges) ? r.badges[0] ?? null : r.badges;
+    const b = Array.isArray(r.badges) ? (r.badges[0] ?? null) : r.badges;
     return { badge_id: r.badge_id, awarded_at: r.awarded_at, badge: b };
   });
 
@@ -178,7 +178,7 @@ export default async function ChildRecordsPage({ params }: Props) {
         }
       />
 
-      <section className="mb-6 rounded-xl bg-white p-4 shadow">
+      <section className="mb-6 surface p-4">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">
           保護者メニュー
         </h2>
@@ -229,8 +229,8 @@ export default async function ChildRecordsPage({ params }: Props) {
 
       {/* Bookshelf visual */}
       {finishedBooks.length > 0 && (
-        <section className="mb-6 rounded-xl bg-amber-50 p-4 shadow">
-          <h2 className="mb-3 text-sm font-semibold text-amber-800">
+        <section className="mb-6 rounded-xl bg-sky-50 p-4 shadow">
+          <h2 className="mb-3 text-sm font-semibold text-sky-800">
             {child.display_name} の本棚（読了 {finishedBooks.length}冊）
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -265,13 +265,13 @@ export default async function ChildRecordsPage({ params }: Props) {
             )}
           </div>
           {/* Shelf line */}
-          <div className="mt-2 h-1.5 rounded bg-amber-700/30" />
+          <div className="mt-2 h-1.5 rounded bg-sky-700/30" />
         </section>
       )}
 
       {/* Genre breakdown chart */}
       {Object.keys(genreBreakdown).length > 0 && (
-        <section className="mb-6 rounded-xl bg-white p-4 shadow">
+        <section className="mb-6 surface p-4">
           <h2 className="mb-3 text-sm font-semibold text-slate-700">
             ジャンル内訳
           </h2>
@@ -280,7 +280,7 @@ export default async function ChildRecordsPage({ params }: Props) {
       )}
 
       {/* Badge list */}
-      <section className="mb-6 rounded-xl bg-white p-4 shadow">
+      <section className="mb-6 surface p-4">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">
           🏅 取得バッジ（{badges.length}件）
         </h2>
@@ -291,17 +291,17 @@ export default async function ChildRecordsPage({ params }: Props) {
               return (
                 <li
                   key={badge.badge_id}
-                  className="flex items-start gap-3 rounded-lg border border-amber-100 bg-amber-50/50 p-3"
+                  className="flex items-start gap-3 rounded-lg border border-sky-100 bg-sky-50/60 p-3"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xl">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xl">
                     {b?.icon ?? '🏅'}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-amber-900">
+                    <p className="text-sm font-semibold text-sky-900">
                       {b?.name ?? badge.badge_id}
                     </p>
                     {b?.description && (
-                      <p className="mt-0.5 text-xs text-amber-700">
+                      <p className="mt-0.5 text-xs text-sky-700">
                         {b.description}
                       </p>
                     )}
@@ -328,16 +328,13 @@ export default async function ChildRecordsPage({ params }: Props) {
           primaryAction={
             <Link
               href={`/children/${childId}/records/new`}
-              className="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+              className="btn-primary"
             >
               最初の記録を追加する
             </Link>
           }
           secondaryAction={
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
+            <Link href="/dashboard" className="btn-secondary">
               ダッシュボードへ戻る
             </Link>
           }
@@ -359,7 +356,7 @@ export default async function ChildRecordsPage({ params }: Props) {
                       <li key={record.id}>
                         <Link
                           href={`/records/${record.id}`}
-                          className="flex items-center gap-3 rounded-lg bg-white p-4 shadow transition hover:bg-slate-50"
+                          className="surface flex items-center gap-3 p-4 transition hover:bg-slate-50"
                         >
                           {book?.cover_url ? (
                             <img
@@ -387,7 +384,7 @@ export default async function ChildRecordsPage({ params }: Props) {
                               💬 コメント済み
                             </span>
                           ) : (
-                            <span className="flex-shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                            <span className="flex-shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700">
                               ✏️ コメントする
                             </span>
                           )}
