@@ -138,6 +138,21 @@ export default async function KidsHomePage({
         </TrackedLink>
       )}
 
+      <section className="surface mb-4 p-3">
+        <p className="text-xs font-semibold text-sky-700">
+          {ageText(ageMode, {
+            junior: 'きょうのながれ',
+            standard: 'きょうの記録フロー'
+          })}
+        </p>
+        <p className="mt-1 text-sm text-slate-700">
+          {ageText(ageMode, {
+            junior: '① ほんをえらぶ → ② よんだじょうたい → ③ かんりょう！',
+            standard: '① 本を選ぶ → ② 読んだ状態 → ③ 記録完了！'
+          })}
+        </p>
+      </section>
+
       {/* 主役CTA：「記録する」を画面の主役にする */}
       <TrackedLink
         href="/kids/records/new"
@@ -145,7 +160,7 @@ export default async function KidsHomePage({
         childId={childId}
         target="record_new"
         meta={{ age_mode: ageMode }}
-        className="mb-4 flex items-center justify-between rounded-2xl bg-orange-600 px-5 py-5 shadow-md transition hover:bg-orange-700 active:scale-[0.98]"
+        className="btn-primary mb-4 flex min-h-14 items-center justify-between rounded-2xl px-5 py-5 shadow-md active:scale-[0.98]"
       >
         <div>
           <p className="text-xl font-bold text-white">
@@ -154,7 +169,7 @@ export default async function KidsHomePage({
               standard: '今日の記録をつける'
             })}
           </p>
-          <p className="mt-0.5 text-sm text-orange-100">
+          <p className="mt-0.5 text-sm text-sky-100">
             {ageText(ageMode, {
               junior: 'よんだほんをとうろくしよう',
               standard: '読んだ本を登録しよう'
