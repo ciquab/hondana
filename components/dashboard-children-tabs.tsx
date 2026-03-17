@@ -37,9 +37,7 @@ export function DashboardChildrenTabs({
   monthlyByChild,
   weeklyHighlights
 }: Props) {
-  const [activeId, setActiveId] = useState<string>(
-    childProfiles[0]?.id ?? ''
-  );
+  const [activeId, setActiveId] = useState<string>(childProfiles[0]?.id ?? '');
 
   if (childProfiles.length === 0) {
     return (
@@ -49,7 +47,7 @@ export function DashboardChildrenTabs({
         </p>
         <Link
           href="/settings/children"
-          className="mt-2 inline-block text-sm text-amber-700 underline underline-offset-2"
+          className="mt-2 inline-block text-sm text-sky-700 underline underline-offset-2 hover:text-sky-800"
         >
           追加する →
         </Link>
@@ -62,16 +60,16 @@ export function DashboardChildrenTabs({
 
   return (
     <div>
-      {/* タブ：amber-600 = 選択状態色 */}
+      {/* タブ：ブランド色で現在地を明示 */}
       {childProfiles.length > 1 && (
         <div className="flex overflow-x-auto border-b border-stone-100">
           {childProfiles.map((child) => (
             <button
               key={child.id}
               onClick={() => setActiveId(child.id)}
-              className={`flex flex-shrink-0 items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition ${
+              className={`flex min-h-11 flex-shrink-0 items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition ${
                 child.id === activeId
-                  ? 'border-b-2 border-amber-600 text-amber-800'
+                  ? 'border-b-2 border-sky-600 text-sky-800'
                   : 'border-b-2 border-transparent text-stone-500 hover:text-stone-700'
               }`}
             >
@@ -95,7 +93,7 @@ export function DashboardChildrenTabs({
             </div>
             <Link
               href={`/children/${active.id}`}
-              className="text-xs text-amber-700 underline underline-offset-2 hover:text-amber-800"
+              className="text-xs text-sky-700 underline underline-offset-2 hover:text-sky-800"
             >
               詳細を見る →
             </Link>
@@ -107,14 +105,18 @@ export function DashboardChildrenTabs({
               <p className="text-xs text-stone-400">累計</p>
               <p className="text-2xl font-bold text-stone-800">
                 {recordCounts[active.id] ?? 0}
-                <span className="ml-0.5 text-sm font-normal text-stone-500">冊</span>
+                <span className="ml-0.5 text-sm font-normal text-stone-500">
+                  冊
+                </span>
               </p>
             </div>
-            <div className="flex-1 rounded-lg bg-amber-50 px-3 py-2 text-center">
-              <p className="text-xs text-amber-600">今月</p>
-              <p className="text-2xl font-bold text-amber-700">
+            <div className="flex-1 rounded-lg bg-sky-50 px-3 py-2 text-center">
+              <p className="text-xs text-sky-600">今月</p>
+              <p className="text-2xl font-bold text-sky-700">
                 {monthlyByChild[active.id] ?? 0}
-                <span className="ml-0.5 text-sm font-normal text-amber-500">冊</span>
+                <span className="ml-0.5 text-sm font-normal text-sky-500">
+                  冊
+                </span>
               </p>
             </div>
           </div>
@@ -138,7 +140,7 @@ export function DashboardChildrenTabs({
             </Link>
           </div>
 
-          {/* 今週のハイライト：amber = ブランド色として自然 */}
+          {/* 今週のハイライト */}
           {weeklyHighlights?.[active.id] &&
             (() => {
               const hl = weeklyHighlights[active.id]!;
@@ -160,7 +162,7 @@ export function DashboardChildrenTabs({
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-amber-700">
+                    <p className="text-xs font-semibold text-sky-700">
                       今週のハイライト
                     </p>
                     <p className="truncate text-sm font-medium text-stone-800">

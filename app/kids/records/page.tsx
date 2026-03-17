@@ -56,7 +56,7 @@ export default async function KidsRecordsPage() {
       <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center">
         <Link
           href="/kids/records/new"
-          className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-6 py-3 text-base font-bold text-white shadow-lg transition hover:bg-orange-600 active:scale-95"
+          className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-bold shadow-lg"
         >
           <span>📖</span>
           {ageText(ageMode, {

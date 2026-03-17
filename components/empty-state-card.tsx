@@ -11,16 +11,16 @@ export function EmptyStateCard({
   title,
   description,
   primaryAction,
-  secondaryAction,
+  secondaryAction
 }: Props) {
   return (
-    <div className="flex flex-col items-center rounded-xl bg-white px-4 py-8 text-center shadow">
+    <div className="surface flex flex-col items-center px-4 py-8 text-center">
       <span className="text-4xl" aria-hidden>
         {icon}
       </span>
-      <p className="mt-2 font-semibold text-slate-700">{title}</p>
+      <p className="mt-2 text-base font-semibold text-slate-800">{title}</p>
       {description ? (
-        <div className="mt-1 text-sm text-slate-500">{description}</div>
+        <div className="mt-1 text-sm leading-6 text-slate-500">{description}</div>
       ) : null}
       {(primaryAction || secondaryAction) && (
         <div className="mt-4 flex w-full max-w-xs flex-col gap-2">
