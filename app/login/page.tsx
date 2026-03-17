@@ -68,14 +68,14 @@ export default function LoginPage() {
   if (signInLoading) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
-        <section className="w-full rounded-xl bg-white p-6 text-center shadow">
-          <p className="text-sm text-slate-500">ほんだな ログイン</p>
+        <section className="surface w-full p-6 text-center">
+          <p className="text-sm text-slate-500">よもっと！ ログイン</p>
           <h1 className="mt-2 text-2xl font-bold">ログイン中…</h1>
           <p className="mt-3 text-sm text-slate-600">
             画面が切り替わるまでそのままお待ちください。
           </p>
           <div
-            className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"
+            className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600"
             aria-hidden="true"
           />
         </section>
@@ -85,8 +85,8 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
-      <div className="w-full rounded-xl bg-white p-6 shadow">
-        <h1 className="mb-4 text-2xl font-bold">ほんだな ログイン</h1>
+      <div className="surface w-full p-6">
+        <h1 className="mb-4 text-2xl font-bold">よもっと！ ログイン</h1>
 
         <div className="space-y-3">
           <div>
@@ -95,7 +95,7 @@ export default function LoginPage() {
             </label>
             <input
               id="email"
-              className="w-full rounded border p-2"
+              className="min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2"
               placeholder="email@example.com"
               type="email"
               value={email}
@@ -111,7 +111,7 @@ export default function LoginPage() {
             </label>
             <input
               id="password"
-              className="w-full rounded border p-2"
+              className="min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2"
               placeholder="パスワード"
               type="password"
               value={password}
@@ -125,7 +125,7 @@ export default function LoginPage() {
             onClick={onSignIn}
             disabled={loading}
             aria-busy={signInLoading}
-            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+            className="btn-primary flex-1 disabled:opacity-50"
           >
             {signInLoading ? 'ログイン中…' : 'ログイン'}
           </button>
@@ -133,7 +133,7 @@ export default function LoginPage() {
             onClick={onSignUp}
             disabled={loading}
             aria-busy={signUpLoading}
-            className="rounded bg-slate-700 px-4 py-2 text-white disabled:opacity-50"
+            className="btn-secondary flex-1 disabled:opacity-50"
           >
             {signUpLoading ? '登録中…' : 'サインアップ'}
           </button>
@@ -142,7 +142,7 @@ export default function LoginPage() {
         <div className="mt-3">
           <Link
             href="/login/forgot-password"
-            className="text-sm text-blue-700 underline"
+            className="btn-text h-auto min-h-0 px-0 py-0 text-sm underline"
           >
             パスワードを忘れた方
           </Link>
