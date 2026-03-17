@@ -109,7 +109,7 @@ export function KidsBookshelf({
   return (
     <section className="kid-card p-4">
       <h1 className="text-xl font-bold text-amber-800">
-        {childName} のよもっと！
+        {childName} のほんだな
       </h1>
 
       {/* ジャンルタブ：2行3列グリッド（全タブ一覧表示・スクロール不要） */}
@@ -142,10 +142,10 @@ export function KidsBookshelf({
             📚
           </span>
           <p className="mt-3 text-lg font-bold text-stone-700">
-            よもっと！はまだからっぽ
+            ほんだなはまだからっぽ
           </p>
           <p className="mt-1 text-sm text-stone-400">
-            ほんをよんだらきろくして、よもっと！をいっぱいにしよう！
+            ほんをよんだらきろくして、ほんだなをいっぱいにしよう！
           </p>
           <Link
             href="/kids/records/new"

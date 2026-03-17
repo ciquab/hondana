@@ -69,7 +69,7 @@ export default function LoginPage() {
     return (
       <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
         <section className="w-full rounded-xl bg-white p-6 text-center shadow">
-          <p className="text-sm text-slate-500">よもっと！ ログイン</p>
+          <p className="text-sm text-slate-500">ほんだな ログイン</p>
           <h1 className="mt-2 text-2xl font-bold">ログイン中…</h1>
           <p className="mt-3 text-sm text-slate-600">
             画面が切り替わるまでそのままお待ちください。
@@ -86,7 +86,7 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
       <div className="w-full rounded-xl bg-white p-6 shadow">
-        <h1 className="mb-4 text-2xl font-bold">よもっと！ ログイン</h1>
+        <h1 className="mb-4 text-2xl font-bold">ほんだな ログイン</h1>
 
         <div className="space-y-3">
           <div>

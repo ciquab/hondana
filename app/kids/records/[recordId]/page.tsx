@@ -109,7 +109,7 @@ export default async function KidRecordDetailPage({
     <main className="mx-auto max-w-xl p-4">
       <div className="mb-3 flex items-center justify-between">
         <Link href="/kids/records" className="kid-link">
-          よもっと！にもどる
+          ほんだなにもどる
         </Link>
         <Link
           href={`/kids/records/${record.id}/edit`}

@@ -180,7 +180,7 @@ export default async function KidsHomePage({
             📚
           </span>
           <span className="text-xs font-medium text-stone-600">
-            {ageText(ageMode, { junior: 'よもっと！', standard: '本棚' })}
+            {ageText(ageMode, { junior: 'ほんだな', standard: '本棚' })}
           </span>
         </TrackedLink>
 
