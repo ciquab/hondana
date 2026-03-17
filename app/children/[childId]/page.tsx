@@ -171,7 +171,7 @@ export default async function ChildRecordsPage({ params }: Props) {
         primaryAction={
           <Link
             href={`/children/${childId}/records/new`}
-            className="inline-flex min-h-11 items-center rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white hover:bg-emerald-700"
+            className="btn-primary px-3 text-sm"
           >
             ＋記録
           </Link>
@@ -185,7 +185,7 @@ export default async function ChildRecordsPage({ params }: Props) {
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start">
           <Link
             href={`/children/${childId}/records/new`}
-            className="inline-flex w-full items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 sm:w-auto"
+            className="btn-secondary w-full border-emerald-300 bg-emerald-50 px-4 text-sm text-emerald-800 hover:bg-emerald-100 sm:w-auto"
           >
             ➕ 記録を追加
           </Link>
