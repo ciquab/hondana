@@ -88,7 +88,7 @@ export default async function KidsMessagesPage() {
           primaryAction={
             <Link
               href="/kids/records/new"
-              className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}
+              className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'min-h-11'}`}
             >
               {ageText(ageMode, {
                 junior: '📖 きろくする',
@@ -99,7 +99,7 @@ export default async function KidsMessagesPage() {
           secondaryAction={
             <Link
               href="/kids/home"
-              className={`${SECONDARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}
+              className={`${SECONDARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'min-h-11'}`}
             >
               {ageText(ageMode, {
                 junior: 'ホーム',

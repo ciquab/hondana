@@ -134,7 +134,7 @@ export default async function KidRecordDetailPage({
               {STATUS_LABELS[record.status] ?? record.status}
             </span>
             {record.stamp ? (
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-sky-900">
+              <span className="rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-900">
                 {STAMP_LABELS[record.stamp] ?? record.stamp}
               </span>
             ) : null}
