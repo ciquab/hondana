@@ -52,6 +52,27 @@ export default async function KidsRecordsPage() {
 
       <KidsBookshelf records={records} childName={child.display_name} />
 
+      <section className="surface mb-28 mt-4 p-3">
+        <p className="text-xs font-semibold text-sky-700">
+          {ageText(ageMode, {
+            junior: 'きろくの つづき',
+            standard: '記録のつづき'
+          })}
+        </p>
+        <p className="mt-1 text-sm text-slate-700">
+          {ageText(ageMode, {
+            junior: 'カレンダーで まいにちの よみを みよう',
+            standard: 'カレンダーで日ごとの積み上げを確認しよう。'
+          })}
+        </p>
+        <Link href="/kids/calendar" className="btn-secondary mt-3 w-full sm:w-auto">
+          {ageText(ageMode, {
+            junior: '📅 カレンダーをみる',
+            standard: '📅 カレンダーを見る'
+          })}
+        </Link>
+      </section>
+
       {/* FAB: 本を登録する */}
       <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center">
         <Link
