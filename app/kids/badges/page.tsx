@@ -37,33 +37,31 @@ export default async function BadgeListPage() {
             const displayName =
               ageMode === 'junior' && badge.junior_name
                 ? badge.junior_name
-                : badge.name ?? badge.badge_id;
+                : (badge.name ?? badge.badge_id);
             const displayDescription =
               ageMode === 'junior' && badge.junior_description
                 ? badge.junior_description
-                : badge.description ?? '';
+                : (badge.description ?? '');
 
             return (
               <li key={badge.badge_id}>
                 <Link
                   href={`/kids/badges/${badge.badge_id}`}
-                  className="flex items-start gap-3 rounded-xl border border-amber-200 bg-white/95 p-4 shadow-sm transition hover:bg-amber-50"
+                  className="flex items-start gap-3 rounded-xl border border-sky-200 bg-white/95 p-4 shadow-sm transition hover:bg-sky-50"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100 text-2xl">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sky-100 text-2xl">
                     {badge.icon ?? '🏅'}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-amber-900">
-                      {displayName}
-                    </p>
-                    <p className="mt-0.5 text-sm text-amber-800">
+                    <p className="font-semibold text-sky-900">{displayName}</p>
+                    <p className="mt-0.5 text-sm text-sky-800">
                       {displayDescription}
                     </p>
-                    <p className="mt-1 text-xs text-amber-600">
+                    <p className="mt-1 text-xs text-sky-600">
                       {formatDate(badge.awarded_at, ageMode)}
                     </p>
                   </div>
-                  <span className="mt-1 text-amber-400" aria-hidden>
+                  <span className="mt-1 text-sky-400" aria-hidden>
                     →
                   </span>
                 </Link>
@@ -72,15 +70,15 @@ export default async function BadgeListPage() {
           })}
         </ul>
       ) : (
-        <div className="flex flex-col items-center rounded-xl border border-amber-100 bg-white/95 py-12 text-center shadow">
+        <div className="flex flex-col items-center rounded-xl border border-sky-100 bg-white/95 py-12 text-center shadow">
           <span className="text-5xl">🏅</span>
-          <p className="mt-3 font-semibold text-amber-900">
+          <p className="mt-3 font-semibold text-sky-900">
             {ageText(ageMode, {
               junior: 'まだ バッジは ないよ',
               standard: 'まだバッジはありません'
             })}
           </p>
-          <p className="mt-1 text-sm text-amber-700">
+          <p className="mt-1 text-sm text-sky-700">
             {ageText(ageMode, {
               junior: 'ほんを よんで きろくすると バッジが もらえるよ！',
               standard: '本を読んで記録するとバッジがもらえます。'
@@ -88,7 +86,7 @@ export default async function BadgeListPage() {
           </p>
           <Link
             href="/kids/records/new"
-            className="mt-4 inline-flex items-center gap-1 rounded-full bg-orange-500 px-5 py-2 text-sm font-bold text-white shadow hover:bg-orange-600"
+            className="btn-primary mt-4 inline-flex items-center gap-1 rounded-full px-5"
           >
             {ageText(ageMode, {
               junior: '📖 きろくする',

@@ -48,7 +48,7 @@ export function DashboardActions({ actions }: Props) {
                   {action.message}
                 </p>
               </div>
-              <span className="flex-shrink-0 text-xs font-medium text-orange-600">
+              <span className="flex-shrink-0 text-xs font-medium text-sky-700">
                 対応する →
               </span>
             </TrackedLink>

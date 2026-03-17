@@ -55,7 +55,6 @@ type ParentReaction = {
   parent_display_name: string;
 };
 
-
 export default async function KidRecordDetailPage({
   params
 }: {
@@ -65,25 +64,27 @@ export default async function KidRecordDetailPage({
 
   const { recordId } = await params;
 
-  const [ageMode, [{ data: detailRows }, { data: commentRows }, { data: reactionRows }]] =
-    await Promise.all([
-      resolveKidAgeMode(supabase, childId),
-      Promise.all([
-        supabase.rpc('get_kid_record_detail', {
-          target_child_id: childId,
-          target_record_id: recordId
-        }),
-        supabase.rpc('get_kid_record_comments', {
-          target_child_id: childId,
-          target_record_id: recordId,
-          max_rows: 10
-        }),
-        supabase.rpc('get_kid_record_reactions', {
-          target_child_id: childId,
-          target_record_id: recordId
-        })
-      ])
-    ]);
+  const [
+    ageMode,
+    [{ data: detailRows }, { data: commentRows }, { data: reactionRows }]
+  ] = await Promise.all([
+    resolveKidAgeMode(supabase, childId),
+    Promise.all([
+      supabase.rpc('get_kid_record_detail', {
+        target_child_id: childId,
+        target_record_id: recordId
+      }),
+      supabase.rpc('get_kid_record_comments', {
+        target_child_id: childId,
+        target_record_id: recordId,
+        max_rows: 10
+      }),
+      supabase.rpc('get_kid_record_reactions', {
+        target_child_id: childId,
+        target_record_id: recordId
+      })
+    ])
+  ]);
 
   const record = (detailRows as RecordDetailRow[] | null)?.[0];
   if (!record) notFound();
@@ -113,27 +114,27 @@ export default async function KidRecordDetailPage({
         </Link>
         <Link
           href={`/kids/records/${record.id}/edit`}
-          className="inline-flex items-center gap-1 rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow transition hover:bg-orange-600 active:scale-95"
+          className="btn-primary inline-flex items-center gap-1 px-4 text-sm font-bold shadow active:scale-95"
         >
           ✏️ {ageText(ageMode, { junior: 'へんしゅう', standard: '編集' })}
         </Link>
       </div>
 
       <article className="kid-note-card mt-3">
-        <div className="rounded-xl border border-amber-200/70 bg-white/75 p-4">
-          <p className="text-xs font-medium text-amber-700">
+        <div className="rounded-xl border border-sky-200/70 bg-white/75 p-4">
+          <p className="text-xs font-medium text-sky-700">
             {record.child_display_name ?? 'こども'} のどくしょきろく
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-amber-950">
+          <h1 className="mt-1 text-2xl font-bold text-sky-950">
             {record.title ?? 'タイトルふめい'}
           </h1>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-amber-900">
+            <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-sky-900">
               {STATUS_LABELS[record.status] ?? record.status}
             </span>
             {record.stamp ? (
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-sky-900">
                 {STAMP_LABELS[record.stamp] ?? record.stamp}
               </span>
             ) : null}
@@ -157,9 +158,7 @@ export default async function KidRecordDetailPage({
 
           {feelingTags.length > 0 ? (
             <section className="mt-4">
-              <h2 className="text-sm font-semibold text-amber-900">
-                きもちタグ
-              </h2>
+              <h2 className="text-sm font-semibold text-sky-900">きもちタグ</h2>
               <div className="mt-2 flex flex-wrap gap-2">
                 {feelingTags.map((tag, i) => (
                   <span
@@ -173,8 +172,8 @@ export default async function KidRecordDetailPage({
             </section>
           ) : null}
 
-          <section className="mt-4 rounded-xl border border-amber-100 bg-white/90 p-4">
-            <h2 className="text-sm font-semibold text-amber-900">
+          <section className="mt-4 rounded-xl border border-sky-100 bg-white/90 p-4">
+            <h2 className="text-sm font-semibold text-sky-900">
               おうちのひとのリアクション
             </h2>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -200,7 +199,7 @@ export default async function KidRecordDetailPage({
                   ([parentName, emojis]) => (
                     <li
                       key={parentName}
-                      className="rounded-lg bg-amber-50/80 p-2 text-sm text-slate-700"
+                      className="rounded-lg bg-sky-50/80 p-2 text-sm text-slate-700"
                     >
                       <p className="font-medium">{parentName}</p>
                       <div className="mt-1 flex flex-wrap gap-2">
@@ -220,8 +219,8 @@ export default async function KidRecordDetailPage({
             ) : null}
           </section>
 
-          <section className="mt-4 rounded-xl border border-amber-100 bg-white/90 p-4">
-            <h2 className="text-sm font-semibold text-amber-900">
+          <section className="mt-4 rounded-xl border border-sky-100 bg-white/90 p-4">
+            <h2 className="text-sm font-semibold text-sky-900">
               おうちのひとからのコメント
             </h2>
             {comments.length > 0 ? (
@@ -231,7 +230,7 @@ export default async function KidRecordDetailPage({
                     key={comment.id}
                     className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700"
                   >
-                    <p className="mb-1 text-xs font-semibold text-amber-700">
+                    <p className="mb-1 text-xs font-semibold text-sky-700">
                       {comment.author_display_name}
                     </p>
                     <p className="whitespace-pre-wrap">{comment.body}</p>
@@ -251,7 +250,7 @@ export default async function KidRecordDetailPage({
             )}
           </section>
 
-          <dl className="mt-5 space-y-3 rounded-xl border border-amber-100 bg-white/90 p-4 text-sm">
+          <dl className="mt-5 space-y-3 rounded-xl border border-sky-100 bg-white/90 p-4 text-sm">
             {record.author ? (
               <div>
                 <dt className="font-medium text-slate-700">かいたひと</dt>
