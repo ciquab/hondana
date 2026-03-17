@@ -128,7 +128,7 @@ export default async function KidsCalendarPage({
       <div className="mb-4 flex items-center gap-2">
         <Link
           href={`/kids/calendar?month=${prevMonth}`}
-          className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
+          className="btn-secondary px-3 py-1 text-sm"
         >
           {ageText(ageMode, { junior: '◀ まえ', standard: '◀ 前の月' })}
         </Link>
@@ -140,11 +140,32 @@ export default async function KidsCalendarPage({
         </p>
         <Link
           href={`/kids/calendar?month=${nextMonthParam}`}
-          className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
+          className="btn-secondary px-3 py-1 text-sm"
         >
           {ageText(ageMode, { junior: 'つぎ ▶', standard: '次の月 ▶' })}
         </Link>
       </div>
+
+      <section className="surface mb-4 p-3">
+        <p className="text-xs font-semibold text-sky-700">
+          {ageText(ageMode, {
+            junior: 'きろくの みかた',
+            standard: '記録の見かた'
+          })}
+        </p>
+        <p className="mt-1 text-sm text-slate-700">
+          {ageText(ageMode, {
+            junior: 'ひづけを みて、ほんだな で ほんを たしかめよう',
+            standard: '日付で読書量を確認し、本棚で読んだ本を見返そう。'
+          })}
+        </p>
+        <Link href="/kids/records" className="btn-secondary mt-3 w-full sm:w-auto">
+          {ageText(ageMode, {
+            junior: '📚 ほんだなをみる',
+            standard: '📚 本棚を見る'
+          })}
+        </Link>
+      </section>
 
       <section className="mb-6 kid-card p-4">
         <h2 className="mb-3 text-lg font-semibold">
@@ -162,15 +183,15 @@ export default async function KidsCalendarPage({
               return (
                 <div
                   key={day}
-                  className={`rounded border p-1.5 ${isToday ? 'border-orange-300 bg-orange-50' : 'border-amber-100 bg-amber-50/30'}`}
+                  className={`rounded border p-1.5 ${isToday ? 'border-sky-300 bg-sky-50' : 'border-slate-200 bg-white'}`}
                 >
                   <div
-                    className={`font-semibold ${isToday ? 'text-orange-700' : 'text-amber-900'}`}
+                    className={`font-semibold ${isToday ? 'text-sky-700' : 'text-slate-700'}`}
                   >
                     {day}
                   </div>
                   {info ? (
-                    <div className="mt-0.5 text-xs text-amber-900">
+                    <div className="mt-0.5 text-xs text-slate-700">
                       <div className="whitespace-nowrap">
                         {ageText(ageMode, {
                           junior: `${info.count}さつ`,
@@ -184,7 +205,7 @@ export default async function KidsCalendarPage({
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-0.5 text-xs text-amber-700">-</div>
+                    <div className="mt-0.5 text-xs text-slate-400">-</div>
                   )}
                 </div>
               );
@@ -204,7 +225,7 @@ export default async function KidsCalendarPage({
             primaryAction={
               <Link
                 href="/kids/records/new"
-                className={`inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 font-bold text-white transition hover:bg-orange-600 ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10 text-sm'}`}
+                className={`btn-primary inline-flex items-center justify-center px-4 py-2 font-bold ${ageMode === 'junior' ? 'h-14 text-base' : 'min-h-11 text-sm'}`}
               >
                 {ageText(ageMode, {
                   junior: '📖 きろくする',
