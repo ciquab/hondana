@@ -14,6 +14,26 @@
   中立色:       stone系         → 背景・テキスト・ボーダー
 */
 
+/* ─── デザイントークン（CSS カスタムプロパティ） ─── */
+:root {
+  --color-brand:          #B45309; /* amber-700 */
+  --color-brand-dark:     #92400E; /* amber-800 */
+  --color-action:         #EA580C; /* orange-600 */
+  --color-action-hover:   #C2410C; /* orange-700 */
+  --color-active:         #D97706; /* amber-600 */
+  --color-alert:          #E11D48; /* rose-600 */
+  --color-mission:        #4F46E5; /* indigo-600 */
+  --color-complete:       #059669; /* emerald-600 */
+
+  --color-surface:        #FFFFFF;
+  --color-bg:             #FAFAF9; /* stone-50 */
+  --color-bg-warm:        #FFFBEB; /* amber-50 */
+
+  --color-text-primary:   #1C1917; /* stone-900 */
+  --color-text-secondary: #78716C; /* stone-500 */
+  --color-border:         #E7E5E4; /* stone-200 */
+}
+
 body {
   @apply bg-stone-50 text-stone-900;
   font-family: 'Zen Maru Gothic', sans-serif;
@@ -32,6 +52,10 @@ body {
 
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-stone-600 transition hover:bg-stone-100 active:scale-[0.98];
   }
 
   /* ─── 子どもUI共通 ─── */
@@ -71,6 +95,53 @@ body {
   /* ─── ミッション色（チャレンジ専用） ─── */
   .mission-card {
     @apply rounded-xl border border-indigo-200 bg-indigo-50;
+  }
+
+  /* ─── BottomNav（子ども画面固定下部ナビ） ─── */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t border-stone-200 bg-white;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bottom-nav-item {
+    @apply flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium text-stone-500 transition-colors;
+  }
+
+  .bottom-nav-item.active {
+    @apply text-amber-600;
+  }
+
+  /* ─── FAB（フローティングアクションボタン） ─── */
+  .fab {
+    @apply fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-orange-600 text-white shadow-lg transition hover:bg-orange-700 active:scale-95;
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* ─── ステータスバッジ ─── */
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold;
+  }
+
+  .status-badge-reading {
+    @apply status-badge bg-amber-100 text-amber-700;
+  }
+
+  .status-badge-want {
+    @apply status-badge bg-indigo-100 text-indigo-700;
+  }
+
+  .status-badge-done {
+    @apply status-badge bg-emerald-100 text-emerald-700;
+  }
+
+  /* ─── セクション見出し ─── */
+  .section-header {
+    @apply text-xs font-semibold uppercase tracking-wider text-stone-500;
+  }
+
+  /* ─── 入力フィールド ─── */
+  .input-field {
+    @apply w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition;
   }
 }
 
