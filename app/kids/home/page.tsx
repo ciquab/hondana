@@ -138,6 +138,21 @@ export default async function KidsHomePage({
         </TrackedLink>
       )}
 
+      <section className="surface mb-4 p-3">
+        <p className="text-xs font-semibold text-sky-700">
+          {ageText(ageMode, {
+            junior: 'きょうのながれ',
+            standard: 'きょうの記録フロー'
+          })}
+        </p>
+        <p className="mt-1 text-sm text-slate-700">
+          {ageText(ageMode, {
+            junior: '① ほんをえらぶ → ② よんだじょうたい → ③ かんりょう！',
+            standard: '① 本を選ぶ → ② 読んだ状態 → ③ 記録完了！'
+          })}
+        </p>
+      </section>
+
       {/* 主役CTA：「記録する」を画面の主役にする */}
       <TrackedLink
         href="/kids/records/new"
@@ -145,7 +160,7 @@ export default async function KidsHomePage({
         childId={childId}
         target="record_new"
         meta={{ age_mode: ageMode }}
-        className="mb-4 flex items-center justify-between rounded-2xl bg-orange-600 px-5 py-5 shadow-md transition hover:bg-orange-700 active:scale-[0.98]"
+        className="btn-primary mb-4 flex min-h-14 items-center justify-between rounded-2xl px-5 py-5 shadow-md active:scale-[0.98]"
       >
         <div>
           <p className="text-xl font-bold text-white">
@@ -154,7 +169,7 @@ export default async function KidsHomePage({
               standard: '今日の記録をつける'
             })}
           </p>
-          <p className="mt-0.5 text-sm text-orange-100">
+          <p className="mt-0.5 text-sm text-sky-100">
             {ageText(ageMode, {
               junior: 'よんだほんをとうろくしよう',
               standard: '読んだ本を登録しよう'
@@ -166,7 +181,22 @@ export default async function KidsHomePage({
         </span>
       </TrackedLink>
 
-      {/* サブナビ：3つの等価リンク（主役CTAより明確に格下） */}
+      <section className="surface mb-4 p-3">
+        <p className="text-xs font-semibold text-sky-700">
+          {ageText(ageMode, {
+            junior: 'きろくの あとに できること',
+            standard: '記録のあとにできること'
+          })}
+        </p>
+        <p className="mt-1 text-sm text-slate-700">
+          {ageText(ageMode, {
+            junior: 'ほんだな で ふりかえり、カレンダー で つづきを みよう！',
+            standard: '本棚でふりかえり、カレンダーで毎日の積み上げを見よう。'
+          })}
+        </p>
+      </section>
+
+      {/* サブナビ：記録後の確認導線（本棚 / カレンダー / メッセージ） */}
       <div className="mb-6 grid grid-cols-3 gap-2">
         <TrackedLink
           href="/kids/records"
@@ -181,6 +211,12 @@ export default async function KidsHomePage({
           </span>
           <span className="text-xs font-medium text-stone-600">
             {ageText(ageMode, { junior: 'ほんだな', standard: '本棚' })}
+          </span>
+          <span className="px-1 text-[10px] text-stone-500">
+            {ageText(ageMode, {
+              junior: 'よんだほんをみる',
+              standard: '読んだ本を確認'
+            })}
           </span>
         </TrackedLink>
 
@@ -199,6 +235,12 @@ export default async function KidsHomePage({
             {ageText(ageMode, {
               junior: 'カレンダー',
               standard: 'カレンダー'
+            })}
+          </span>
+          <span className="px-1 text-[10px] text-stone-500">
+            {ageText(ageMode, {
+              junior: 'まいにちのきろく',
+              standard: '日ごとの記録'
             })}
           </span>
         </TrackedLink>
@@ -224,10 +266,14 @@ export default async function KidsHomePage({
           <span className="text-2xl" aria-hidden>
             💌
           </span>
-          <span
-            className={`text-xs font-medium ${unreadCount > 0 ? 'text-rose-700' : 'text-stone-600'}`}
-          >
+          <span className={`text-xs font-medium ${unreadCount > 0 ? 'text-rose-700' : 'text-stone-600'}`}>
             {ageText(ageMode, { junior: 'おてがみ', standard: 'メッセージ' })}
+          </span>
+          <span className={`px-1 text-[10px] ${unreadCount > 0 ? 'text-rose-600' : 'text-stone-500'}`}>
+            {ageText(ageMode, {
+              junior: 'おうちのひと',
+              standard: 'おうちの人から'
+            })}
           </span>
         </TrackedLink>
       </div>
