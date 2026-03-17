@@ -31,7 +31,7 @@ function createChildSessionAccessToken(claims: KidSessionClaims): string {
     exp: now + 60 * 10,
     iat: now,
     nbf: now - 5,
-    iss: 'yomotto-kid-session',
+    iss: 'hondana-kid-session',
     jti: randomUUID(),
     role: 'child_session',
     child_id: claims.childId,
