@@ -13,7 +13,7 @@ export function AppTopNav({
   backHref,
   backLabel = 'もどる',
   primaryAction,
-  sticky = true,
+  sticky = true
 }: Props) {
   return (
     <header
@@ -23,7 +23,7 @@ export function AppTopNav({
         {backHref ? (
           <Link
             href={backHref}
-            className="inline-flex min-h-11 min-w-11 items-center gap-1 rounded-lg border border-slate-200 px-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="btn-secondary min-w-11 gap-1 px-2"
           >
             <span aria-hidden>←</span>
             <span className="hidden sm:inline">{backLabel}</span>
