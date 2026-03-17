@@ -48,8 +48,8 @@ export default async function DashboardPage() {
       {/* ヘッダー：ブランド色で家族名を主語に */}
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-xs text-stone-400">家族の読書記録</p>
-          <h1 className="text-xl font-bold text-amber-800">{currentFamilyName}</h1>
+          <p className="text-xs text-stone-400">よもっと！ 家族の読書記録</p>
+          <h1 className="text-xl font-bold text-slate-900">{currentFamilyName}</h1>
         </div>
         <form action={signOut}>
           <button className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-600 transition hover:bg-stone-50">
