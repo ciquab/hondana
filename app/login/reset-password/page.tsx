@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md items-center p-4">
-      <div className="w-full rounded-xl bg-white p-6 shadow">
+      <div className="surface w-full p-6">
         <h1 className="mb-2 text-2xl font-bold">新しいパスワード設定</h1>
         <p className="mb-4 text-sm text-slate-700">
           メールのリンクを開いたあと、この画面で新しいパスワードを設定してください。
@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
             </label>
             <input
               id="password"
-              className="w-full rounded border p-2"
+              className="min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2"
               placeholder="8文字以上"
               type="password"
               value={password}
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
             </label>
             <input
               id="confirmPassword"
-              className="w-full rounded border p-2"
+              className="min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2"
               placeholder="もう一度入力"
               type="password"
               value={confirmPassword}
@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
           onClick={onSubmit}
           disabled={loading}
           aria-busy={loading}
-          className="mt-4 rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+          className="btn-primary mt-4 w-full disabled:opacity-50"
         >
           {loading ? '更新中…' : 'パスワードを更新する'}
         </button>
@@ -110,7 +110,10 @@ export default function ResetPasswordPage() {
         )}
 
         <p className="mt-4 text-sm">
-          <Link href="/login" className="text-blue-700 underline">
+          <Link
+            href="/login"
+            className="btn-text h-auto min-h-0 px-0 py-0 text-sky-700 underline"
+          >
             ログイン画面にもどる
           </Link>
         </p>
