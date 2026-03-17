@@ -288,6 +288,21 @@ export function KidRecordForm({
                 )
               )}
 
+              <div>
+                <label htmlFor="title" className="mb-1 block text-sm font-medium">
+                  ほんのタイトル
+                </label>
+                <input
+                  ref={titleInputRef}
+                  id="title"
+                  type="text"
+                  required
+                  className="min-h-11 w-full rounded border p-2"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
               <button
                 type="button"
                 onClick={() => setCreateStep(2)}
@@ -384,7 +399,15 @@ export function KidRecordForm({
         </div>
       )}
 
-      <form action={formAction} className="surface space-y-4 p-4">
+      <form
+        action={formAction}
+        className="surface space-y-4 p-4"
+        onSubmit={(e) => {
+          if (!isEditMode && createStep !== 3) {
+            e.preventDefault();
+          }
+        }}
+      >
         {isEditMode && <input type="hidden" name="recordId" value={recordId} />}
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
         <input type="hidden" name="stamp" value={stamp} />
@@ -408,24 +431,7 @@ export function KidRecordForm({
           </div>
         )}
 
-        {isEditMode ? (
-          <input type="hidden" name="title" value={title} />
-        ) : (
-          <div>
-            <label htmlFor="title" className="mb-1 block text-sm font-medium">
-              ほんのタイトル
-            </label>
-            <input
-              ref={titleInputRef}
-              id="title"
-              name="title"
-              required
-              className="min-h-11 w-full rounded border p-2"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-        )}
+        <input type="hidden" name="title" value={title} />
 
         {(isEditMode || createStep === 3) && (
           <>
@@ -508,7 +514,9 @@ export function KidRecordForm({
           </>
         )}
 
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+        {state.error && (isEditMode || createStep === 3) && (
+          <p className="text-sm text-red-600">{state.error}</p>
+        )}
 
         {!stamp && (isEditMode || createStep === 3) && (
           <p className="text-center text-sm text-amber-700">⬆️ スタンプをえらんでね！</p>
