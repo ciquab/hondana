@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ほんだな',
+  title: 'よもっと！',
   description: '家族向け読書記録アプリ'
 };
 
