@@ -49,12 +49,12 @@ export default async function DashboardPage() {
       <header className="mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs text-stone-400">よもっと！ 家族の読書記録</p>
-          <h1 className="text-xl font-bold text-slate-900">{currentFamilyName}</h1>
+          <h1 className="text-xl font-bold text-slate-900">
+            {currentFamilyName}
+          </h1>
         </div>
         <form action={signOut}>
-          <button className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-600 transition hover:bg-stone-50">
-            ログアウト
-          </button>
+          <button className="btn-secondary px-3 text-sm">ログアウト</button>
         </form>
       </header>
 
@@ -66,13 +66,18 @@ export default async function DashboardPage() {
               <p className="text-xs text-stone-400">{currentMonth}月の読書</p>
               <p className="mt-0.5 text-3xl font-bold text-stone-900">
                 {monthlyTotal}
-                <span className="ml-1 text-base font-normal text-stone-500">冊</span>
+                <span className="ml-1 text-base font-normal text-stone-500">
+                  冊
+                </span>
               </p>
             </div>
             {children.length > 1 && (
               <ul className="flex flex-col items-end gap-1">
                 {children.map((child) => (
-                  <li key={child.id} className="flex items-center gap-2 text-sm">
+                  <li
+                    key={child.id}
+                    className="flex items-center gap-2 text-sm"
+                  >
                     <span className="text-stone-500">{child.display_name}</span>
                     <span className="font-semibold text-stone-800">
                       {monthlyByChild[child.id] ?? 0} 冊
@@ -103,28 +108,16 @@ export default async function DashboardPage() {
 
       {/* 設定リンク：最小限のみ */}
       <nav className="flex flex-wrap gap-2">
-        <Link
-          href="/settings/family"
-          className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 transition hover:bg-stone-50"
-        >
+        <Link href="/settings/family" className="btn-secondary px-3 text-sm">
           家族設定
         </Link>
-        <Link
-          href="/settings/children"
-          className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 transition hover:bg-stone-50"
-        >
+        <Link href="/settings/children" className="btn-secondary px-3 text-sm">
           子どもを追加
         </Link>
-        <Link
-          href="/invite"
-          className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 transition hover:bg-stone-50"
-        >
+        <Link href="/invite" className="btn-secondary px-3 text-sm">
           招待コードで参加
         </Link>
-        <Link
-          href="/kids/login"
-          className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 transition hover:bg-stone-50"
-        >
+        <Link href="/kids/login" className="btn-secondary px-3 text-sm">
           子どもモードへ
         </Link>
       </nav>
