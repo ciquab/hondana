@@ -17,8 +17,8 @@ export default async function KidsNewRecordPage({
     <main className="mx-auto max-w-xl p-4">
       <AppTopNav
         title={ageText(ageMode, {
-          junior: 'きろく',
-          standard: '読書記録'
+          junior: '3ステップ きろく',
+          standard: '3ステップ記録'
         })}
         backHref="/kids/home"
         backLabel={ageText(ageMode, {
