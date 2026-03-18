@@ -84,7 +84,7 @@ export default async function RecordCompletePage({
         </h1>
       </div>
 
-      <div className="mb-6 w-full max-w-xs rounded-2xl bg-white p-5 shadow">
+      <div className="surface mb-4 w-full max-w-xs p-5">
         {record.cover_url ? (
           <BookCoverImage
             src={record.cover_url}
@@ -106,6 +106,26 @@ export default async function RecordCompletePage({
             {stampInfo.emoji} {stampInfo.label}
           </p>
         )}
+      </div>
+
+      <div className="surface mb-6 w-full max-w-xs p-4 text-left">
+        <p className="text-xs font-semibold text-sky-700">
+          {ageText(ageMode, {
+            junior: 'きょうのできたこと',
+            standard: '今日できたこと'
+          })}
+        </p>
+        <ul className="mt-2 space-y-1 text-sm text-slate-700">
+          <li>✅ {ageText(ageMode, { junior: 'ほんをえらんだ', standard: '本を選んだ' })}</li>
+          <li>
+            ✅{' '}
+            {ageText(ageMode, {
+              junior: 'よんだじょうたいをきろくした',
+              standard: '読んだ状態を記録した'
+            })}
+          </li>
+          <li>✅ {ageText(ageMode, { junior: 'きもちをのこした', standard: '気持ちを残した' })}</li>
+        </ul>
       </div>
 
       {mission && (
@@ -140,19 +160,13 @@ export default async function RecordCompletePage({
       )}
 
       <div className="flex w-full max-w-xs flex-col gap-3">
-        <Link
-          href="/kids/records/new"
-          className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white shadow hover:bg-orange-600"
-        >
+        <Link href="/kids/records/new" className="btn-primary px-4 py-3 text-sm font-bold shadow">
           {ageText(ageMode, {
             junior: '📚 もう1さつ',
             standard: '📚 もう1冊 登録'
           })}
         </Link>
-        <Link
-          href="/kids/home"
-          className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
+        <Link href="/kids/home" className="btn-secondary px-4 py-3 text-sm font-medium">
           {ageText(ageMode, {
             junior: '🏠 ホーム',
             standard: '🏠 ホームに戻る'

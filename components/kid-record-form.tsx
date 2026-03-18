@@ -48,19 +48,15 @@ const STAMPS = [
   }
 ] as const;
 
-const PRIMARY_BTN =
-  'w-full rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-50';
-const SECONDARY_BTN =
-  'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50';
+const PRIMARY_BTN = 'btn-primary w-full text-sm font-bold disabled:opacity-50';
+const SECONDARY_BTN = 'btn-secondary px-3 text-sm font-semibold disabled:opacity-50';
 const TERTIARY_BTN =
-  'rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100';
+  'btn-secondary border-sky-300 bg-sky-50 px-3 text-sm font-semibold text-sky-700 hover:bg-sky-100';
 
 type KidRecordFormProps = {
-  // 新規作成モード
   initialTitle?: string;
   initialAuthor?: string;
   initialIsbn?: string;
-  // 編集モード（recordId が渡された場合）
   recordId?: string;
   initialCoverUrl?: string;
   initialStamp?: string;
@@ -82,7 +78,7 @@ export function KidRecordForm({
   initialMemo,
   initialFinishedOn,
   initialGenre,
-  initialFeelingTags,
+  initialFeelingTags
 }: KidRecordFormProps = {}) {
   const isEditMode = Boolean(recordId);
   const action = isEditMode ? updateKidRecord : createKidRecord;
@@ -95,6 +91,7 @@ export function KidRecordForm({
   const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
 
   const [title, setTitle] = useState(initialTitle ?? '');
   const [author, setAuthor] = useState(initialAuthor ?? '');
@@ -111,7 +108,6 @@ export function KidRecordForm({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const ageMode = useAgeMode();
-  const [mode, setMode] = useState<'simple' | 'detailed'>('simple');
   const recordCreateTrackedRef = useRef(false);
 
   const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>(
@@ -143,7 +139,7 @@ export function KidRecordForm({
           fillFromBook({ ...data.results[0], isbn13: detectedIsbn });
         }
       } catch {
-        // ISBN set only; manual input remains possible.
+        // noop
       }
     },
     [fillFromBook]
@@ -167,16 +163,15 @@ export function KidRecordForm({
     }
   }, [searchQuery]);
 
-
   useEffect(() => {
-    if (recordCreateTrackedRef.current) return;
+    if (isEditMode || recordCreateTrackedRef.current) return;
     recordCreateTrackedRef.current = true;
     trackNavigationEvent({
       event: 'record_create_start',
       target: 'kid_record_form',
       meta: { age_mode: ageMode }
     });
-  }, [ageMode]);
+  }, [ageMode, isEditMode]);
 
   const toggleFeeling = (tag: string) => {
     setFeelingTags((prev) =>
@@ -186,112 +181,208 @@ export function KidRecordForm({
 
   return (
     <>
-      {/* 書籍検索エリア：新規作成モードのみ表示 */}
       {!isEditMode && (
-        <div className="mb-4 space-y-3 rounded-xl bg-white p-4 shadow">
-          <button
-            type="button"
-            onClick={() => setShowScanner(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 p-3 text-orange-700 transition hover:bg-orange-100"
-          >
-            📷 バーコードでとうろく
-          </button>
-
-          <div className="flex gap-2">
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-                  e.preventDefault();
-                  handleTitleSearch();
-                }
-              }}
-              className="flex-1 rounded border p-2 text-sm"
-              placeholder="ほんのなまえをいれよう…"
-            />
-            <button
-              type="button"
-              onClick={handleTitleSearch}
-              disabled={searching}
-              className={SECONDARY_BTN}
-            >
-              {searching ? 'けんさくちゅう…' : 'けんさく'}
-            </button>
+        <div className="surface mb-4 space-y-3 p-4">
+          <div className="rounded-lg bg-sky-50 p-3 text-xs text-sky-800">
+            {ageMode === 'junior'
+              ? '① ほんをえらぶ → ② よみおわりじょうたい → ③ きもちをきろく'
+              : '① 本を選ぶ → ② 読書ステータス → ③ 気持ちを記録'}
           </div>
 
-        {searchResults.length > 0 ? (
-          <ul className="max-h-60 space-y-1 overflow-y-auto rounded-lg border bg-white p-2">
-            {searchResults.map((book, i) => (
-              <li key={i}>
-                <button
-                  type="button"
-                  onClick={() => fillFromBook(book)}
-                  className="flex w-full items-start gap-2 rounded p-2 text-left hover:bg-slate-50"
-                >
-                  <BookCoverImg
-                    src={book.coverUrl}
-                    placeholderClassName="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-600"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{book.title}</p>
-                    <p className="truncate text-xs text-slate-500">
-                      {book.author ?? 'ちょしゃふめい'}
-                    </p>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          hasSearched &&
-          !searching && (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center">
-              <p className="mb-3 text-sm text-slate-600">
-                みつかりませんでした
-              </p>
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setHasSearched(false);
-                    searchInputRef.current?.focus();
+          {createStep === 1 && (
+            <>
+              <p className="text-sm font-semibold text-slate-700">1/3 本を選ぶ</p>
+              <button
+                type="button"
+                onClick={() => setShowScanner(true)}
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-sky-300 bg-sky-50 p-3 text-sky-700 transition hover:bg-sky-100"
+              >
+                📷 バーコードでとうろく
+              </button>
+
+              <div className="flex gap-2">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                      e.preventDefault();
+                      handleTitleSearch();
+                    }
                   }}
+                  className="min-h-11 flex-1 rounded border p-2 text-sm"
+                  placeholder="ほんのなまえをいれよう…"
+                />
+                <button
+                  type="button"
+                  onClick={handleTitleSearch}
+                  disabled={searching}
                   className={SECONDARY_BTN}
                 >
-                  べつのことばでけんさくする
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowScanner(true)}
-                  className={TERTIARY_BTN}
-                >
-                  バーコードでさがす
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHasSearched(false);
-                    setSearchQuery('');
-                    titleInputRef.current?.focus();
-                  }}
-                  className={SECONDARY_BTN}
-                >
-                  じぶんでにゅうりょくする
+                  {searching ? 'けんさくちゅう…' : 'けんさく'}
                 </button>
               </div>
-            </div>
-          )
-        )}
+
+              {searchResults.length > 0 ? (
+                <ul className="max-h-60 space-y-1 overflow-y-auto rounded-lg border bg-white p-2">
+                  {searchResults.map((book, i) => (
+                    <li key={i}>
+                      <button
+                        type="button"
+                        onClick={() => fillFromBook(book)}
+                        className="flex min-h-11 w-full items-start gap-2 rounded p-2 text-left hover:bg-slate-50"
+                      >
+                        <BookCoverImg
+                          src={book.coverUrl}
+                          placeholderClassName="flex h-14 w-10 flex-shrink-0 items-center justify-center rounded bg-slate-200 text-xs text-slate-600"
+                        />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{book.title}</p>
+                          <p className="truncate text-xs text-slate-500">
+                            {book.author ?? 'ちょしゃふめい'}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                hasSearched &&
+                !searching && (
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center">
+                    <p className="mb-3 text-sm text-slate-600">みつかりませんでした</p>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery('');
+                          setHasSearched(false);
+                          searchInputRef.current?.focus();
+                        }}
+                        className={SECONDARY_BTN}
+                      >
+                        べつのことばでけんさくする
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowScanner(true)}
+                        className={TERTIARY_BTN}
+                      >
+                        バーコードでさがす
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasSearched(false);
+                          setSearchQuery('');
+                          titleInputRef.current?.focus();
+                        }}
+                        className={SECONDARY_BTN}
+                      >
+                        じぶんでにゅうりょくする
+                      </button>
+                    </div>
+                  </div>
+                )
+              )}
+
+              <div>
+                <label htmlFor="title" className="mb-1 block text-sm font-medium">
+                  ほんのタイトル
+                </label>
+                <input
+                  ref={titleInputRef}
+                  id="title"
+                  type="text"
+                  required
+                  className="min-h-11 w-full rounded border p-2"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCreateStep(2)}
+                disabled={!title.trim()}
+                className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'min-h-11'}`}
+              >
+                {ageMode === 'junior' ? 'つぎへ' : 'つぎへ進む'}
+              </button>
+            </>
+          )}
+
+          {createStep === 2 && (
+            <>
+              <p className="text-sm font-semibold text-slate-700">2/3 読書ステータス</p>
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium">さいごまでよんだ？</legend>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReadStatus('finished')}
+                    className={`flex min-h-11 flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'finished' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
+                  >
+                    <span className="text-xl">📖</span>
+                    <span>さいごまで</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReadStatus('reading')}
+                    className={`flex min-h-11 flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'reading' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
+                  >
+                    <span className="text-xl">🔖</span>
+                    <span>とちゅうまで</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReadStatus('read_aloud')}
+                    className={`flex min-h-11 flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'read_aloud' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white'}`}
+                  >
+                    <span className="text-xl">👂</span>
+                    <span>よんでもらった</span>
+                  </button>
+                </div>
+              </fieldset>
+
+              <div>
+                <label htmlFor="finishedOn" className="mb-1 block text-sm font-medium">
+                  よんだひ
+                </label>
+                <input
+                  id="finishedOn"
+                  type="date"
+                  className="min-h-11 w-full rounded border p-2"
+                  value={finishedOn}
+                  onChange={(e) => setFinishedOn(e.target.value)}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCreateStep(1)}
+                  className="btn-secondary flex-1"
+                >
+                  もどる
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreateStep(3)}
+                  className="btn-primary flex-1"
+                >
+                  つぎへ
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
-      {/* 編集モード：本のタイトルを表示のみ（変更不可） */}
       {isEditMode && title && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl bg-white p-4 shadow">
+        <div className="surface mb-4 flex items-center gap-3 p-4">
           {coverUrl && (
             <BookCoverImg
               src={coverUrl}
@@ -303,67 +394,31 @@ export function KidRecordForm({
             <p className="text-xs text-stone-400">
               {ageMode === 'junior' ? 'このほんをへんしゅう' : 'この本を編集'}
             </p>
-            <p className="font-semibold text-stone-800 line-clamp-2">{title}</p>
+            <p className="line-clamp-2 font-semibold text-stone-800">{title}</p>
           </div>
         </div>
       )}
 
-      <div className="mb-4 flex gap-1 rounded-lg bg-slate-100 p-1">
-        <button
-          type="button"
-          onClick={() => setMode('simple')}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-bold transition-colors ${
-            mode === 'simple'
-              ? 'bg-white text-orange-600 shadow'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          ✨ かんたん
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('detailed')}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-bold transition-colors ${
-            mode === 'detailed'
-              ? 'bg-white text-orange-600 shadow'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          📝 くわしく
-        </button>
-      </div>
-
       <form
         action={formAction}
-        className="space-y-4 rounded-xl bg-white p-4 shadow"
+        className="surface space-y-4 p-4"
+        onSubmit={(e) => {
+          if (!isEditMode && createStep !== 3) {
+            e.preventDefault();
+          }
+        }}
       >
         {isEditMode && <input type="hidden" name="recordId" value={recordId} />}
         <input type="hidden" name="coverUrl" value={coverUrl ?? ''} />
         <input type="hidden" name="stamp" value={stamp} />
-        {mode === 'simple' ? (
-          <>
-            <input type="hidden" name="status" value="finished" />
-            <input
-              type="hidden"
-              name="finishedOn"
-              value={new Date().toISOString().slice(0, 10)}
-            />
-            <input type="hidden" name="author" value={author} />
-            <input type="hidden" name="isbn" value={isbn} />
-          </>
-        ) : (
-          <>
-            <input
-              type="hidden"
-              name="status"
-              value={readStatus}
-            />
-            <input type="hidden" name="genre" value={genre} />
-            {feelingTags.map((tag) => (
-              <input key={tag} type="hidden" name="feelingTags" value={tag} />
-            ))}
-          </>
-        )}
+        <input type="hidden" name="status" value={readStatus} />
+        <input type="hidden" name="author" value={author} />
+        <input type="hidden" name="isbn" value={isbn} />
+        <input type="hidden" name="genre" value={genre} />
+        <input type="hidden" name="finishedOn" value={finishedOn} />
+        {feelingTags.map((tag) => (
+          <input key={tag} type="hidden" name="feelingTags" value={tag} />
+        ))}
 
         {coverUrl && (
           <div className="flex justify-center">
@@ -376,95 +431,36 @@ export function KidRecordForm({
           </div>
         )}
 
-        {isEditMode ? (
-          <input type="hidden" name="title" value={title} />
-        ) : (
-          <div>
-            <label htmlFor="title" className="mb-1 block text-sm font-medium">
-              ほんのタイトル
-            </label>
-            <input
-              ref={titleInputRef}
-              id="title"
-              name="title"
-              required
-              className="w-full rounded border p-2"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-        )}
+        <input type="hidden" name="title" value={title} />
 
-        {mode === 'detailed' && (
-          <>
-            <div>
-              <label htmlFor="author" className="mb-1 block text-sm font-medium">
-                かいたひと{' '}
-                <span className="text-xs font-normal text-slate-600">
-                  {ageMode === 'junior' ? '（かかなくていいよ）' : '（かかなくてもOK）'}
-                </span>
-              </label>
-              <input
-                id="author"
-                name="author"
-                className="w-full rounded border p-2"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-              />
-            </div>
-
-            {ageMode !== 'junior' && (
-              <div>
-                <label htmlFor="isbn" className="mb-1 block text-sm font-medium">
-                  ISBN（13けた）{' '}
-                  <span className="text-xs font-normal text-slate-600">（かかなくてもOK）</span>
-                </label>
-                <input
-                  id="isbn"
-                  name="isbn"
-                  className="w-full rounded border p-2"
-                  maxLength={13}
-                  value={isbn}
-                  onChange={(e) => setIsbn(e.target.value)}
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium">スタンプをえらぶ</legend>
-          <div className="grid grid-cols-2 gap-2">
-            {STAMPS.map((item) => {
-              const selected = stamp === item.value;
-              return (
-                <button
-                  type="button"
-                  key={item.value}
-                  onClick={() => setStamp(item.value)}
-                  className={`flex flex-col items-center gap-1 rounded-lg border py-4 text-sm transition-transform ${
-                    selected
-                      ? `scale-105 ${item.selectedClass}`
-                      : 'border-slate-200 bg-white hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="text-3xl">{item.emoji}</span>
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        {mode === 'detailed' && (
+        {(isEditMode || createStep === 3) && (
           <>
             <fieldset>
-              <legend className="mb-2 text-sm font-medium">
-                ジャンルをえらぶ{' '}
-                <span className="text-xs font-normal text-slate-600">
-                  {ageMode === 'junior' ? '（かかなくていいよ）' : '（かかなくてもOK）'}
-                </span>
-              </legend>
+              <legend className="mb-2 text-sm font-medium">スタンプをえらぶ</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {STAMPS.map((item) => {
+                  const selected = stamp === item.value;
+                  return (
+                    <button
+                      type="button"
+                      key={item.value}
+                      onClick={() => setStamp(item.value)}
+                      className={`flex min-h-11 flex-col items-center gap-1 rounded-lg border py-4 text-sm transition-transform ${
+                        selected
+                          ? `scale-105 ${item.selectedClass}`
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="text-3xl">{item.emoji}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">ジャンルをえらぶ</legend>
               <div className="grid grid-cols-2 gap-2">
                 {CHILD_GENRES.map((g) => {
                   const selected = genre === g;
@@ -473,7 +469,7 @@ export function KidRecordForm({
                       type="button"
                       key={g}
                       onClick={() => setGenre(selected ? '' : g)}
-                      className={`rounded-lg border px-3 py-2 text-sm transition-transform active:scale-95 ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white'}`}
+                      className={`min-h-11 rounded-lg border px-3 py-2 text-sm transition-transform active:scale-95 ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white'}`}
                     >
                       {genreDisplayName(g)}
                     </button>
@@ -483,9 +479,7 @@ export function KidRecordForm({
             </fieldset>
 
             <fieldset>
-              <legend className="mb-2 text-sm font-medium">
-                きもちタグ（ふくすうえらべる）
-              </legend>
+              <legend className="mb-2 text-sm font-medium">きもちタグ（ふくすうえらべる）</legend>
               <div className="flex flex-wrap gap-2">
                 {CHILD_FEELINGS.map((tag) => {
                   const selected = feelingTags.includes(tag);
@@ -494,7 +488,7 @@ export function KidRecordForm({
                       type="button"
                       key={tag}
                       onClick={() => toggleFeeling(tag)}
-                      className={`rounded-full border px-3 py-1 text-sm ${selected ? 'border-amber-400 bg-amber-100 text-amber-900' : 'border-slate-300 bg-white text-slate-700'}`}
+                      className={`min-h-11 rounded-full border px-3 py-1 text-sm ${selected ? 'border-amber-400 bg-amber-100 text-amber-900' : 'border-slate-300 bg-white text-slate-700'}`}
                     >
                       {tag}
                     </button>
@@ -503,61 +497,9 @@ export function KidRecordForm({
               </div>
             </fieldset>
 
-            <fieldset>
-              <legend className="mb-2 text-sm font-medium">
-                さいごまでよんだ？
-              </legend>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setReadStatus('finished')}
-                  className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'finished' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white'}`}
-                >
-                  <span className="text-xl">📖</span>
-                  <span>さいごまで</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReadStatus('reading')}
-                  className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'reading' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white'}`}
-                >
-                  <span className="text-xl">🔖</span>
-                  <span>とちゅうまで</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReadStatus('read_aloud')}
-                  className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-xs ${readStatus === 'read_aloud' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white'}`}
-                >
-                  <span className="text-xl">👂</span>
-                  <span>よんでもらった</span>
-                </button>
-              </div>
-            </fieldset>
-
-            <div>
-              <label
-                htmlFor="finishedOn"
-                className="mb-1 block text-sm font-medium"
-              >
-                よんだひ
-              </label>
-              <input
-                id="finishedOn"
-                name="finishedOn"
-                type="date"
-                className="w-full rounded border p-2"
-                value={finishedOn}
-                onChange={(e) => setFinishedOn(e.target.value)}
-              />
-            </div>
-
             <div>
               <label htmlFor="memo" className="mb-1 block text-sm font-medium">
-                ひとことかんそう{' '}
-                <span className="text-xs font-normal text-slate-600">
-                  {ageMode === 'junior' ? '（かかなくていいよ）' : '（かかなくてもOK）'}
-                </span>
+                ひとことかんそう
               </label>
               <textarea
                 id="memo"
@@ -572,37 +514,50 @@ export function KidRecordForm({
           </>
         )}
 
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
-
-        {!stamp && (
-          <p className="text-center text-sm text-amber-700">
-            ⬆️{' '}
-            {ageMode === 'junior'
-              ? 'スタンプをえらんでね！'
-              : 'スタンプを選んでから保存できます'}
-          </p>
+        {state.error && (isEditMode || createStep === 3) && (
+          <p className="text-sm text-red-600">{state.error}</p>
         )}
 
-        <button
-          type="submit"
-          disabled={pending || !stamp}
-          className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'h-10'}`}
-          onClick={() =>
-            trackNavigationEvent({
-              event: 'record_create_submit',
-              target: mode,
-              meta: { hasStamp: Boolean(stamp), hasGenre: Boolean(genre), age_mode: ageMode }
-            })
-          }
-        >
-          {pending
-            ? 'ほぞんちゅう…'
-            : isEditMode
-              ? ageMode === 'junior'
-                ? 'へんこうをほぞんする'
-                : '変更を保存する'
-              : 'ほぞんする'}
-        </button>
+        {!stamp && (isEditMode || createStep === 3) && (
+          <p className="text-center text-sm text-amber-700">⬆️ スタンプをえらんでね！</p>
+        )}
+
+        {(isEditMode || createStep === 3) && (
+          <>
+            {!isEditMode && (
+              <button
+                type="button"
+                onClick={() => setCreateStep(2)}
+                className="btn-secondary w-full"
+              >
+                もどる
+              </button>
+            )}
+
+            <button
+              type="submit"
+              disabled={pending || !stamp}
+              className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'min-h-11'}`}
+              onClick={() =>
+                trackNavigationEvent({
+                  event: 'record_create_submit',
+                  target: isEditMode ? 'edit' : 'step3',
+                  meta: { hasStamp: Boolean(stamp), hasGenre: Boolean(genre), age_mode: ageMode }
+                })
+              }
+            >
+              {pending
+                ? 'ほぞんちゅう…'
+                : isEditMode
+                  ? ageMode === 'junior'
+                    ? 'へんこうをほぞんする'
+                    : '変更を保存する'
+                  : ageMode === 'junior'
+                    ? 'きろくをおえる'
+                    : '記録を完了する'}
+            </button>
+          </>
+        )}
       </form>
 
       {showScanner && (
