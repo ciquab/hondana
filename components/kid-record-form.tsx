@@ -109,6 +109,7 @@ export function KidRecordForm({
   const titleInputRef = useRef<HTMLInputElement>(null);
   const ageMode = useAgeMode();
   const recordCreateTrackedRef = useRef(false);
+  const recordCreateStartedAtRef = useRef<number | null>(null);
 
   const [readStatus, setReadStatus] = useState<'finished' | 'reading' | 'read_aloud'>(
     initialStatus ?? 'finished'
@@ -166,12 +167,24 @@ export function KidRecordForm({
   useEffect(() => {
     if (isEditMode || recordCreateTrackedRef.current) return;
     recordCreateTrackedRef.current = true;
+    recordCreateStartedAtRef.current = Date.now();
     trackNavigationEvent({
       event: 'record_create_start',
       target: 'kid_record_form',
       meta: { age_mode: ageMode }
     });
   }, [ageMode, isEditMode]);
+
+  const moveToStep = (nextStep: 1 | 2 | 3) => {
+    if (!isEditMode && createStep !== nextStep) {
+      trackNavigationEvent({
+        event: 'record_create_step',
+        target: `step_${createStep}_to_${nextStep}`,
+        meta: { age_mode: ageMode }
+      });
+    }
+    setCreateStep(nextStep);
+  };
 
   const toggleFeeling = (tag: string) => {
     setFeelingTags((prev) =>
@@ -305,7 +318,7 @@ export function KidRecordForm({
 
               <button
                 type="button"
-                onClick={() => setCreateStep(2)}
+                onClick={() => moveToStep(2)}
                 disabled={!title.trim()}
                 className={`${PRIMARY_BTN} ${ageMode === 'junior' ? 'h-14 text-base' : 'min-h-11'}`}
               >
@@ -363,14 +376,14 @@ export function KidRecordForm({
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setCreateStep(1)}
+                  onClick={() => moveToStep(1)}
                   className="btn-secondary flex-1"
                 >
                   もどる
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCreateStep(3)}
+                  onClick={() => moveToStep(3)}
                   className="btn-primary flex-1"
                 >
                   つぎへ
@@ -527,7 +540,7 @@ export function KidRecordForm({
             {!isEditMode && (
               <button
                 type="button"
-                onClick={() => setCreateStep(2)}
+                onClick={() => moveToStep(2)}
                 className="btn-secondary w-full"
               >
                 もどる
@@ -542,7 +555,15 @@ export function KidRecordForm({
                 trackNavigationEvent({
                   event: 'record_create_submit',
                   target: isEditMode ? 'edit' : 'step3',
-                  meta: { hasStamp: Boolean(stamp), hasGenre: Boolean(genre), age_mode: ageMode }
+                  meta: {
+                    hasStamp: Boolean(stamp),
+                    hasGenre: Boolean(genre),
+                    age_mode: ageMode,
+                    elapsed_ms:
+                      !isEditMode && recordCreateStartedAtRef.current
+                        ? Date.now() - recordCreateStartedAtRef.current
+                        : null
+                  }
                 })
               }
             >
