@@ -4,6 +4,7 @@ export type NavigationEventName =
   | 'kid_home_notice_click'
   | 'kid_home_nav_click'
   | 'record_create_start'
+  | 'record_create_step'
   | 'record_create_submit'
   | 'kid_message_mark_read'
   | 'mission_set';
